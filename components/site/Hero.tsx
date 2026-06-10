@@ -3,10 +3,12 @@ import HeroFieldLoader from "@/components/three/HeroFieldLoader";
 import HeroTrace from "@/components/site/HeroTrace";
 
 /**
- * The hero states the doctrine at full scale and then PROVES it — a
- * method trace built from true facts plays back beside the headline.
- * The name lives in the header, permanently visible; the landing
- * moment is about how the work gets made.
+ * The hero states the motto at full scale, the doctrine underneath it,
+ * and then PROVES both — a method trace built from true facts plays
+ * back beside the headline. The name lives in the header, permanently
+ * visible; the landing moment is about how the work gets made. Copy
+ * here is deliberately durable: no product names, no counts that
+ * stale as the archive grows.
  */
 export default function Hero() {
   return (
@@ -20,10 +22,15 @@ export default function Hero() {
 
         <div className="mt-10 grid items-end gap-8 border-t border-line pt-7 md:grid-cols-[minmax(0,1fr)_minmax(360px,480px)]">
           <div>
-            <p className="max-w-md font-mono text-mono-sm text-ash">
-              Products people crave — agents that move money carefully, web
-              and mobile apps, instruments for the DJ booth. Below: every
-              system, documented to the studs.
+            <p className="max-w-md text-title font-bold leading-[1.15]">
+              Probabilistic imagination.
+              <br />
+              Deterministic execution.
+            </p>
+            <p className="mt-5 max-w-md font-mono text-mono-sm text-ash">
+              Products people crave, built end to end — and documented to the
+              studs. Every system below is real and inspectable: the
+              architecture, the decisions, the failures, the rules that hold.
             </p>
             <p className="mt-6 font-mono text-label tracking-[0.2em] text-dim uppercase">
               The archive ↓

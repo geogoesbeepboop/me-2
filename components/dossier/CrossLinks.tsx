@@ -8,9 +8,16 @@ import { backlinks, KIND_TAG, resolveRef, type Node } from "@/lib/content";
  * node that points back.
  */
 export default function CrossLinks({ node, n = "XX" }: { node: Node; n?: string }) {
+  // refs land at the top of a piece, so two refs into the same piece
+  // collapse to one row
+  const seen = new Set<string>();
   const outbound = node.refs
     .map((r) => ({ raw: r, res: resolveRef(r) }))
-    .filter((r) => r.res);
+    .filter((r) => {
+      if (!r.res || seen.has(r.res.href)) return false;
+      seen.add(r.res.href);
+      return true;
+    });
   const inbound = backlinks(node.path);
 
   if (outbound.length === 0 && inbound.length === 0) return null;
@@ -44,9 +51,6 @@ export default function CrossLinks({ node, n = "XX" }: { node: Node; n?: string 
                   </span>
                   <span className="text-bone underline-offset-4 group-hover:underline">
                     {res!.title}
-                    {res!.anchorTitle && (
-                      <span className="text-ash"> § {res!.anchorTitle}</span>
-                    )}
                   </span>
                 </Link>
               </li>

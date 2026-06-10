@@ -27,21 +27,22 @@ Spotify DJ is a recommender in a costume — it legally can't touch audio, and i
 
 <SystemDeepDive
   title="DJ Agent"
+  inspect="dj-agent"
   subtitle="Semantics live in vectors, mixing math lives in columns — and the only two LLM components are wrapped in a deterministic verify loop."
   nodes={[
     { id: "lib", label: "Local library", sub: "sourceprovider seam", col: 0, row: 0 },
     { id: "cur", label: "Curator", sub: "all-day ingest · idempotent", col: 1, row: 0 },
     { id: "seg", label: "Segment", sub: "allin1 → librosa fallback", col: 2, row: 0 },
     { id: "ana", label: "Analyze", sub: "bpm · camelot · lufs", col: 3, row: 0 },
-    { id: "taste", label: "Taste loop", sub: "notes → 384-d · propagate", col: 0, row: 1, accent: true },
+    { id: "taste", label: "Taste loop", sub: "notes → 384-d · propagate", col: 0, row: 1 },
     { id: "store", label: "Postgres + pgvector", sub: "tracks · sections · one row", col: 1, row: 1 },
     { id: "clap", label: "CLAP encoder", sub: "512-d track + per-section", col: 2, row: 1 },
     { id: "meta", label: "ID3 tags", sub: "mutagen", col: 3, row: 1 },
-    { id: "arch", label: "Architect", sub: "llm · brief → arc", col: 0, row: 2, accent: true },
-    { id: "sel", label: "Selector", sub: "llm · generate→verify→revise", col: 1, row: 2, accent: true },
-    { id: "critic", label: "Critic", sub: "deterministic verifier", col: 2, row: 2 },
+    { id: "arch", label: "Architect", sub: "llm · brief → arc", col: 0, row: 2 },
+    { id: "sel", label: "Selector", sub: "llm · generate→verify→revise", col: 1, row: 2 },
+    { id: "critic", label: "Critic", sub: "deterministic verifier", col: 2, row: 2, accent: true },
     { id: "hitl", label: "HITL gate", sub: "approve the plan as data", col: 3, row: 2, accent: true },
-    { id: "core", label: "agent-core", sub: "trace · complete() · budget", col: 0, row: 3 },
+    { id: "core", label: "LLM core", sub: "llm.py · tiers, trace, retries", col: 0, row: 3 },
     { id: "mixer", label: "Mixer", sub: "stretch · equal-power · eq", col: 1, row: 3 },
     { id: "wav", label: "Rendered mix", sub: ".wav · peak-normalized", col: 2, row: 3 },
     { id: "hist", label: "Set history", sub: "every plan, jsonl", col: 3, row: 3 }
@@ -133,7 +134,7 @@ Spotify DJ is a recommender in a costume — it legally can't touch audio, and i
     "Camelot compatibility is a hard gate — the model only chooses among legal moves.",
     "The human approves the plan as data before any compute is spent on audio.",
     "Semantics live in vectors; mixing math lives in columns. Never mixed.",
-    "agent-core is a substrate, never forked — tracing, complete(), budgets are shared."
+    "Agents ask for a tier, never a model id — llm.py owns routing, caching, retries."
   ]}
 />
 
@@ -149,7 +150,6 @@ Next gate is contact with reality: the first full ingest of my actual library, w
 
 <TerminalLog
   title="set generation — 2-hr sunset rooftop, slow build"
-  cursor={false}
   lines={[
     { k: "agent", s: "[architect] brief → arc control points (bpm + lufs over time)" },
     { k: "out", s: "[selector] pool: blended acoustic + taste, arc bpm band → 84 candidates" },

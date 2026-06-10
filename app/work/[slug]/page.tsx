@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import MaskReveal from "@/components/motion/MaskReveal";
 import Toc from "@/components/dossier/Toc";
-import CrossLinks from "@/components/dossier/CrossLinks";
 import { Mdx } from "@/lib/mdx";
 import { accentOf, getNode, nodesOf, resolveRef } from "@/lib/content";
 
@@ -28,8 +27,6 @@ export default async function WorkDossier({ params }: Props) {
 
   const reflection = node.reflection ? resolveRef(node.reflection) : undefined;
   const sections = node.sections ?? [];
-  const tocSections = [...sections, { id: "related", title: "Connected nodes" }];
-  const relatedN = String(sections.length).padStart(2, "0");
 
   const meta: [string, string][] = [
     ["Role", node.role ?? "—"],
@@ -98,12 +95,11 @@ export default async function WorkDossier({ params }: Props) {
       <div className="mt-8 px-5 md:px-10 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-16">
         <aside className="hidden lg:block">
           <div className="sticky top-32">
-            <Toc sections={tocSections} />
+            <Toc sections={sections} />
           </div>
         </aside>
         <div className="min-w-0">
           <Mdx source={node.body} />
-          <CrossLinks node={node} n={relatedN} />
         </div>
       </div>
 

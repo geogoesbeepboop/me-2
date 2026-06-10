@@ -57,8 +57,6 @@ export interface ResolvedRef {
   href: string;
   kind: Kind;
   title: string;
-  /** section title when the ref deep-links, e.g. "What broke" */
-  anchorTitle?: string;
 }
 
 const ROOT = path.join(process.cwd(), "content");
@@ -139,20 +137,20 @@ function findByPath(nodePath: string): Node | undefined {
   return allNodes().find((n) => n.path === nodePath);
 }
 
-/** "work/grocery-buddy#what-broke" → href + display data */
+/**
+ * "work/grocery-buddy#what-broke" → href + display data.
+ * Anchors in frontmatter still shape the graph, but links land at the
+ * top of the piece — a reference is an invitation to read the thing,
+ * not a teleport into its middle.
+ */
 export function resolveRef(ref: string): ResolvedRef | undefined {
-  const [nodePath, anchor] = ref.split("#");
+  const [nodePath] = ref.split("#");
   const node = findByPath(nodePath);
   if (!node) return undefined;
-  const anchorTitle = anchor
-    ? node.sections?.find((s) => s.id === anchor)?.title ??
-      anchor.replace(/-/g, " ")
-    : undefined;
   return {
-    href: `/${node.path}${anchor ? `#${anchor}` : ""}`,
+    href: `/${node.path}`,
     kind: node.kind,
     title: node.title,
-    anchorTitle,
   };
 }
 
@@ -190,13 +188,31 @@ export function getMethod(): MethodDoc {
   };
 }
 
-export function getSignal(): { body: string; updated: string; headline: string } {
-  const raw = fs.readFileSync(path.join(ROOT, "signal.mdx"), "utf8");
+export interface AboutDoc {
+  title: string;
+  headline: string;
+  location: string;
+  /** optional portrait under /public, e.g. "/me.jpg" — blank renders the placeholder */
+  photo?: string;
+  work: { org: string; role: string; span?: string }[];
+  education: { school: string; degrees: string[] }[];
+  interests: string[];
+  body: string;
+}
+
+/** /about — the person behind the archive; lives outside the graph like /method */
+export function getAbout(): AboutDoc {
+  const raw = fs.readFileSync(path.join(ROOT, "about.mdx"), "utf8");
   const { data, content } = matter(raw);
   return {
-    body: content,
-    updated: (data.updated as string) ?? "",
+    title: (data.title as string) ?? "About",
     headline: (data.headline as string) ?? "",
+    location: (data.location as string) ?? "",
+    photo: (data.photo as string) || undefined,
+    work: (data.work as AboutDoc["work"]) ?? [],
+    education: (data.education as AboutDoc["education"]) ?? [],
+    interests: (data.interests as string[]) ?? [],
+    body: content,
   };
 }
 

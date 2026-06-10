@@ -3,30 +3,31 @@ import Hero from "@/components/site/Hero";
 import ArchiveIndex from "@/components/archive/ArchiveIndex";
 import IndexRow from "@/components/archive/IndexRow";
 import Reveal from "@/components/motion/Reveal";
-import { allNodes, getMethod, getSignal, fullStamp } from "@/lib/content";
+import { allNodes, getMethod, getAbout } from "@/lib/content";
 
 export default function Home() {
   const nodes = allNodes();
-  const signal = getSignal();
+  const about = getAbout();
   const method = getMethod();
 
   return (
     <>
       <Hero />
 
-      {/* signal strip — one live line from /signal */}
+      {/* about strip — the person behind the archive, one line */}
       <Link
-        href="/signal"
+        href="/about"
         className="group block border-y border-line bg-panel/50 transition-colors duration-500 hover:bg-bone hover:text-void"
       >
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 px-5 py-4 font-mono md:px-10">
-          <span className="flex items-center gap-2 text-label tracking-[0.2em] text-dim uppercase group-hover:text-void/60">
-            <span className="live-dot" aria-hidden />
-            Signal
+          <span className="text-label tracking-[0.2em] text-dim uppercase group-hover:text-void/60">
+            About
           </span>
-          <span className="text-mono-sm">{signal.headline}</span>
+          <span className="text-mono-sm">
+            {about.headline} Engineer, {about.location.replace(", CA", "")}.
+          </span>
           <span className="ml-auto text-label tracking-[0.16em] text-dim uppercase group-hover:text-void/60">
-            upd {fullStamp(signal.updated)} →
+            the person behind the archive →
           </span>
         </div>
       </Link>

@@ -24,7 +24,7 @@ sections:
 
 Every project in this archive was built inside the same machine: Claude Code, wrapped in a harness that took longer to sharpen than most of the projects it has shipped. A standing contract that makes the model argue with me. Seventeen slash-skills that turn vague intent into a repeatable pipeline. A rim of hooks that guard the loop deterministically. Two specialist subagents that do the heavy reading in their own context windows. And a meter that prices every conversation after the fact.
 
-The premise is the same one running inside my products: **the model proposes; deterministic structure disposes.** The harness is where I apply my own doctrine to myself.
+The premise is the same one running inside my products: **probabilistic imagination, deterministic execution.** The harness is where I apply my own doctrine to myself.
 
 <ArchitectureDiagram
   title="the harness — at a glance"
@@ -33,7 +33,7 @@ The premise is the same one running inside my products: **the model proposes; de
     { id: "me", label: "George", sub: "framing = a hypothesis", col: 0, row: 0 },
     { id: "contract", label: "CLAUDE.md", sub: "the standing contract", col: 1, row: 0, accent: true },
     { id: "cc", label: "Claude Code", sub: "the main loop", col: 2, row: 0 },
-    { id: "skills", label: "17 skills", sub: "ideate → challenge → plan → wrap", col: 0, row: 1 },
+    { id: "skills", label: "17 skills", sub: "one pipeline, ideate → wrap", col: 0, row: 1 },
     { id: "agents", label: "Specialists", sub: "critic · researcher · explore", col: 1, row: 1 },
     { id: "hooks", label: "Hook rim", sub: "4 gates, fail-open", col: 2, row: 1, accent: true },
     { id: "handoffs", label: "Handoffs", sub: "state that survives sessions", col: 0, row: 2 },
@@ -54,14 +54,15 @@ The premise is the same one running inside my products: **the model proposes; de
 
 <SystemDeepDive
   title="The Harness"
+  inspect="method"
   subtitle="Claude Code as the engine; the harness as transmission, brakes, and instrumentation. Everything below is real configuration, quoted from the files that enforce it."
   nodes={[
     { id: "me", label: "George", sub: "decides · verifies · pays", col: 0, row: 0 },
     { id: "contract", label: "CLAUDE.md", sub: "disagree out loud · decide vs ask", col: 1, row: 0, accent: true },
     { id: "cc", label: "Claude Code", sub: "main loop · 1M-token ceiling", col: 2, row: 0 },
     { id: "memory", label: "Memory files", sub: "facts that outlive sessions", col: 3, row: 0 },
-    { id: "light", label: "Light skills", sub: "/brainstorm · /challenge · /plan", col: 0, row: 1 },
-    { id: "deep", label: "Deep skills", sub: "workflow.js · scripted fan-out", col: 1, row: 1, accent: true },
+    { id: "light", label: "Light skills", sub: "/brainstorm · /plan · /challenge", col: 0, row: 1 },
+    { id: "deep", label: "Deep skills", sub: "/deep-* · scripted fan-out", col: 1, row: 1, accent: true },
     { id: "critic", label: "Critic", sub: "opus · xhigh · read-only", col: 2, row: 1 },
     { id: "researcher", label: "Researcher", sub: "sonnet · cited conclusions", col: 3, row: 1 },
     { id: "guardbash", label: "guard-bash", sub: "rm-ancestor protection", col: 0, row: 2, accent: true },
@@ -144,7 +145,7 @@ The premise is the same one running inside my products: **the model proposes; de
     { name: "guard-secrets", rule: "high-confidence keys never land in tracked files; .env, examples, and key files are exempt by design" },
     { name: "plan rules", rule: "no time estimates, ever; phases end exactly where a human verifies; total phases stay in the single digits" },
     { name: "doc discipline", rule: "no new document without explicit approval — update what exists, never sprawl" },
-    { name: "deep-skill contract", rule: "the model proposes the brief; the workflow disposes the fan-out — bounded, scripted, reproducible" },
+    { name: "deep-skill contract", rule: "the skill frames the brief; a script runs the fan-out — bounded, deterministic, reproducible" },
     { name: "the meter's honesty", rule: "dollar figures are API-list-price equivalents, not the bill; input counts under-report — trust output and cache-read" }
   ]}
   layers={[
@@ -175,7 +176,7 @@ Most people prompt for compliance and get it, which is the problem. The contract
 
 <Section id="loop" n="02" title="The loop">
 
-Ideation, challenge, plan, build, wrap. Each stage is a skill with a sharp shape, and the sequence is the same whether the product is a grocery agent or this website.
+Ideate, plan, build, challenge, wrap. Each stage is a skill with a sharp shape, and the sequence is the same whether the product is a grocery agent or this website.
 
 <TerminalLog
   title="one feature, end to end — the pipeline as it actually runs"
@@ -183,12 +184,13 @@ Ideation, challenge, plan, build, wrap. Each stage is a skill with a sharp shape
     { t: "09:12", k: "cmd", s: "/brainstorm retry semantics for papertrail settlements" },
     { t: "09:12", k: "sys", s: "researcher spawned — raw sources stay out of this window" },
     { t: "09:16", k: "agent", s: "[researcher] 3 viable approaches, cited · 14 sources read elsewhere" },
-    { t: "09:21", k: "cmd", s: "/challenge the webhook-first design" },
-    { t: "09:24", k: "agent", s: "[critic · opus] strongest case against: 4 concerns, ranked" },
-    { t: "09:25", k: "out", s: "adjudicated: 2 worth fixing · 1 accepted · 1 not a concern — with reasons" },
-    { t: "09:28", k: "cmd", s: "/plan — checkpoints, no time estimates" },
-    { t: "09:30", k: "out", s: "4 dense phases · each ends where a human verifies" },
-    { t: "09:31", k: "sys", s: "build — hooks riding along: guard-bash · guard-secrets · format-on-edit" },
+    { t: "09:21", k: "cmd", s: "/plan — checkpoints, no time estimates" },
+    { t: "09:23", k: "out", s: "4 dense phases · each ends where a human verifies" },
+    { t: "09:25", k: "sys", s: "build — hooks riding along: guard-bash · guard-secrets · format-on-edit" },
+    { t: "11:31", k: "cmd", s: "/challenge the built webhook path before it ships" },
+    { t: "11:34", k: "agent", s: "[critic · opus] strongest case against: 4 concerns, ranked" },
+    { t: "11:35", k: "out", s: "adjudicated: 2 worth fixing · 1 accepted · 1 not a concern — with reasons" },
+    { t: "11:49", k: "sys", s: "fixes land — same hooks riding along" },
     { t: "11:58", k: "cmd", s: "/end-session" },
     { t: "11:59", k: "out", s: "docs updated (approval-gated) · handoff written with ordered next steps" },
     { t: "11:59", k: "sys", s: "tomorrow's session boots from that file in one prompt" }
@@ -223,7 +225,7 @@ The same shape as my products' gates: small, pure, auditable, and positioned whe
 
 Every light skill has a heavyweight sibling, and the split is an economic decision. `/challenge` sends one Opus critic; `/deep-challenge` runs a **panel** — five lenses (correctness, failure modes, security, scale, simpler alternatives), one to three independent critics per lens depending on an intensity dial, merged, deduped, then steelmanned and ranked by an Opus pass. `/plan` sends one scout; `/deep-plan` fans four to eight explorers in parallel, drafts **three competing designs** — MVP-first, risk-first, robustness-first — scores them with a judge, and grafts the losers' best ideas onto the winner.
 
-The deep family is deliberately *not* an agent swarm. The skill frames a self-contained brief; a co-located `workflow.js` executes a scripted, bounded fan-out. The convention doc states the doctrine plainly: *the model proposes the brief, the workflow disposes the fan-out.* We choose the fan; the script guarantees it.
+The deep family is deliberately *not* an agent swarm. The skill frames a self-contained brief; a co-located `workflow.js` executes a scripted, bounded fan-out. Imagination chooses the question; the script guarantees the coverage.
 
 Certainty has a price, and the dial makes it explicit: spend a few hundred thousand tokens of parallel scrutiny on decisions that are expensive to be wrong about, and nothing on the ones that aren't.
 

@@ -23,7 +23,6 @@ export default function Ref({ to, note }: { to: string; note?: string }) {
       </span>
       <span className="text-bone">
         {res.title}
-        {res.anchorTitle && <span className="text-ash"> § {res.anchorTitle}</span>}
         {note && <span className="mt-1 block text-[0.78rem] text-dim">{note}</span>}
       </span>
       <span

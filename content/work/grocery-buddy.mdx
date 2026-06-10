@@ -25,10 +25,8 @@ sections:
   - { id: "decisions", title: "Decisions & tradeoffs" }
   - { id: "whats-next", title: "What's next" }
 refs:
-  - "writing/groceries-are-a-benchmark"
   - "work/procurement-agent#decisions"
   - "writing/four-agents-one-nervous-system#approval-is-a-feature"
-reflection: "writing/groceries-are-a-benchmark"
 ---
 
 <Section id="brief" n="00" title="Brief">
@@ -75,6 +73,7 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
 
 <SystemDeepDive
   title="Grocery Buddy"
+  inspect="grocery-buddy"
   subtitle="Two brains, deliberately separated: six Claude call-sites for language, Temporal for time and money, and a self-healing browser where Amazon refuses to have an API."
   nodes={[
     { id: "tg", label: "Telegram", sub: "commands · buttons · free text", col: 0, row: 0 },
