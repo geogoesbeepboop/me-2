@@ -1,0 +1,248 @@
+---
+title: "The Method"
+summary: "I don't use Claude Code bare. It runs inside a harness — a standing contract, 17 skills, a rim of hooks, specialist subagents, and a token meter — built so the way I build is as deliberate as what I build."
+thesis: "The way we build is as important as what we build."
+status: "ALWAYS ON"
+metrics:
+  - k: "global skills, one pipeline"
+    v: "17"
+  - k: "hooks on the rim, fail-open"
+    v: "4"
+  - k: "token-accounting lenses"
+    v: "6"
+sections:
+  - { id: "shape", title: "The shape of it" }
+  - { id: "contract", title: "The contract" }
+  - { id: "loop", title: "The loop" }
+  - { id: "context", title: "Context is the scarce resource" }
+  - { id: "rim", title: "The deterministic rim" }
+  - { id: "deep", title: "Paying for certainty" }
+  - { id: "meter", title: "The meter" }
+---
+
+<Section id="shape" n="00" title="The shape of it">
+
+Every project in this archive was built inside the same machine: Claude Code, wrapped in a harness that took longer to sharpen than most of the projects it has shipped. A standing contract that makes the model argue with me. Seventeen slash-skills that turn vague intent into a repeatable pipeline. A rim of hooks that guard the loop deterministically. Two specialist subagents that do the heavy reading in their own context windows. And a meter that prices every conversation after the fact.
+
+The premise is the same one running inside my products: **the model proposes; deterministic structure disposes.** The harness is where I apply my own doctrine to myself.
+
+<ArchitectureDiagram
+  title="the harness — at a glance"
+  caption="The main loop stays small and opinionated; everything heavy happens in someone else's window."
+  nodes={[
+    { id: "me", label: "George", sub: "framing = a hypothesis", col: 0, row: 0 },
+    { id: "contract", label: "CLAUDE.md", sub: "the standing contract", col: 1, row: 0, accent: true },
+    { id: "cc", label: "Claude Code", sub: "the main loop", col: 2, row: 0 },
+    { id: "skills", label: "17 skills", sub: "ideate → challenge → plan → wrap", col: 0, row: 1 },
+    { id: "agents", label: "Specialists", sub: "critic · researcher · explore", col: 1, row: 1 },
+    { id: "hooks", label: "Hook rim", sub: "4 gates, fail-open", col: 2, row: 1, accent: true },
+    { id: "handoffs", label: "Handoffs", sub: "state that survives sessions", col: 0, row: 2 },
+    { id: "meter", label: "Token meter", sub: "6 lenses + a ledger", col: 1, row: 2 },
+    { id: "ship", label: "Shipped work", sub: "the rest of this archive", col: 2, row: 2 }
+  ]}
+  edges={[
+    { from: "me", to: "contract", label: "governs" },
+    { from: "contract", to: "cc" },
+    { from: "skills", to: "cc", label: "front doors" },
+    { from: "agents", to: "cc", label: "conclusions only", dashed: true },
+    { from: "cc", to: "hooks", label: "every tool call" },
+    { from: "skills", to: "handoffs", label: "/end-session" },
+    { from: "handoffs", to: "meter", label: "ledgered", dashed: true },
+    { from: "hooks", to: "ship" }
+  ]}
+/>
+
+<SystemDeepDive
+  title="The Harness"
+  subtitle="Claude Code as the engine; the harness as transmission, brakes, and instrumentation. Everything below is real configuration, quoted from the files that enforce it."
+  nodes={[
+    { id: "me", label: "George", sub: "decides · verifies · pays", col: 0, row: 0 },
+    { id: "contract", label: "CLAUDE.md", sub: "disagree out loud · decide vs ask", col: 1, row: 0, accent: true },
+    { id: "cc", label: "Claude Code", sub: "main loop · 1M-token ceiling", col: 2, row: 0 },
+    { id: "memory", label: "Memory files", sub: "facts that outlive sessions", col: 3, row: 0 },
+    { id: "light", label: "Light skills", sub: "/brainstorm · /challenge · /plan", col: 0, row: 1 },
+    { id: "deep", label: "Deep skills", sub: "workflow.js · scripted fan-out", col: 1, row: 1, accent: true },
+    { id: "critic", label: "Critic", sub: "opus · xhigh · read-only", col: 2, row: 1 },
+    { id: "researcher", label: "Researcher", sub: "sonnet · cited conclusions", col: 3, row: 1 },
+    { id: "guardbash", label: "guard-bash", sub: "rm-ancestor protection", col: 0, row: 2, accent: true },
+    { id: "guardsec", label: "guard-secrets", sub: "no keys in tracked files", col: 1, row: 2, accent: true },
+    { id: "fmt", label: "format-on-edit", sub: "ruff · prettier · gofmt", col: 2, row: 2 },
+    { id: "sessctx", label: "session-context", sub: "git state + last handoff", col: 3, row: 2 },
+    { id: "handoff", label: "/handoff", sub: "timestamped next steps", col: 0, row: 3 },
+    { id: "onboard", label: "/onboard", sub: "verify claims vs reality", col: 1, row: 3 },
+    { id: "docs", label: "/update-docs", sub: "approval-gated doc changes", col: 2, row: 3 },
+    { id: "ledger", label: "Token ledger", sub: "~/dev/token-breakdowns", col: 3, row: 3 }
+  ]}
+  edges={[
+    { from: "me", to: "contract", label: "one contract" },
+    { from: "contract", to: "cc", label: "governs every turn" },
+    { from: "light", to: "deep", label: "escalate when stakes rise" },
+    { from: "light", to: "critic", label: "/challenge", dashed: true },
+    { from: "light", to: "researcher", label: "/brainstorm", dashed: true },
+    { from: "critic", to: "cc", label: "ranked concerns" },
+    { from: "researcher", to: "cc", label: "conclusions, never raw pages" },
+    { from: "cc", to: "guardbash", label: "pre: bash" },
+    { from: "cc", to: "guardsec", label: "pre: write" },
+    { from: "cc", to: "fmt", label: "post: write" },
+    { from: "sessctx", to: "cc", label: "session start" },
+    { from: "handoff", to: "onboard", label: "next session boots here" },
+    { from: "docs", to: "handoff", label: "/end-session order" },
+    { from: "cc", to: "ledger", label: "every window, priced", dashed: true },
+    { from: "memory", to: "cc", label: "recall", dashed: true }
+  ]}
+  stateMachines={[
+    {
+      title: "A session",
+      caption: "state survives on disk, not in my head",
+      states: [
+        { id: "boot", label: "session start", col: 0, row: 0 },
+        { id: "inject", label: "context hook", col: 1, row: 0, kind: "gate" },
+        { id: "onboard", label: "/onboard", col: 2, row: 0, kind: "gate" },
+        { id: "work", label: "the loop", col: 3, row: 0 },
+        { id: "wrap", label: "/end-session", col: 4, row: 0, kind: "gate" },
+        { id: "handoff", label: "handoff on disk", col: 5, row: 0, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "boot", to: "inject", label: "git + last handoff" },
+        { from: "inject", to: "onboard", label: "lean prefix" },
+        { from: "onboard", to: "work", label: "drift flagged first" },
+        { from: "work", to: "wrap", label: "docs then handoff" },
+        { from: "wrap", to: "handoff", label: "next steps, ordered" }
+      ]
+    },
+    {
+      title: "A deep-skill run",
+      caption: "we choose the fan; the script guarantees it",
+      states: [
+        { id: "brief", label: "self-contained brief", col: 0, row: 0 },
+        { id: "intensity", label: "intensity dial", col: 1, row: 0 },
+        { id: "fan", label: "scripted fan-out", col: 2, row: 0 },
+        { id: "dedupe", label: "merge + dedupe", col: 3, row: 0 },
+        { id: "opus", label: "opus synthesis", col: 4, row: 0, kind: "gate" },
+        { id: "adjudicate", label: "my honest take", col: 5, row: 0, kind: "gate" },
+        { id: "decision", label: "decision", col: 6, row: 0, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "brief", to: "intensity", label: "low · med · high" },
+        { from: "intensity", to: "fan", label: "sonnet breadth ×N" },
+        { from: "fan", to: "dedupe", label: "independent passes" },
+        { from: "dedupe", to: "opus", label: "steelman + rank" },
+        { from: "opus", to: "adjudicate", label: "don't just relay" },
+        { from: "adjudicate", to: "decision", label: "fix · accept · reject" }
+      ]
+    }
+  ]}
+  loops={[
+    { name: "critic", model: "opus · xhigh", shape: "single-shot", does: "the strongest honest case against — read-only, so the cost of being wrong stays a paragraph" },
+    { name: "researcher", model: "sonnet · max", shape: "fan 1–3", does: "current sources, triangulated, ~18-month staleness flags; returns conclusions, never raw pages" },
+    { name: "explore fleet", model: "dial: haiku→opus", shape: "4 / 6 / 8 parallel", does: "read-only codebase recon for /plan and /deep-plan — the map comes back, the territory stays out" },
+    { name: "critic panel", model: "sonnet ×5 lenses", shape: "1–3 per lens", does: "correctness · failure modes · security · scale · simpler-alternatives, run blind and deduped" },
+    { name: "design trio", model: "sonnet ×3 stances", shape: "judged", does: "MVP-first vs risk-first vs robustness-first; a judge scores, opus grafts the best of the losers" }
+  ]}
+  core={[
+    { name: "guard-bash", rule: "recursive deletes are blocked when the target resolves to a protected directory or its ancestor — anything strictly inside stays deletable; fails open" },
+    { name: "guard-secrets", rule: "high-confidence keys never land in tracked files; .env, examples, and key files are exempt by design" },
+    { name: "plan rules", rule: "no time estimates, ever; phases end exactly where a human verifies; total phases stay in the single digits" },
+    { name: "doc discipline", rule: "no new document without explicit approval — update what exists, never sprawl" },
+    { name: "deep-skill contract", rule: "the model proposes the brief; the workflow disposes the fan-out — bounded, scripted, reproducible" },
+    { name: "the meter's honesty", rule: "dollar figures are API-list-price equivalents, not the bill; input counts under-report — trust output and cache-read" }
+  ]}
+  layers={[
+    { name: "Contract", note: "One global CLAUDE.md: treat my framing as a hypothesis, pressure-test consequential decisions, disagree out loud, resolve trivial choices alone. It makes the default posture adversarial instead of agreeable." },
+    { name: "Skills", note: "Seventeen front doors with one shape: frame a self-contained brief, delegate the heavy work, synthesize back. Light skills run inline; each has a deep sibling that escalates to a scripted workflow when the stakes justify the spend." },
+    { name: "Specialists", note: "A critic on Opus paid to attack, a researcher on Sonnet paid to read elsewhere, Explore fleets for recon. All of them return conclusions into the main loop — never their raw material." },
+    { name: "Rim", note: "Four hooks wrap every tool call: catastrophic-command guard, secret-write guard, format-on-edit, session-context injection. Deterministic shell, zero model, all fail-open." },
+    { name: "Memory & meter", note: "Handoffs make state survive sessions; memory files make taste survive projects; the token ledger makes cost a number instead of a feeling." }
+  ]}
+  invariants={[
+    "Raw research never enters the main window — subagents read; the loop receives conclusions.",
+    "Disagreement is contractual: my framing is a hypothesis, and the critic is paid to attack it.",
+    "Every phase boundary is a checkpoint a human verifies.",
+    "Hooks fail open — they guard accidents, not deliberate obfuscation.",
+    "Every token in every window is ledgered, with drill-down to what each subagent was fed."
+  ]}
+/>
+
+</Section>
+
+<Section id="contract" n="01" title="The contract">
+
+The global CLAUDE.md is four sentences of posture, and it changes everything downstream. *Treat my framing as a hypothesis, not a spec.* *Pressure-test consequential decisions.* *Disagree out loud — prioritize correctness over agreement.* *Decide vs. ask: resolve trivial choices yourself, surface the ones that matter.*
+
+Most people prompt for compliance and get it, which is the problem. The contract makes the default posture adversarial: the model's job is the best outcome, not fast agreement. Every skill below inherits this — the critic exists because of it, and the challenge step assumes it.
+
+</Section>
+
+<Section id="loop" n="02" title="The loop">
+
+Ideation, challenge, plan, build, wrap. Each stage is a skill with a sharp shape, and the sequence is the same whether the product is a grocery agent or this website.
+
+<TerminalLog
+  title="one feature, end to end — the pipeline as it actually runs"
+  lines={[
+    { t: "09:12", k: "cmd", s: "/brainstorm retry semantics for papertrail settlements" },
+    { t: "09:12", k: "sys", s: "researcher spawned — raw sources stay out of this window" },
+    { t: "09:16", k: "agent", s: "[researcher] 3 viable approaches, cited · 14 sources read elsewhere" },
+    { t: "09:21", k: "cmd", s: "/challenge the webhook-first design" },
+    { t: "09:24", k: "agent", s: "[critic · opus] strongest case against: 4 concerns, ranked" },
+    { t: "09:25", k: "out", s: "adjudicated: 2 worth fixing · 1 accepted · 1 not a concern — with reasons" },
+    { t: "09:28", k: "cmd", s: "/plan — checkpoints, no time estimates" },
+    { t: "09:30", k: "out", s: "4 dense phases · each ends where a human verifies" },
+    { t: "09:31", k: "sys", s: "build — hooks riding along: guard-bash · guard-secrets · format-on-edit" },
+    { t: "11:58", k: "cmd", s: "/end-session" },
+    { t: "11:59", k: "out", s: "docs updated (approval-gated) · handoff written with ordered next steps" },
+    { t: "11:59", k: "sys", s: "tomorrow's session boots from that file in one prompt" }
+  ]}
+/>
+
+The plan rules are worth quoting because they encode a worldview: **no time estimates, ever** — they're noise. **Phase boundaries are checkpoints, not chapters** — each ends exactly where I should verify something works, or where the model needs my hands. A plan that can't name its checkpoints isn't a plan; it's a vibe with numbered headings.
+
+</Section>
+
+<Section id="context" n="03" title="Context is the scarce resource">
+
+The main context window is the most expensive real estate in the system, and almost everything in the harness exists to protect it.
+
+Research is delegated to a researcher subagent that reads the web in its own window and returns cited conclusions — the brief it receives is self-contained because it cannot see the conversation. Codebase recon goes to Explore agents that return the map, not the territory. The critic reads code read-only in its own window and sends back ranked concerns. The main loop stays small, opinionated, and cheap to keep coherent.
+
+Between sessions, the same discipline: `/handoff` writes a timestamped file — state, decisions with their *why*, ordered next steps — and a SessionStart hook injects just the git state and that file's next-steps section into the new session's first tokens. `/onboard` then loads the handoff and **verifies its claims against reality before trusting them**, flagging drift between what was written and what the repo says. Continuity without dragging a thousand turns of history along.
+
+</Section>
+
+<Section id="rim" n="04" title="The deterministic rim">
+
+Four hooks wrap the loop — deterministic shell, no model, and they fail open, because they guard accidents, not deliberate obfuscation.
+
+The bash guard is the interesting one: it blocks a recursive delete when the target *resolves* to a protected directory or an **ancestor** of one, while anything strictly inside stays deletable — a project's `dist/` dies freely, the dev root never does. The secrets guard refuses to write what looks like a real key into a tracked file, while `.env` and example files stay exempt. Format-on-edit runs ruff or prettier or gofmt after every write, silently. And the session-context hook keeps the boot prefix lean on purpose — orientation in a dozen lines, not a wall.
+
+The same shape as my products' gates: small, pure, auditable, and positioned where the blast radius lives.
+
+</Section>
+
+<Section id="deep" n="05" title="Paying for certainty">
+
+Every light skill has a heavyweight sibling, and the split is an economic decision. `/challenge` sends one Opus critic; `/deep-challenge` runs a **panel** — five lenses (correctness, failure modes, security, scale, simpler alternatives), one to three independent critics per lens depending on an intensity dial, merged, deduped, then steelmanned and ranked by an Opus pass. `/plan` sends one scout; `/deep-plan` fans four to eight explorers in parallel, drafts **three competing designs** — MVP-first, risk-first, robustness-first — scores them with a judge, and grafts the losers' best ideas onto the winner.
+
+The deep family is deliberately *not* an agent swarm. The skill frames a self-contained brief; a co-located `workflow.js` executes a scripted, bounded fan-out. The convention doc states the doctrine plainly: *the model proposes the brief, the workflow disposes the fan-out.* We choose the fan; the script guarantees it.
+
+Certainty has a price, and the dial makes it explicit: spend a few hundred thousand tokens of parallel scrutiny on decisions that are expensive to be wrong about, and nothing on the ones that aren't.
+
+</Section>
+
+<Section id="meter" n="06" title="The meter">
+
+You can't claim "build fast, adapt faster" without knowing what fast costs. Six token-accounting skills read the on-disk transcripts — main thread plus every subagent window, including everything long since evicted from live context — and split usage into fresh input, cache writes, cache reads, and output, per thread, with peak context per window.
+
+One lens prices the current session. One prices just the last skill invocation. Two reach back into any past session without re-ingesting it. Two run a census across *all* sessions and skills — a ranked leaderboard of where the tokens actually went, with grand totals, written to a ledger. Each report opens as an HTML drill-down where every subagent row expands to the exact prompt it was fed and what it read, ran, and fetched.
+
+The meter is also honest about itself: the dollar figures are API-list-price equivalents — a compute yardstick, not the bill — and input counts under-report, so trust output and cache-read. The point isn't accounting theater. It's that **isolation is verifiable**: the census shows the main window staying small while subagents process the bulk of the tokens in their own windows — the context-protection claim from section 03, as a number.
+
+---
+
+The harness is why a one-person shop ships agents on payment rails with red-team suites. Same nervous system as the products, pointed at the producer.
+
+<Ref to="work/procurement-agent#decisions" note="the doctrine, applied to a product instead of the producer" />
+
+<Ref to="writing/four-agents-one-nervous-system" note="the products' shared spine — this page is its fifth room" />
+
+</Section>

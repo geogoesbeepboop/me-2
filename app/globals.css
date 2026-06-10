@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────
+   DESIGN TOKENS — the entire visual system lives here.
+   Three levers only: SCALE, CONTRAST, MOTION.
+   ──────────────────────────────────────────────────────── */
+@theme {
+  /* color — near-monochrome, one accent */
+  --color-void: #0a0a0b;      /* canvas */
+  --color-panel: #131315;     /* raised surface */
+  --color-panel-2: #18181b;   /* deeper surface */
+  --color-bone: #e9e7e0;      /* primary text / inversion field */
+  --color-ash: #a4a29a;       /* secondary text (AA on void) */
+  --color-dim: #82807a;       /* stamps, metadata (AA-large) */
+  --color-line: #232327;      /* hairlines */
+  --color-line-loud: #38383d; /* hairlines on hover */
+  /* ── COLOR DOCTRINE ─────────────────────────────────────────
+     Color is a map, not decoration. Each hue keeps one real-world
+     meaning everywhere it appears — index tags, gates in diagrams,
+     trace lines, focus rings:
+       ember  → heat: failures, what broke, urgency
+       lab    → alive: live systems, operating, the household
+       gold   → money: payments, spend gates, procurement
+       cyan   → data: markets, research, evals, measurement
+       violet → night: audio, performance, the booth
+       post   → thought: writing, reflection
+     A project's accent is its dominant real-world domain. */
+  --color-ember: #ff5a1f;
+  --color-lab: #3fe07c;
+  --color-gold: #f0b429;
+  --color-cyan: #62d9e8;
+  --color-violet: #c77dff;
+  --color-post: #6fb4ff;
+
+  /* type — display grotesk for scale, mono for texture */
+  --font-display: var(--font-archivo), "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: var(--font-jb), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale — editorial, clamped */
+  --text-hero: clamp(2.9rem, 8.4vw, 8.75rem);
+  --text-hero--line-height: 0.9;
+  --text-hero--letter-spacing: -0.03em;
+
+  --text-display: clamp(2.2rem, 5.5vw, 4.5rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-title: clamp(1.45rem, 2.6vw, 2.2rem);
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.01em;
+
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.75;
+
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.14em;
+
+  --text-mono-sm: 0.8125rem;
+  --text-mono-sm--line-height: 1.7;
+
+  /* motion — film, not UI demo */
+  --ease-cine: cubic-bezier(0.19, 1, 0.22, 1);  /* heavy ease-out */
+  --ease-blade: cubic-bezier(0.83, 0, 0.17, 1); /* both-ends weight, for wipes */
+}
+
+/* base */
+:root {
+  /* the contextual accent — pages and rows override it per project/track */
+  --accent: var(--color-ember);
+}
+html {
+  background: var(--color-void);
+  color: var(--color-bone);
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+body {
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: var(--color-bone);
+  color: var(--color-void);
+}
+:focus-visible {
+  outline: 2px solid var(--accent, var(--color-ember));
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+/* expanded display widths — Archivo variable wdth axis */
+@utility stretch-110 { font-stretch: 110%; }
+@utility stretch-125 { font-stretch: 125%; }
+
+/* lab workbench texture — faint engineering grid */
+@utility bench-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-bone) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-bone) 3%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* terminal caret */
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.1em;
+  background: var(--color-bone);
+  vertical-align: text-bottom;
+  animation: caret-blink 1.1s step-end infinite;
+}
+
+/* live signal pulse */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  /* live is always green — on air, operating, real */
+  background: var(--color-lab);
+  animation: live-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret, .live-dot { animation: none; }
+}
+
+/* skip link */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: 200;
+  padding: 0.6rem 1rem;
+  background: var(--color-bone);
+  color: var(--color-void);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--text-label--letter-spacing);
+  text-transform: uppercase;
+  transition: top 0.15s ease-out;
+}
+.skip-link:focus-visible { top: 1rem; }

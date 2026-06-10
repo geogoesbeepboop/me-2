@@ -1,0 +1,307 @@
+---
+title: "Grocery Buddy"
+summary: "A pantry that runs itself over Telegram — predicts what's low, builds the Amazon cart, stages checkout, and hands a human the final tap. Scaffold to live on Fly.io in seven days."
+date: "2026-06-08"
+year: "2026"
+status: "LIVE"
+thesis: "It does everything except spend your money. That's the feature."
+domain: "HOME OPS · COMMERCE"
+accent: "#3fe07c"
+role: "Solo — design, engineering, evals, ops"
+stack: ["Claude Haiku 4.5 + Sonnet 4.6", "Temporal", "FastAPI", "Postgres", "Playwright", "Telegram"]
+timeline: "Jun 2026 — operating"
+metrics:
+  - k: "days, scaffold → live"
+    v: "7"
+  - k: "cost per run"
+    v: "$0.15–0.40"
+  - k: "orders placed by the agent"
+    v: "0"
+sections:
+  - { id: "brief", title: "Brief" }
+  - { id: "system", title: "The system" }
+  - { id: "how-i-built-it", title: "How I built it" }
+  - { id: "what-broke", title: "What broke" }
+  - { id: "decisions", title: "Decisions & tradeoffs" }
+  - { id: "whats-next", title: "What's next" }
+refs:
+  - "writing/groceries-are-a-benchmark"
+  - "work/procurement-agent#decisions"
+  - "writing/four-agents-one-nervous-system#approval-is-a-feature"
+reflection: "writing/groceries-are-a-benchmark"
+---
+
+<Section id="brief" n="00" title="Brief">
+
+Groceries are a standing tax on attention: notice what's low, remember the brands, rebuild the same cart, every single week. Grocery Buddy collects that tax instead. It lives entirely in Telegram — no app, no dashboard — watches the pantry, predicts what's running out, prices a cart against live Amazon, and parks everything behind one approval message.
+
+Two invariants hold everywhere. **The agent never places an order** — it stages the cart and hands back a checkout link; the human taps "Place order." And **nothing touches the pantry or a cart without the user's say-so** — every purchase passes an approval gate, and imports stage a proposal before a single row is written.
+
+It went from empty repo to live on Fly.io in seven days, and it has been running my household since. A full run — prediction, pricing, briefing — costs between fifteen and forty cents.
+
+</Section>
+
+<Section id="system" n="01" title="The system">
+
+Two kinds of brains, deliberately separated. Claude owns language: reading intent, composing briefings, judging which Amazon listing matches "the usual milk." Temporal owns time and money: schedules, durable 24-hour approval timers, retries, and exactly-once movement at every edge that matters. When language is unsure it asks the user; when orchestration is unsure it replays deterministically.
+
+<ArchitectureDiagram
+  title="grocery buddy — at a glance"
+  caption="Telegram is the whole interface. Claude reads and writes language; Temporal owns every consequence."
+  nodes={[
+    { id: "tg", label: "Telegram", sub: "the entire UI", col: 0, row: 0 },
+    { id: "wh", label: "Webhook", sub: "fastapi · decision tree", col: 1, row: 0 },
+    { id: "tmp", label: "Temporal", sub: "3 workflows · durable timers", col: 2, row: 0, accent: true },
+    { id: "pred", label: "Predictor", sub: "rule-based · no llm", col: 0, row: 1 },
+    { id: "act", label: "Activities ×20", sub: "all I/O lives here", col: 1, row: 1 },
+    { id: "amz", label: "Amazon", sub: "playwright session", col: 2, row: 1 },
+    { id: "db", label: "Postgres", sub: "18 tables · supabase", col: 0, row: 2 },
+    { id: "gate", label: "Approval gate", sub: "human · every cart", col: 1, row: 2, accent: true },
+    { id: "link", label: "Checkout link", sub: "human places the order", col: 2, row: 2 }
+  ]}
+  edges={[
+    { from: "tg", to: "wh", label: "message" },
+    { from: "wh", to: "tmp", label: "start · signal" },
+    { from: "tmp", to: "act", label: "run" },
+    { from: "act", to: "pred", label: "predict" },
+    { from: "act", to: "amz", label: "stage cart" },
+    { from: "act", to: "db", label: "read · write" },
+    { from: "tmp", to: "gate", label: "briefing" },
+    { from: "gate", to: "link", label: "approve" }
+  ]}
+/>
+
+The pantry is one picture of **on-hand plus on-the-way**: confirm an order and its items count as covered stock — the agent won't re-suggest eggs that are already in a van. Prediction is deliberately boring math, `days_left = (qty + incoming) / daily_rate`, debuggable in one line; the models never guess at arithmetic.
+
+<SystemDeepDive
+  title="Grocery Buddy"
+  subtitle="Two brains, deliberately separated: six Claude call-sites for language, Temporal for time and money, and a self-healing browser where Amazon refuses to have an API."
+  nodes={[
+    { id: "tg", label: "Telegram", sub: "commands · buttons · free text", col: 0, row: 0 },
+    { id: "wh", label: "FastAPI webhook", sub: "top-level decision tree", col: 1, row: 0 },
+    { id: "intent", label: "Intent parsers", sub: "haiku · 6 call-sites", col: 2, row: 0 },
+    { id: "tmp", label: "Temporal", sub: "GroceryRun · QuickBuy · Import", col: 3, row: 0, accent: true },
+    { id: "relay", label: "2FA relay", sub: "auth challenges table", col: 0, row: 1 },
+    { id: "act", label: "Activities ×20", sub: "workflows stay pure", col: 1, row: 1 },
+    { id: "pred", label: "Predictor", sub: "(qty + incoming) / rate", col: 2, row: 1 },
+    { id: "synth", label: "Import synthesis", sub: "sonnet 4.6 · the one smart call", col: 3, row: 1 },
+    { id: "amz", label: "Amazon", sub: "persistent playwright profile", col: 0, row: 2 },
+    { id: "repair", label: "Selector repair", sub: "llm only on a 0-match", col: 1, row: 2 },
+    { id: "db", label: "Postgres", sub: "18 tables · 11 migrations", col: 2, row: 2 },
+    { id: "evals", label: "Evals", sub: "precision · cost · langfuse", col: 3, row: 2 },
+    { id: "link", label: "Checkout link", sub: "human places the order", col: 0, row: 3, accent: true },
+    { id: "gate", label: "Approval gate", sub: "24h / 6h durable timers", col: 1, row: 3, accent: true },
+    { id: "mlg", label: "Money-live gate", sub: "5 conditions, all must pass", col: 2, row: 3, accent: true },
+    { id: "probe", label: "Scraper probe", sub: "synthetic health check", col: 3, row: 3 }
+  ]}
+  edges={[
+    { from: "tg", to: "wh", label: "update" },
+    { from: "wh", to: "intent", label: "free text" },
+    { from: "intent", to: "tmp", label: "start · signal" },
+    { from: "tmp", to: "act", label: "schedule-proof" },
+    { from: "act", to: "amz", label: "search · stage" },
+    { from: "act", to: "pred" },
+    { from: "act", to: "synth", label: "import" },
+    { from: "act", to: "db", label: "read · write" },
+    { from: "amz", to: "repair", label: "0-match only", dashed: true },
+    { from: "amz", to: "relay", label: "otp needed", dashed: true },
+    { from: "relay", to: "tg", label: "ask the human", dashed: true },
+    { from: "tmp", to: "gate", label: "briefing" },
+    { from: "gate", to: "link", label: "approve" },
+    { from: "db", to: "evals", label: "snapshots · ledger" },
+    { from: "evals", to: "mlg", label: "gates", dashed: true },
+    { from: "probe", to: "mlg", label: "precondition", dashed: true }
+  ]}
+  stateMachines={[
+    {
+      title: "Cart lifecycle",
+      caption: "GroceryRun · QuickBuy — durable timers, human ending",
+      states: [
+        { id: "draft", label: "draft", col: 0, row: 0 },
+        { id: "pending", label: "pending_approval", col: 1, row: 0 },
+        { id: "ready", label: "checkout_ready", col: 2, row: 0 },
+        { id: "purchased", label: "purchased", col: 3, row: 0, kind: "terminal" },
+        { id: "expired", label: "expired", col: 1, row: 1, kind: "terminal" },
+        { id: "rejected", label: "rejected", col: 2, row: 1, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "draft", to: "pending", label: "briefing sent" },
+        { from: "pending", to: "ready", label: "approve → stage cart" },
+        { from: "pending", to: "expired", label: "24h / 6h timeout" },
+        { from: "pending", to: "rejected", label: "reject" },
+        { from: "ready", to: "purchased", label: "\"I placed the order\"" },
+        { from: "ready", to: "rejected", label: "\"didn't order\"" }
+      ]
+    },
+    {
+      title: "In-transit replenishment",
+      caption: "confirmed orders count as covered stock until they land",
+      states: [
+        { id: "transit", label: "in_transit", col: 0, row: 0 },
+        { id: "arrived", label: "arrived", col: 1, row: 0, kind: "terminal" },
+        { id: "cancelled", label: "cancelled", col: 1, row: 1, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "transit", to: "arrived", label: "eta passes → restock" },
+        { from: "transit", to: "cancelled", label: "\"the milk never came\"" }
+      ]
+    }
+  ]}
+  loops={[
+    { name: "onboarding intake", model: "haiku 4.5", shape: "tool loop", does: "free-form pantry dump → saved inventory + consumption habits" },
+    { name: "import synthesis", model: "sonnet 4.6", shape: "single-shot", does: "two years of aggregated orders → clean pantry proposal; the one hard parse" },
+    { name: "import review", model: "haiku 4.5", shape: "tool loop", does: "conversational edits to the staged proposal; live pantry written only on confirm" },
+    { name: "fresh-request parse", model: "haiku 4.5", shape: "single-shot", does: "no cart pending: message → quick-buy · grocery run · inventory fix · chat" },
+    { name: "briefing-reply parse", model: "haiku 4.5", shape: "single-shot", does: "cart pending: reply → approve · buy-items · reject · update — naming items means a new cart" },
+    { name: "briefing compose", model: "haiku 4.5", shape: "single-shot", does: "the approval message, grounded on exact item names and prices so it can't drift" },
+    { name: "brand selection", model: "haiku 4.5", shape: "in-activity", does: "pick the Amazon listing matching a brand preference; skipped when there's no preference" },
+    { name: "selector repair", model: "sonnet 4.6", shape: "on 0-match only", does: "re-find a broken Amazon selector from the accessibility tree; result cached, hot path stays deterministic" }
+  ]}
+  core={[
+    { name: "predictor", rule: "days_left = (qty + incoming) / blended daily rate · flag when ≤ lead time + buffer — no model anywhere near it" },
+    { name: "run guardrails", rule: "scheduled runs skip on a pending cart or a recent run — checked and written atomically, 60-min cooldown" },
+    { name: "checkout staging", rule: "clear the cart first · stage by ASIN · idempotent on a per-run key — exactly-once at the money edge" },
+    { name: "money-live gate", rule: "flags on · predictor precision ≥ 0.70 · scraper green · cost ≤ $1.00/run · checkout_verified (hard stop, unbuilt on purpose)" },
+    { name: "scraper health", rule: "synthetic probe asserts price + ASIN still extract from known staples; first regression pages a human" },
+    { name: "cost ledger", rule: "every model call priced into llm_usage, summed per run; alert over $1.00" }
+  ]}
+  layers={[
+    { name: "Conversation", note: "Telegram → webhook decision tree → Haiku intent parsing. Six Claude call-sites total; Sonnet appears exactly once, where two years of messy orders must become a clean pantry proposal." },
+    { name: "Orchestration", note: "Three Temporal workflows own scheduling, durable approval timers (24h standard, 6h quick-buy), retries, and the in-transit lifecycle: confirm → on-the-way → restock on arrival." },
+    { name: "Automation", note: "A persistent authenticated Playwright profile, because Amazon has no consumer API. Sessions self-heal: a verified state-machine form fill, with 2FA codes relayed through Telegram." },
+    { name: "Safety", note: "Approval gate on every cart, clear-first staging, idempotency keys at the order edge, and a money-live gate that stays shut until evals — not vibes — say otherwise." }
+  ]}
+  invariants={[
+    "The agent never places an order. It stages the cart; a human taps Place order.",
+    "Nothing touches the pantry or a cart without explicit user say-so.",
+    "Money paths are exactly-once: idempotency keys + clear-first staging.",
+    "The repair LLM runs only on a total selector miss — the hot path stays deterministic.",
+    "Money-live opens only when: flags on · precision ≥ 0.70 · scraper green · cost ≤ $1/run · checkout verified."
+  ]}
+/>
+
+</Section>
+
+<Section id="how-i-built-it" n="02" title="How I built it">
+
+The week was ordered by risk, not by feature list. Day one was scaffold, schema, Temporal, and — before any feature worked — the evals wiring: Langfuse tracing, a cost ledger that prices every model call, and a `prediction_snapshots` table so the predictor's decisions could be graded later. Instrumentation first is the cheapest decision in the whole build; everything after it was measurable by default.
+
+The middle of the week went to the two hard surfaces. Onboarding imports two years of Amazon order history: a Playwright scrape, then pure-Python aggregation, then the system's single Sonnet call turns the pile into a pantry proposal — habits learned from every order, on-hand estimated honestly (nobody has three-month-old milk; a stale order teaches the *habit* while contributing zero stock). The user edits the proposal conversationally and nothing is written until they confirm.
+
+The other surface is staying signed in to a website that doesn't want robots. When the session expires, the agent re-authenticates itself: a bounded state machine drives the sign-in form, every field write is read back and verified, and if Amazon asks for a one-time code, the worker opens a challenge row and asks *me, over Telegram* — then consumes the reply and finishes the login. The browser holds the page; the human holds the secret.
+
+<TerminalLog
+  title="GroceryRunWorkflow — friday 05:00, trigger: schedule"
+  lines={[
+    { t: "05:00:00", k: "sys", s: "guardrails: no pending cart · cooldown clear → run" },
+    { t: "05:00:01", k: "out", s: "reconcile_arrivals_activity → 1 order landed, pantry topped up" },
+    { t: "05:00:01", k: "out", s: "apply_estimated_depletion_activity → on-hand estimates advanced" },
+    { t: "05:00:02", k: "out", s: "select_run_candidates_activity → 4 must-buy + 2 fillers to clear free shipping" },
+    { t: "05:00:09", k: "agent", s: "[brand-select · haiku] \"2% milk\" → preferred brand, 64 oz · conf high" },
+    { t: "05:00:14", k: "out", s: "lookup_amazon_prices → 6 items priced against the live store" },
+    { t: "05:00:15", k: "out", s: "assemble_run_cart_activity → $43.87 · fillers trimmed at threshold" },
+    { t: "05:00:16", k: "agent", s: "[briefing · haiku] composed — grounded on exact names and prices" },
+    { t: "05:00:16", k: "sys", s: "cart parked: pending_approval · timer 24h · nothing ordered" },
+    { t: "07:42:03", k: "sys", s: "approve ← telegram button" },
+    { t: "07:42:19", k: "out", s: "prepare_checkout_activity → cart cleared, staged by ASIN, link sent" },
+    { t: "07:42:19", k: "sys", s: "awaiting \"I placed the order\" — checkout belongs to the human" }
+  ]}
+/>
+
+<BuildTimeline
+  entries={[
+    { date: "Jun 02", tag: "v0.1", title: "Scaffold, schema, evals wiring — same day", note: "Langfuse, the cost ledger, and prediction snapshots existed before the first cart did." },
+    { date: "Jun 03–04", tag: "", title: "Amazon auth edge cases + import, phase 2", note: "The state-machine sign-in and the Telegram 2FA relay earn their keep." },
+    { date: "Jun 07", tag: "v0.6", title: "In-transit replenishment lifecycle", note: "Confirm → on-the-way → restock on arrival. The pantry stops double-suggesting." },
+    { date: "Jun 08", tag: "v1.0", title: "Resilience layer, evals rebuilt, live on Fly.io", note: "Selector self-repair, synthetic health probe, cost telemetry. Operating since." }
+  ]}
+/>
+
+</Section>
+
+<Section id="what-broke" n="03" title="What broke">
+
+Filed candidly — every fix below is now load-bearing architecture.
+
+<WhatBroke
+  items={[
+    {
+      title: "The import that returned nothing",
+      sev: "SEV-2",
+      what: "Two-plus years of order history hit the synthesis call as ~150 raw rows. The forced tool call overflowed max_tokens and returned unparseable, empty proposals — silently.",
+      fix: "A pure-Python pre-aggregation pass collapses orders to one record per product (times ordered, units, recency) before Sonnet sees anything. stop_reason and item counts are logged so truncation can never be quiet again.",
+      lesson: "Don't make a model read what code can compress. Aggregate first; spend the model on judgment, not parsing."
+    },
+    {
+      title: "Silent selector rot",
+      sev: "SEV-1",
+      what: "Amazon churns its UI. A renamed CSS class returns an empty list — which a scraper swallows at logger.warning — so pricing and import quietly under-deliver while looking healthy.",
+      fix: "Layered element resolution (CSS chains plus role/ARIA fallbacks), LLM-assisted repair that runs only on a total zero-match and caches what it rediscovers, and a synthetic health probe that searches known staples and pages me on the first regression.",
+      lesson: "To a scraper, an empty list isn't an error. Make silence page you."
+    },
+    {
+      title: "Two ways to buy twice",
+      sev: "SEV-1",
+      what: "Stale items could survive in the Amazon cart across runs and ride into the next checkout; separately, two concurrent runs could both pass the pending-cart guardrail on stale reads.",
+      fix: "Clear-first staging — the cart is emptied before items are staged by ASIN, idempotent on a per-run key — and guardrails that check-and-write atomically with a per-user cooldown.",
+      lesson: "Anything that touches money is exactly-once or it doesn't ship. There is no mostly-once."
+    }
+  ]}
+/>
+
+</Section>
+
+<Section id="decisions" n="04" title="Decisions & tradeoffs">
+
+<Decision
+  n="01"
+  title="Temporal, not a job queue"
+  chose="Durable workflows for every consequence: schedules, 24-hour approval timers, retries, exactly-once activities."
+  over="Cron plus a queue, or stretching the agent framework into an orchestrator."
+  cost="Real infrastructure to run and learn, for a one-household product."
+  payoff="An approval can sit for a day, the worker can die mid-run, and nothing double-fires. The money path replays deterministically instead of guessing."
+/>
+
+<Decision
+  n="02"
+  title="The agent never places the order"
+  chose="Staged cart + checkout link; the human owns the final tap, indefinitely."
+  over="Auto-purchase — which every demo of this product category pretends is fine."
+  cost="One tap of friction per week, forever. The demo is less magic."
+  payoff="The blast radius of any bug is an unwanted cart, never an unwanted charge. Autonomy waits behind a gate with five conditions, not a vibe."
+/>
+
+<Decision
+  n="03"
+  title="Haiku everywhere, Sonnet exactly once"
+  chose="Haiku for intent, replies, briefings, brand selection — six call-sites. Sonnet only where two years of messy orders become a structured pantry."
+  over="The big model everywhere."
+  cost="Occasional escalations and a quality ceiling on chat nuance."
+  payoff="Full runs cost $0.15–0.40, which is the difference between a product and a party trick."
+/>
+
+<Decision
+  n="04"
+  title="Playwright over waiting for an API"
+  chose="A persistent authenticated browser profile, request interception over HTML scraping, and a self-healing login."
+  over="Pretending Amazon's consumer API exists. It doesn't."
+  cost="A genuinely hostile surface that demanded its own resilience layer."
+  payoff="The product exists. And the resilience layer — probe, repair, health gate — turned out to be half the engineering story worth telling."
+/>
+
+</Section>
+
+<Section id="whats-next" n="05" title="What's next">
+
+<NextUp
+  items={[
+    "Budget envelopes — the monthly_budget_usd column exists; wire it so carts warn before they spend it.",
+    "Learn consumption rates from confirmed purchases, not just declared habits — the order cadence is sitting in the events table.",
+    "Risk-tiered auto-buy behind a deterministic policy gate — Procurement Agent's authority design, reimplemented locally. Cheap known staples self-approve; novel or expensive stays human.",
+    "Gmail delivery tracking, so arrivals land on the real date instead of an estimate — and the 'did you order it?' tap disappears."
+  ]}
+/>
+
+<Ref to="work/procurement-agent#decisions" note="the convergence decision: shared design DNA, deliberately zero shared code" />
+
+</Section>

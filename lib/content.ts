@@ -1,0 +1,234 @@
+import fs from "node:fs";
+import path from "node:path";
+import matter from "gray-matter";
+
+/**
+ * THE SYSTEMS ARCHIVE — content graph.
+ * Every MDX file is a NODE (work | lab | writing). Nodes declare `refs:`
+ * (paths like "work/grocery-buddy#what-broke") in frontmatter; this module
+ * resolves them and computes the reverse map, so every cross-link on the
+ * site is real and bidirectional. The archive grows by adding files.
+ */
+
+export type Kind = "work" | "lab" | "writing";
+
+export interface SectionDef {
+  id: string;
+  title: string;
+}
+
+export interface NodeMeta {
+  kind: Kind;
+  slug: string;
+  /** stable node path, e.g. "work/grocery-buddy" */
+  path: string;
+  title: string;
+  summary: string;
+  /** primary date (lab nodes sort by `updated`) */
+  date: string;
+  sortDate: string;
+  status: string;
+  year?: string;
+  thesis?: string;
+  question?: string;
+  role?: string;
+  stack?: string[];
+  timeline?: string;
+  metrics?: { k: string; v: string }[];
+  sections?: SectionDef[];
+  refs: string[];
+  reflection?: string;
+  started?: string;
+  updated?: string;
+  readingTime?: number;
+  /** per-project accent color (css color); tracks have defaults */
+  accent?: string;
+  /** short field label, e.g. "FINTECH · PAYMENTS" */
+  domain?: string;
+  /** chronological archive number, oldest = 001 */
+  no: string;
+}
+
+export interface Node extends NodeMeta {
+  body: string;
+}
+
+export interface ResolvedRef {
+  href: string;
+  kind: Kind;
+  title: string;
+  /** section title when the ref deep-links, e.g. "What broke" */
+  anchorTitle?: string;
+}
+
+const ROOT = path.join(process.cwd(), "content");
+const KINDS: Kind[] = ["work", "lab", "writing"];
+
+function readKind(kind: Kind): Node[] {
+  const dir = path.join(ROOT, kind);
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".mdx"))
+    .map((file) => {
+      const slug = file.replace(/\.mdx$/, "");
+      const raw = fs.readFileSync(path.join(dir, file), "utf8");
+      const { data, content } = matter(raw);
+      const meta = data as Partial<NodeMeta>;
+      const sortDate = (kind === "lab" && meta.updated) || meta.date || "1970-01-01";
+      return {
+        kind,
+        slug,
+        path: `${kind}/${slug}`,
+        title: meta.title ?? slug,
+        summary: meta.summary ?? "",
+        date: meta.date ?? sortDate,
+        sortDate,
+        status: meta.status ?? "",
+        year: meta.year,
+        thesis: meta.thesis,
+        question: meta.question,
+        role: meta.role,
+        stack: meta.stack,
+        timeline: meta.timeline,
+        metrics: meta.metrics,
+        sections: meta.sections,
+        refs: meta.refs ?? [],
+        reflection: meta.reflection,
+        started: meta.started,
+        updated: meta.updated,
+        accent: meta.accent,
+        domain: meta.domain,
+        readingTime:
+          kind === "writing"
+            ? Math.max(2, Math.round(content.split(/\s+/).length / 200))
+            : undefined,
+        no: "000", // assigned below, chronologically
+        body: content,
+      } satisfies Node;
+    });
+}
+
+let cache: Node[] | null = null;
+
+export function allNodes(): Node[] {
+  // cache only in production — in dev the archive re-reads on every
+  // request, so editing an entry is save → refresh, no restart
+  if (cache && process.env.NODE_ENV === "production") return cache;
+  const nodes = KINDS.flatMap(readKind);
+  // archive numbers: oldest node = 001
+  [...nodes]
+    .sort((a, b) => a.sortDate.localeCompare(b.sortDate))
+    .forEach((n, i) => {
+      n.no = String(i + 1).padStart(3, "0");
+    });
+  nodes.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+  cache = nodes;
+  return nodes;
+}
+
+export function nodesOf(kind: Kind): Node[] {
+  return allNodes().filter((n) => n.kind === kind);
+}
+
+export function getNode(kind: Kind, slug: string): Node | undefined {
+  return allNodes().find((n) => n.kind === kind && n.slug === slug);
+}
+
+function findByPath(nodePath: string): Node | undefined {
+  return allNodes().find((n) => n.path === nodePath);
+}
+
+/** "work/grocery-buddy#what-broke" → href + display data */
+export function resolveRef(ref: string): ResolvedRef | undefined {
+  const [nodePath, anchor] = ref.split("#");
+  const node = findByPath(nodePath);
+  if (!node) return undefined;
+  const anchorTitle = anchor
+    ? node.sections?.find((s) => s.id === anchor)?.title ??
+      anchor.replace(/-/g, " ")
+    : undefined;
+  return {
+    href: `/${node.path}${anchor ? `#${anchor}` : ""}`,
+    kind: node.kind,
+    title: node.title,
+    anchorTitle,
+  };
+}
+
+/** all nodes whose refs point at this node (any anchor) */
+export function backlinks(nodePath: string): Node[] {
+  return allNodes().filter(
+    (n) =>
+      n.path !== nodePath &&
+      n.refs.some((r) => r === nodePath || r.startsWith(`${nodePath}#`))
+  );
+}
+
+export interface MethodDoc {
+  title: string;
+  summary: string;
+  thesis: string;
+  status: string;
+  metrics: { k: string; v: string }[];
+  sections: SectionDef[];
+  body: string;
+}
+
+/** /method — the meta-dossier; lives outside the archive graph on purpose */
+export function getMethod(): MethodDoc {
+  const raw = fs.readFileSync(path.join(ROOT, "method.mdx"), "utf8");
+  const { data, content } = matter(raw);
+  return {
+    title: (data.title as string) ?? "The Method",
+    summary: (data.summary as string) ?? "",
+    thesis: (data.thesis as string) ?? "",
+    status: (data.status as string) ?? "ALWAYS ON",
+    metrics: (data.metrics as { k: string; v: string }[]) ?? [],
+    sections: (data.sections as SectionDef[]) ?? [],
+    body: content,
+  };
+}
+
+export function getSignal(): { body: string; updated: string; headline: string } {
+  const raw = fs.readFileSync(path.join(ROOT, "signal.mdx"), "utf8");
+  const { data, content } = matter(raw);
+  return {
+    body: content,
+    updated: (data.updated as string) ?? "",
+    headline: (data.headline as string) ?? "",
+  };
+}
+
+const MONTHS = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+];
+
+/** "2026-02-10" → "FEB 2026" */
+export function stamp(iso: string): string {
+  const [y, m] = iso.split("-");
+  return `${MONTHS[Number(m) - 1]} ${y}`;
+}
+
+/** "2026-02-10" → "2026.02.10" */
+export function fullStamp(iso: string): string {
+  return iso.replaceAll("-", ".");
+}
+
+export const KIND_TAG: Record<Kind, string> = {
+  work: "CASE",
+  lab: "LAB",
+  writing: "POST",
+};
+
+/** track-level fallback accents; projects override via frontmatter `accent` */
+export const KIND_ACCENT: Record<Kind, string> = {
+  work: "var(--color-ember)",
+  lab: "var(--color-lab)",
+  writing: "var(--color-post)",
+};
+
+export function accentOf(node: NodeMeta): string {
+  return node.accent ?? KIND_ACCENT[node.kind];
+}
