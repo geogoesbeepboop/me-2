@@ -26,6 +26,7 @@ reflection: "writing/ship-the-how"
 
 <SystemDeepDive
   title="JIM"
+  inspect="jim"
   subtitle="A buyer pays before the route runs; the engine writes prose it cannot prove false; paid data is cached so the second sale is nearly pure margin."
   nodes={[
     { id: "buyers", label: "Buyers", sub: "mcp agents · http · human ui", col: 0, row: 0 },
@@ -131,7 +132,7 @@ reflection: "writing/ship-the-how"
   ]}
   core={[
     { name: "sourcing gate", rule: "pass A: $ · % · × figures; pass B: bare decimals before [C##]; tolerance max(2%, 0.05); a phantom citation is itself a violation" },
-    { name: "budget cap", rule: "$0.10 hard data ceiling per query — the source proposes, code disposes" },
+    { name: "budget cap", rule: "$0.10 hard data ceiling per query — a source can ask for data; only code can approve the spend" },
     { name: "materiality gate", rule: "5% price move · 10% metric change · RSI 70/30 · 6h cooldown per signal" },
     { name: "impersonal guard", rule: "no advice, no second person, no price targets — the publisher's-exclusion lane, enforced" },
     { name: "cache + margin ledger", rule: "purchases live 86,400s; margin = price − data − inference, recorded per query" },
@@ -145,7 +146,7 @@ reflection: "writing/ship-the-how"
   ]}
   invariants={[
     "No memo ships with a number the gate can't trace to a cited fact.",
-    "The model proposes data buys; code enforces the $0.10 ceiling.",
+    "The model can want data; only code can buy it — $0.10 ceiling, enforced.",
     "Quiet monitor polls cost $0 of inference.",
     "Everything runs offline — API keys only buy prose.",
     "Settlement before service: the route runs only after x402 verifies payment."
@@ -178,9 +179,9 @@ So Track 0: fuzz the sourcing gate with property-based tests. Scientific notatio
 
 <Update date="2026.06.03" title="The margin engine">
 
-JIM is a buyer too. Serving a token request, it pays The Graph ~$0.01 over x402 for Uniswap data — but only after the budget cap approves the spend (the source *proposes*, code *disposes*, hard ceiling $0.10 per query). The purchase lands in a cache with a one-day TTL, so the next sale of the same datum carries zero data cost. Buy once, resell many: the margin ledger prices every call as `price_out − data − inference`, and the dashboard shows which memos were nearly pure margin.
+JIM is a buyer too. Serving a token request, it pays The Graph ~$0.01 over x402 for Uniswap data — but only after the budget cap approves the spend (the source *asks*, the cap *decides* — hard ceiling $0.10 per query). The purchase lands in a cache with a one-day TTL, so the next sale of the same datum carries zero data cost. Buy once, resell many: the margin ledger prices every call as `price_out − data − inference`, and the dashboard shows which memos were nearly pure margin.
 
-The same mechanism is the road to agent-to-agent composition: a future Source that gathers from a *peer agent* over x402 routes through the identical propose → budget → cache path. And the sourcing gate becomes composition safety — an unverifiable figure from a subcontractor fails exactly like a hallucination would.
+The same mechanism is the road to agent-to-agent composition: a future Source that gathers from a *peer agent* over x402 routes through the identical request → budget → cache path. And the sourcing gate becomes composition safety — an unverifiable figure from a subcontractor fails exactly like a hallucination would.
 
 </Update>
 

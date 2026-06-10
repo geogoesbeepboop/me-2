@@ -19,16 +19,17 @@ const KIND_CLASS: Record<NonNullable<LogLine["k"]>, string> = {
 };
 
 /**
- * A real-looking session transcript, staged line by line as it scrolls
- * into view. Mono is the engineer's fingerprint — this is its home.
+ * A real session transcript, staged line by line as it scrolls into
+ * view. Mono is the engineer's fingerprint — this is its home. No
+ * blinking caret on purpose: this is a recording, not an input.
  */
 export default function TerminalLog({
   title,
   lines,
-  cursor = true,
 }: {
   title: string;
   lines: LogLine[];
+  /** accepted for older MDX; carets are gone site-wide */
   cursor?: boolean;
 }) {
   const reduced = useReducedMotion();
@@ -72,7 +73,6 @@ export default function TerminalLog({
               </motion.span>
             );
           })}
-          {cursor && <span className="caret mt-1" aria-hidden />}
         </pre>
       </div>
     </figure>

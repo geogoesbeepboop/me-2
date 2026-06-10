@@ -5,40 +5,41 @@ import { motion, useReducedMotion } from "framer-motion";
 
 /**
  * THE METHOD, AS A TRACE — the hero doesn't claim a process, it plays
- * one back. Every line is a true fact from the archive, tagged in the
- * color doctrine: gold = money, ember = heat, cyan = data,
- * violet = night, green = alive.
+ * one back. Every line is a true, durable fact about how the work gets
+ * made (the method, not any one product — products churn, the method
+ * doesn't). Tags follow the color doctrine where it genuinely applies:
+ * cyan = research/data, ember = heat/attack, green = alive.
  */
 const LINES: { tag: string; text: string; tone: string }[] = [
   {
-    tag: "[scaffold]",
-    text: "empty repo → live in production, 7 days",
-    tone: "text-bone",
-  },
-  {
-    tag: "[gates]",
-    text: "the model proposes — deterministic code disposes",
-    tone: "text-gold",
-  },
-  {
-    tag: "[red-team]",
-    text: "5 planted attacks, 5 blocked — every block cites its rule",
-    tone: "text-ember",
-  },
-  {
-    tag: "[evals]",
-    text: "wired before the first feature · a run costs $0.15–0.40",
+    tag: "[ideate]",
+    text: "every build opens with researched options, not a guess",
     tone: "text-cyan",
   },
   {
-    tag: "[taste]",
-    text: "audio renders only after a critic the model can't sweet-talk",
-    tone: "text-violet",
+    tag: "[plan]",
+    text: "phases end where a human verifies — no time estimates",
+    tone: "text-bone",
+  },
+  {
+    tag: "[build]",
+    text: "deterministic guards ride every change, fail-open",
+    tone: "text-bone",
+  },
+  {
+    tag: "[challenge]",
+    text: "a critic is paid to attack what was built before it ships",
+    tone: "text-ember",
   },
   {
     tag: "[ship]",
-    text: "four live systems below — open any file ↓",
+    text: "every system lands in the archive below — open any file ↓",
     tone: "text-lab",
+  },
+  {
+    tag: "[resume]",
+    text: "state survives on disk — the next session boots from a handoff",
+    tone: "text-ash",
   },
 ];
 
@@ -56,7 +57,7 @@ export default function HeroTrace() {
         </span>
         <span className="flex items-center gap-2 font-mono text-label tracking-[0.18em] text-dim uppercase">
           <span className="live-dot" aria-hidden />
-          rec
+          replay
         </span>
       </span>
       <div className="px-4 py-4">
@@ -66,7 +67,7 @@ export default function HeroTrace() {
         </p>
         {LINES.map((line, i) => {
           const row = (
-            <span className="grid grid-cols-[96px_1fr] gap-x-3 font-mono text-mono-sm leading-[2]">
+            <span className="grid grid-cols-[104px_1fr] gap-x-3 font-mono text-mono-sm leading-[2]">
               <span className={line.tone}>{line.tag}</span>
               <span className="text-ash">{line.text}</span>
             </span>
@@ -91,7 +92,6 @@ export default function HeroTrace() {
             </motion.span>
           );
         })}
-        <span className="caret mt-2" aria-hidden />
         <span className="mt-3 flex items-baseline justify-between border-t border-line pt-3 font-mono text-label tracking-[0.16em] uppercase">
           <span className="text-dim">n°000 — the full method file</span>
           <span className="text-ash transition-transform duration-500 ease-(--ease-cine) group-hover:translate-x-1.5">

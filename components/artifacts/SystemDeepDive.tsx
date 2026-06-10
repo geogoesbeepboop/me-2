@@ -14,47 +14,37 @@ import {
   type DiagramEdge,
   type DiagramNode,
 } from "./ArchitectureDiagram";
+import StateFlowSvg from "./StateFlow";
+import TraceView from "./TraceView";
+import InspectBlocks from "./InspectBlocks";
+import { INSPECT, type InspectEntry } from "@/lib/inspect";
+import type {
+  FlowState,
+  FlowTransition,
+  StateMachine,
+} from "@/lib/inspect/types";
+
+export type { FlowState, FlowTransition, StateMachine };
 
 /**
  * "The complete architecture" — a full-screen deep dive behind one click.
  * The dossier shows the system at a glance; this is the whole machine,
  * all the way down:
- *   00 topology — every component, zoomable
+ *   00 topology — every component; click a box to open the artifact behind it
  *   01 state machines — the actual lifecycles (carts, mandates, runs)
  *   02 agentic surface — every LLM call-site, model and shape
  *   03 deterministic core — the rules code enforces, with thresholds
  *   04 layers & invariants
- * Color doctrine holds here too: outlined boxes are gates; dashed paths
- * are failure/repair routes. Esc closes; zoom is two buttons; pan is
- * native scroll.
+ * Clicking a component slides in a full-height, scrollable drawer with
+ * the artifact behind it — verbatim code, a tabbed set of files, or a
+ * designed trace view. Color doctrine holds here too: an accent outline
+ * marks a point where the model has no say; dashed paths are
+ * failure/repair routes. Esc closes the drawer first, then the dive.
  */
 
 export interface DeepDiveLayer {
   name: string;
   note: string;
-}
-
-export interface FlowState {
-  id: string;
-  label: string;
-  col: number;
-  row: number;
-  /** gate = accent outline · terminal = dashed, dim */
-  kind?: "gate" | "terminal";
-}
-
-export interface FlowTransition {
-  from: string;
-  to: string;
-  label?: string;
-  dashed?: boolean;
-}
-
-export interface StateMachine {
-  title: string;
-  caption?: string;
-  states: FlowState[];
-  transitions: FlowTransition[];
 }
 
 export interface LoopRow {
@@ -71,160 +61,6 @@ export interface CoreRule {
 
 const noopSubscribe = () => () => {};
 
-/* ── state-machine renderer — small boxes, loop-back routing ── */
-const SW = 152; // state box width
-const SH = 44; // state box height
-const SCW = 180; // column pitch
-const SRH = 84; // row pitch
-
-function StateFlowSvg({
-  machine,
-  markerId,
-}: {
-  machine: StateMachine;
-  markerId: string;
-}) {
-  const byId = Object.fromEntries(machine.states.map((s) => [s.id, s]));
-  const maxCol = Math.max(...machine.states.map((s) => s.col));
-  const maxRow = Math.max(...machine.states.map((s) => s.row));
-  const width = maxCol * SCW + SW + 24;
-  const height = maxRow * SRH + SH + 40;
-
-  const pos = (s: FlowState) => ({ x: s.col * SCW + 12, y: s.row * SRH + 12 });
-
-  function path(a: FlowState, b: FlowState): { d: string; lx: number; ly: number } {
-    const pa = pos(a);
-    const pb = pos(b);
-    const aCx = pa.x + SW / 2;
-    const bCx = pb.x + SW / 2;
-    const aCy = pa.y + SH / 2;
-    const bCy = pb.y + SH / 2;
-
-    if (a.row === b.row && b.col > a.col) {
-      return {
-        d: `M ${pa.x + SW} ${aCy} L ${pb.x} ${bCy}`,
-        lx: (pa.x + SW + pb.x) / 2,
-        ly: aCy - 8,
-      };
-    }
-    if (a.row === b.row && b.col < a.col) {
-      // loop back, routed underneath the row
-      const dip = pa.y + SH + 22;
-      return {
-        d: `M ${aCx} ${pa.y + SH} L ${aCx} ${dip} L ${bCx} ${dip} L ${bCx} ${pb.y + SH}`,
-        lx: (aCx + bCx) / 2,
-        ly: dip + 12,
-      };
-    }
-    if (a.col === b.col) {
-      const down = pb.y > pa.y;
-      return {
-        d: `M ${aCx} ${down ? pa.y + SH : pa.y} L ${bCx} ${down ? pb.y : pb.y + SH}`,
-        lx: aCx + 8,
-        ly: (aCy + bCy) / 2,
-      };
-    }
-    const midX = (pa.x + SW + pb.x) / 2;
-    return {
-      d: `M ${pa.x + SW} ${aCy} L ${midX} ${aCy} L ${midX} ${bCy} L ${pb.x} ${bCy}`,
-      lx: midX,
-      ly: (aCy + bCy) / 2 - 8,
-    };
-  }
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      style={{ width, minWidth: Math.min(width, 680) }}
-      role="img"
-      aria-label={machine.title}
-    >
-      <defs>
-        <marker
-          id={markerId}
-          viewBox="0 0 8 8"
-          refX="7"
-          refY="4"
-          markerWidth="7"
-          markerHeight="7"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 8 4 L 0 8 z" fill="var(--color-dim)" />
-        </marker>
-      </defs>
-      {machine.transitions.map((t, i) => {
-        const a = byId[t.from];
-        const b = byId[t.to];
-        if (!a || !b) return null;
-        const { d, lx, ly } = path(a, b);
-        return (
-          <g key={i}>
-            <path
-              d={d}
-              fill="none"
-              stroke="var(--color-line-loud)"
-              strokeWidth="1"
-              strokeDasharray={t.dashed ? "4 4" : undefined}
-              markerEnd={`url(#${markerId})`}
-            />
-            {t.label && (
-              <text
-                x={lx}
-                y={ly}
-                textAnchor="middle"
-                fill="var(--color-dim)"
-                style={{
-                  font: "500 8.5px var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t.label}
-              </text>
-            )}
-          </g>
-        );
-      })}
-      {machine.states.map((s) => {
-        const p = pos(s);
-        return (
-          <g key={s.id}>
-            <rect
-              x={p.x}
-              y={p.y}
-              width={SW}
-              height={SH}
-              fill="var(--color-panel-2)"
-              stroke={
-                s.kind === "gate"
-                  ? "var(--accent)"
-                  : s.kind === "terminal"
-                    ? "var(--color-line-loud)"
-                    : "var(--color-line-loud)"
-              }
-              strokeWidth="1"
-              strokeDasharray={s.kind === "terminal" ? "3 3" : undefined}
-            />
-            <text
-              x={p.x + SW / 2}
-              y={p.y + SH / 2 + 3.5}
-              textAnchor="middle"
-              fill={s.kind === "terminal" ? "var(--color-dim)" : "var(--color-bone)"}
-              style={{
-                font: "600 10px var(--font-mono)",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              {s.label}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 function SectionLabel({ n, title }: { n: string; title: string }) {
   return (
     <p className="mt-12 mb-5 font-mono text-label tracking-[0.2em] uppercase">
@@ -234,9 +70,77 @@ function SectionLabel({ n, title }: { n: string; title: string }) {
   );
 }
 
+/** SKILL.md tabs read as the skill's name; other files keep their filename */
+function tabLabel(path: string): string {
+  const parts = path.split("/");
+  const file = parts[parts.length - 1];
+  return file === "SKILL.md" && parts.length > 1 ? parts[parts.length - 2] : file;
+}
+
+/* ── the artifact behind a clicked component — blocks, a trace, or files ──
+   Everything reads downward: text wraps, diagrams scale to the drawer,
+   the user scrolls vertically — never sideways. */
+function InspectBody({ entry }: { entry: InspectEntry }) {
+  const [fileIdx, setFileIdx] = useState(0);
+
+  if (entry.blocks) {
+    return <InspectBlocks blocks={entry.blocks} />;
+  }
+
+  if (entry.trace) {
+    return <TraceView trace={entry.trace} />;
+  }
+
+  if (entry.files && entry.files.length > 0) {
+    const file = entry.files[Math.min(fileIdx, entry.files.length - 1)];
+    return (
+      <div>
+        <div className="flex flex-wrap border-b border-line" role="tablist">
+          {entry.files.map((f, i) => (
+            <button
+              key={f.path}
+              type="button"
+              role="tab"
+              aria-selected={i === fileIdx}
+              onClick={() => setFileIdx(i)}
+              className={`border-r border-line px-4 py-2.5 font-mono text-label tracking-[0.08em] transition-colors ${
+                i === fileIdx
+                  ? "bg-panel-2 text-(--accent)"
+                  : "text-dim hover:text-bone"
+              }`}
+            >
+              {tabLabel(f.path)}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-line px-5 py-2.5">
+          <span className="font-mono text-label tracking-[0.06em] text-ash">
+            {file.path}
+          </span>
+          {file.note && (
+            <span className="font-mono text-label tracking-[0.06em] text-dim">
+              — {file.note}
+            </span>
+          )}
+        </div>
+        <pre className="px-5 py-4 font-mono text-mono-sm leading-[1.7] break-words whitespace-pre-wrap text-ash">
+          {file.excerpt}
+        </pre>
+      </div>
+    );
+  }
+
+  return (
+    <pre className="px-5 py-4 font-mono text-mono-sm leading-[1.7] break-words whitespace-pre-wrap text-ash">
+      {entry.excerpt}
+    </pre>
+  );
+}
+
 export default function SystemDeepDive({
   title,
   subtitle,
+  inspect,
   nodes,
   edges,
   stateMachines = [],
@@ -247,6 +151,8 @@ export default function SystemDeepDive({
 }: {
   title: string;
   subtitle?: string;
+  /** key into the inspect registry — enables click-a-box → see the artifact */
+  inspect?: string;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   stateMachines?: StateMachine[];
@@ -256,7 +162,7 @@ export default function SystemDeepDive({
   invariants?: string[];
 }) {
   const [open, setOpen] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [inspectedId, setInspectedId] = useState<string | null>(null);
   // the portal escapes the page's --accent scope; capture it at open time
   const [accent, setAccent] = useState("var(--color-ember)");
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -269,14 +175,32 @@ export default function SystemDeepDive({
     () => false
   );
 
+  const files = inspect ? INSPECT[inspect] : undefined;
+  const inspectableIds = files
+    ? new Set(nodes.map((n) => n.id).filter((id) => files[id]))
+    : undefined;
+  const inspected =
+    inspectedId && files?.[inspectedId]
+      ? { node: nodes.find((n) => n.id === inspectedId), entry: files[inspectedId] }
+      : null;
+
   const close = useCallback(() => {
     setOpen(false);
+    setInspectedId(null);
     triggerRef.current?.focus();
   }, []);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // the drawer catches the first Esc; the dive the second
+      setInspectedId((cur) => {
+        if (cur !== null) return null;
+        close();
+        return cur;
+      });
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
@@ -346,35 +270,14 @@ export default function SystemDeepDive({
                       {title}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 font-mono text-mono-sm">
-                    <button
-                      type="button"
-                      onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}
-                      aria-label="Zoom out"
-                      className="border border-line px-3 py-1.5 text-ash transition-colors hover:border-line-loud hover:text-bone"
-                    >
-                      −
-                    </button>
-                    <span className="w-12 text-center text-label text-dim">
-                      {Math.round(zoom * 100)}%
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setZoom((z) => Math.min(2, z + 0.2))}
-                      aria-label="Zoom in"
-                      className="border border-line px-3 py-1.5 text-ash transition-colors hover:border-line-loud hover:text-bone"
-                    >
-                      +
-                    </button>
-                    <button
-                      ref={closeRef}
-                      type="button"
-                      onClick={close}
-                      className="ml-3 border border-line px-3 py-1.5 text-bone transition-colors hover:border-(--accent)"
-                    >
-                      Close ✕
-                    </button>
-                  </div>
+                  <button
+                    ref={closeRef}
+                    type="button"
+                    onClick={close}
+                    className="border border-line px-3 py-1.5 font-mono text-mono-sm text-bone transition-colors hover:border-(--accent)"
+                  >
+                    Close ✕
+                  </button>
                 </div>
 
                 <motion.div
@@ -399,15 +302,29 @@ export default function SystemDeepDive({
                       nodes={nodes}
                       edges={edges}
                       ariaLabel={`${title} complete architecture`}
-                      scale={zoom * 1.15}
+                      fluid
                       markerId="deep-arrow"
+                      interactiveIds={inspectableIds}
+                      selectedId={inspectedId}
+                      onNodeClick={(id) =>
+                        setInspectedId((cur) => (cur === id ? null : id))
+                      }
                     />
                   </div>
+
                   <p className="mt-3 font-mono text-label tracking-[0.12em] text-dim uppercase">
-                    <span className="text-(--accent)">outlined</span> = a gate —
-                    where deterministic code overrules the model ·{" "}
+                    <span className="text-(--accent)">outlined</span> = where
+                    the model has no say — code or a human decides ·{" "}
                     <span className="text-ash">dashed</span> = failure / repair
                     path
+                    {inspectableIds && inspectableIds.size > 0 && (
+                      <>
+                        {" · "}
+                        <span className="text-bone">
+                          click a component marked + to see what&apos;s behind it
+                        </span>
+                      </>
+                    )}
                   </p>
 
                   {stateMachines.length > 0 && (
@@ -416,7 +333,7 @@ export default function SystemDeepDive({
                         n="01"
                         title="State machines — the actual lifecycles"
                       />
-                      <div className="grid gap-6 xl:grid-cols-2">
+                      <div className="grid gap-6">
                         {stateMachines.map((m, i) => (
                           <figure
                             key={m.title}
@@ -432,7 +349,7 @@ export default function SystemDeepDive({
                                 </span>
                               )}
                             </figcaption>
-                            <div className="overflow-x-auto p-6">
+                            <div className="p-6">
                               <StateFlowSvg
                                 machine={m}
                                 markerId={`sm-arrow-${i}`}
@@ -441,6 +358,13 @@ export default function SystemDeepDive({
                           </figure>
                         ))}
                       </div>
+                      <p className="mt-3 font-mono text-label tracking-[0.12em] text-dim uppercase">
+                        <span className="text-(--accent)">outlined</span> = a
+                        gate — the run stops here unless it passes ·{" "}
+                        <span className="text-ash">dashed box</span> = end state
+                        · <span className="text-ash">dashed path</span> = retry
+                        / repair
+                      </p>
                     </>
                   )}
 
@@ -541,6 +465,72 @@ export default function SystemDeepDive({
                     </>
                   )}
                 </motion.div>
+
+                {/* click a box → a full-height, scrollable drawer with the
+                    artifact behind it. Esc or the backdrop closes it. */}
+                <AnimatePresence>
+                  {inspected?.node && (
+                    <>
+                      <motion.div
+                        key="inspect-backdrop"
+                        className="fixed inset-0 z-20 bg-void/60"
+                        initial={reduced ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={reduced ? undefined : { opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        onClick={() => setInspectedId(null)}
+                        aria-hidden
+                      />
+                      <motion.aside
+                        key={`inspect-${inspectedId}`}
+                        role="dialog"
+                        aria-label={`${inspected.node.label} — the artifact behind it`}
+                        className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[min(58rem,94vw)] flex-col border-l border-line bg-panel"
+                        initial={reduced ? false : { x: "100%" }}
+                        animate={{ x: 0 }}
+                        exit={reduced ? undefined : { x: "100%" }}
+                        transition={{
+                          duration: 0.4,
+                          ease: [0.19, 1, 0.22, 1],
+                        }}
+                      >
+                        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-line bg-panel px-5 py-3.5">
+                          <span className="font-mono text-label tracking-[0.18em] text-(--accent) uppercase">
+                            {inspected.node.label}
+                          </span>
+                          <span className="font-mono text-label tracking-[0.06em] text-ash">
+                            {inspected.entry.path}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setInspectedId(null)}
+                            className="ml-auto border border-line px-2.5 py-1 font-mono text-label tracking-[0.18em] text-dim uppercase transition-colors hover:border-(--accent) hover:text-bone"
+                          >
+                            close ✕
+                          </button>
+                        </div>
+                        {inspected.entry.note && (
+                          <p className="border-b border-line px-5 py-2.5 font-mono text-label tracking-[0.08em] text-dim">
+                            {inspected.entry.note}
+                          </p>
+                        )}
+                        <div className="min-h-0 flex-1 overflow-y-auto">
+                          <InspectBody
+                            key={inspectedId}
+                            entry={inspected.entry}
+                          />
+                        </div>
+                        <p className="border-t border-line px-5 py-2.5 font-mono text-label tracking-[0.12em] text-dim uppercase">
+                          {inspected.entry.trace
+                            ? "drawn from the real wiring — span names, models, scores & gates as coded; timings from a documented run"
+                            : inspected.entry.blocks
+                              ? "distilled from the source file — names, rules, thresholds & quotes as coded, nothing illustrative"
+                              : "quoted verbatim from the source — nothing illustrative"}
+                        </p>
+                      </motion.aside>
+                    </>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>,
