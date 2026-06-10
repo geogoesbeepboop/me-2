@@ -1,0 +1,210 @@
+---
+title: "JIM"
+summary: "An autonomous analyst that sells cited research over x402 micropayments — and buys its own upstream data the same way. Every number must trace to a source, or the memo doesn't ship."
+question: "Can an agent sell research that proves itself?"
+date: "2026-05-26"
+started: "2026-05-26"
+updated: "2026-06-07"
+status: "LIVE"
+domain: "MARKETS · AGENT ECONOMY"
+accent: "#62d9e8"
+refs:
+  - "work/procurement-agent#decisions"
+  - "writing/four-agents-one-nervous-system#what-transfers"
+  - "writing/ship-the-how#the-how-is-the-product"
+reflection: "writing/ship-the-how"
+---
+
+<Bench
+  rows={[
+    { k: "product", v: "cited memos — $0.25 fundamentals · $0.50 on-chain · $0.10 monitor updates" },
+    { k: "engine", v: "langgraph: gather → debate → synthesize → gate → judge" },
+    { k: "rails", v: "x402 v2 · usdc (eip-3009) · base · bazaar auto-discovery" },
+    { k: "state", v: "phases 0–5 offline-proven · 114+ tests · live legs pending" }
+  ]}
+/>
+
+<SystemDeepDive
+  title="JIM"
+  subtitle="A buyer pays before the route runs; the engine writes prose it cannot prove false; paid data is cached so the second sale is nearly pure margin."
+  nodes={[
+    { id: "buyers", label: "Buyers", sub: "mcp agents · http · human ui", col: 0, row: 0 },
+    { id: "disc", label: "Discovery", sub: "catalog · well-known · bazaar", col: 1, row: 0 },
+    { id: "mw", label: "x402 middleware", sub: "402 → verify → settle", col: 2, row: 0, accent: true },
+    { id: "fac", label: "Facilitator", sub: "base · usdc eip-3009", col: 3, row: 0 },
+    { id: "routes", label: "Paid routes", sub: "$0.25 / $0.50 per call", col: 4, row: 0 },
+    { id: "gather", label: "Gather", sub: "sources → snapshot", col: 0, row: 1 },
+    { id: "debate", label: "Debate", sub: "bull ∥ bear → judge", col: 1, row: 1 },
+    { id: "synth", label: "Synthesize", sub: "sonnet 4.6 · cited memo", col: 2, row: 1 },
+    { id: "gate", label: "Sourcing gate", sub: "deterministic · no llm", col: 3, row: 1, accent: true },
+    { id: "judge", label: "Faithfulness judge", sub: "haiku · ≥ 0.80", col: 4, row: 1 },
+    { id: "edgar", label: "SEC EDGAR", sub: "free · public domain", col: 0, row: 2 },
+    { id: "graph", label: "The Graph", sub: "paid upstream · x402", col: 1, row: 2 },
+    { id: "budget", label: "Budget cap", sub: "≤ $0.10 data per query", col: 2, row: 2, accent: true },
+    { id: "cache", label: "Cache", sub: "buy once · resell · ttl 1d", col: 3, row: 2 },
+    { id: "ledger", label: "Margin ledger", sub: "price − data − inference", col: 4, row: 2 },
+    { id: "mon", label: "Monitors", sub: "scheduler · 6h cooldown", col: 0, row: 3 },
+    { id: "mat", label: "Materiality gate", sub: "5% price · 10% metric", col: 1, row: 3, accent: true },
+    { id: "imp", label: "Impersonal guard", sub: "no advice · no 2nd person", col: 2, row: 3, accent: true },
+    { id: "map", label: "Live map", sub: "GET /map — config-drawn", col: 3, row: 3 },
+    { id: "lf", label: "Langfuse", sub: "best-effort tracing", col: 4, row: 3 }
+  ]}
+  edges={[
+    { from: "buyers", to: "disc", label: "find" },
+    { from: "disc", to: "mw" },
+    { from: "mw", to: "fac", label: "verify · settle" },
+    { from: "mw", to: "routes", label: "after settle" },
+    { from: "routes", to: "gather", label: "run" },
+    { from: "gather", to: "debate" },
+    { from: "debate", to: "synth" },
+    { from: "synth", to: "gate", label: "memo" },
+    { from: "gate", to: "judge", label: "pass" },
+    { from: "gate", to: "synth", label: "retry ≤2", dashed: true },
+    { from: "gather", to: "edgar" },
+    { from: "gather", to: "graph" },
+    { from: "graph", to: "budget", label: "propose", dashed: true },
+    { from: "budget", to: "cache", label: "record" },
+    { from: "cache", to: "ledger", label: "margin" },
+    { from: "mon", to: "mat", label: "diff" },
+    { from: "mat", to: "synth", label: "only if material" },
+    { from: "synth", to: "imp", label: "updates", dashed: true }
+  ]}
+  stateMachines={[
+    {
+      title: "One paid research run",
+      caption: "the gate can send it back; exhaustion is never billed",
+      states: [
+        { id: "request", label: "request", col: 0, row: 0 },
+        { id: "x402", label: "x402 verify", col: 1, row: 0, kind: "gate" },
+        { id: "gather", label: "gather", col: 2, row: 0 },
+        { id: "debate", label: "debate", col: 3, row: 0 },
+        { id: "synth", label: "synthesize", col: 4, row: 0 },
+        { id: "gate", label: "sourcing gate", col: 5, row: 0, kind: "gate" },
+        { id: "judge", label: "judge ≥ 0.80", col: 6, row: 0, kind: "gate" },
+        { id: "billed", label: "settled + billed", col: 7, row: 0, kind: "terminal" },
+        { id: "rejected", label: "rejected · $0", col: 6, row: 1, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "request", to: "x402", label: "402 → sign" },
+        { from: "x402", to: "gather", label: "verified" },
+        { from: "gather", to: "debate", label: "snapshot" },
+        { from: "debate", to: "synth", label: "verdict" },
+        { from: "synth", to: "gate", label: "memo" },
+        { from: "gate", to: "synth", label: "retry ≤ 2", dashed: true },
+        { from: "gate", to: "judge", label: "0 violations" },
+        { from: "judge", to: "billed", label: "settle" },
+        { from: "gate", to: "rejected", label: "exhausted" }
+      ]
+    },
+    {
+      title: "Monitor tick",
+      caption: "deterministic detection; the model speaks only on news",
+      states: [
+        { id: "due", label: "tick due", col: 0, row: 0 },
+        { id: "gather", label: "gather", col: 1, row: 0 },
+        { id: "diff", label: "diff baseline", col: 2, row: 0 },
+        { id: "crew", label: "trigger crew", col: 3, row: 0 },
+        { id: "mat", label: "materiality", col: 4, row: 0, kind: "gate" },
+        { id: "update", label: "synthesize", col: 5, row: 0 },
+        { id: "guards", label: "gate + guard", col: 6, row: 0, kind: "gate" },
+        { id: "pushed", label: "pushed", col: 7, row: 0, kind: "terminal" },
+        { id: "quiet", label: "quiet · $0", col: 5, row: 1, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "due", to: "gather" },
+        { from: "gather", to: "diff", label: "snapshot" },
+        { from: "diff", to: "crew", label: "pure functions" },
+        { from: "crew", to: "mat", label: "signals" },
+        { from: "mat", to: "quiet", label: "below floor" },
+        { from: "mat", to: "update", label: "material" },
+        { from: "update", to: "guards", label: "sourcing + impersonal" },
+        { from: "guards", to: "pushed", label: "console · webhook · feed" }
+      ]
+    }
+  ]}
+  loops={[
+    { name: "bull", model: "sonnet 4.6", shape: "parallel", does: "argue the long case from the shared fact set" },
+    { name: "bear", model: "sonnet 4.6", shape: "parallel", does: "argue the short case from the same facts — same snapshot, opposite brief" },
+    { name: "debate judge", model: "haiku 4.5", shape: "single-shot", does: "score both sides; the verdict shapes synthesis" },
+    { name: "synthesizer", model: "sonnet 4.6", shape: "retry ≤ 2", does: "the cited memo — human mode or terse, metric-dense agent mode" },
+    { name: "faithfulness judge", model: "haiku 4.5", shape: "single-shot", does: "semantic check ≥ 0.80 — the soft second layer behind the hard gate" }
+  ]}
+  core={[
+    { name: "sourcing gate", rule: "pass A: $ · % · × figures; pass B: bare decimals before [C##]; tolerance max(2%, 0.05); a phantom citation is itself a violation" },
+    { name: "budget cap", rule: "$0.10 hard data ceiling per query — the source proposes, code disposes" },
+    { name: "materiality gate", rule: "5% price move · 10% metric change · RSI 70/30 · 6h cooldown per signal" },
+    { name: "impersonal guard", rule: "no advice, no second person, no price targets — the publisher's-exclusion lane, enforced" },
+    { name: "cache + margin ledger", rule: "purchases live 86,400s; margin = price − data − inference, recorded per query" },
+    { name: "offline-first", rule: "every gate runs with zero keys, zero network, zero model — API keys only buy prose" }
+  ]}
+  layers={[
+    { name: "Marketplace", note: "x402 V2 end to end: a 402 challenge, an EIP-3009 USDC signature, verify, settle — only then does the route run. First settlement auto-indexes JIM on the Bazaar; no manual listing." },
+    { name: "Engine", note: "LangGraph pipeline. Bull and bear argue, a judge scores them, Sonnet writes the memo in human or agent mode. Debate and judge are optional; the gate is not." },
+    { name: "Trust", note: "Four deterministic gates with no model in the loop: sourcing (every figure must match a cited fact within max(2%, 0.05)), budget (propose/dispose at $0.10), impersonal (no advice, ever), materiality (quiet polls cost $0 inference)." },
+    { name: "Economics", note: "Buy a datum once (~$0.01 via The Graph), cache it for a day, resell derived memos at $0.25–0.50. The dashboard tracks margin and the inference dollars the materiality gate saved." }
+  ]}
+  invariants={[
+    "No memo ships with a number the gate can't trace to a cited fact.",
+    "The model proposes data buys; code enforces the $0.10 ceiling.",
+    "Quiet monitor polls cost $0 of inference.",
+    "Everything runs offline — API keys only buy prose.",
+    "Settlement before service: the route runs only after x402 verifies payment."
+  ]}
+/>
+
+<Update date="2026.06.07" title="Track 0 — earn the right">
+
+Phases 0 through 5 are implemented and offline-proven: 114+ tests, the 402 challenge shape verified without spending, planted hallucinations blocked by the gate. Which is exactly why the next work is *not* features. The live legs — a real Sepolia settlement, a real paid memo at 100% coverage — are unproven, and the gate has never been adversarially stressed.
+
+So Track 0: fuzz the sourcing gate with property-based tests. Scientific notation, unicode digits, non-US thousands separators, ranges like "$1.2–1.4B", spelled-out percents. The gate is the entire trust story; if it bends, the product is a rumor with a price tag.
+
+<TerminalLog
+  title="one paid call — the whole loop"
+  lines={[
+    { t: "14:02:11", k: "out", s: "GET /research/fundamentals?ticker=AAPL → 402 PAYMENT REQUIRED" },
+    { t: "14:02:12", k: "out", s: "client signs eip-3009 usdc authorization → retry with payment header" },
+    { t: "14:02:13", k: "sys", s: "facilitator /verify → ok. engine runs." },
+    { t: "14:02:14", k: "agent", s: "[gather] edgar 10-K facts · cache hit · cost_in $0.00" },
+    { t: "14:02:21", k: "agent", s: "[debate] bull ∥ bear → judge verdict feeds synthesis" },
+    { t: "14:02:29", k: "agent", s: "[synthesize · sonnet] memo drafted — 14 figures, 14 citations" },
+    { t: "14:02:29", k: "out", s: "[gate] 14/14 figures trace to cited facts — 0 violations" },
+    { t: "14:02:31", k: "agent", s: "[judge · haiku] faithfulness 0.91 ≥ 0.80" },
+    { t: "14:02:32", k: "sys", s: "/settle → tx receipt · 200 OK — memo + citations + economics" },
+    { t: "14:02:32", k: "out", s: "margin: $0.25 − $0.014 inference − $0.00 data" }
+  ]}
+/>
+
+</Update>
+
+<Update date="2026.06.03" title="The margin engine">
+
+JIM is a buyer too. Serving a token request, it pays The Graph ~$0.01 over x402 for Uniswap data — but only after the budget cap approves the spend (the source *proposes*, code *disposes*, hard ceiling $0.10 per query). The purchase lands in a cache with a one-day TTL, so the next sale of the same datum carries zero data cost. Buy once, resell many: the margin ledger prices every call as `price_out − data − inference`, and the dashboard shows which memos were nearly pure margin.
+
+The same mechanism is the road to agent-to-agent composition: a future Source that gathers from a *peer agent* over x402 routes through the identical propose → budget → cache path. And the sourcing gate becomes composition safety — an unverifiable figure from a subcontractor fails exactly like a hallucination would.
+
+</Update>
+
+<Update date="2026.05.30" title="Bull, bear, judge — and the gates that never sleep">
+
+The debate phase exists because single-pass analysis flatters whatever the data implies. Bull and bear each argue from the same fact set; a judge scores both; the verdict shapes synthesis. All of it is optional luxury — `ENABLE_DEBATE` off still produces a memo, because the deterministic spine doesn't need the theater.
+
+Monitors run the same philosophy on a clock: diff against baseline, pure-function trigger crew, a materiality gate (5% price move, 10% metric change, RSI bands, 6-hour cooldown) that decides whether the model gets to speak at all. A quiet poll costs zero inference. When something is material, the update still has to pass the sourcing gate and the impersonal guard — general analysis only, no advice, no second person, no price targets.
+
+</Update>
+
+<Update date="2026.05.26" title="The gate came before the prose">
+
+First real component: a sourcing gate that knows nothing about language models. Pass A extracts every dollar amount, percent, and multiple from a memo; Pass B catches bare decimals sitting before a citation. Each figure must match a fact in the snapshot — same segment, tolerance `max(2% relative, 0.05 absolute)` — and a citation pointing at a fact that doesn't exist is itself a violation. Zero violations or the memo retries; retries exhausted, it's rejected and never billed as ok.
+
+Everything since has been built around that one deterministic promise.
+
+</Update>
+
+<OpenQuestions
+  items={[
+    "Can a regex gate survive adversarial numerics, or does it need a tokenizer-based extractor? Hypothesis fuzzing will answer this one way or the other.",
+    "The settle-then-record window: if settlement lands and the cache write fails, the datum was bought and lost. Idempotency keys + a reconciliation job, or prepaid balances?",
+    "Per-source trust as gate pass-rate — is that the native reputation primitive for an agent-to-agent economy?",
+    "When JIM buys from another agent, does the gate genuinely make subcontracted claims safe to resell?"
+  ]}
+/>

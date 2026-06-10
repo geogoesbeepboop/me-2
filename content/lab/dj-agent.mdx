@@ -1,0 +1,188 @@
+---
+title: "DJ Agent"
+summary: "A personal DJ that turns my real library into a vibe database, learns my taste from how I annotate tracks, and plans beatmatched sets a deterministic critic must pass before any audio renders."
+question: "Can software mix a set like someone who knows me?"
+date: "2026-06-01"
+started: "2026-06-01"
+updated: "2026-06-05"
+status: "LIVE"
+domain: "AUDIO · ML"
+accent: "#c77dff"
+refs:
+  - "writing/four-agents-one-nervous-system#the-substrate"
+  - "writing/ship-the-how#make-people-care"
+reflection: "writing/four-agents-one-nervous-system"
+---
+
+<Bench
+  rows={[
+    { k: "representations", v: "512-d clap (track + section) · 384-d taste · bpm / camelot / lufs columns" },
+    { k: "agents", v: "2 llm (architect, selector) — everything else deterministic" },
+    { k: "critic gate", v: "≥70% harmonic · ≤6 bpm jump · ≤4 lufs arc-rmse · 0 artist repeats" },
+    { k: "state", v: "phases 0–5 code-complete · 103 fast tests · first real ingest next" }
+  ]}
+/>
+
+Spotify DJ is a recommender in a costume — it legally can't touch audio, and it optimizes for everyone. This bench goes the other way: personal use, my actual files, my taste as the center of gravity, and real beatmatched renders that need the raw decodable audio streaming services can never give an algorithm.
+
+<SystemDeepDive
+  title="DJ Agent"
+  subtitle="Semantics live in vectors, mixing math lives in columns — and the only two LLM components are wrapped in a deterministic verify loop."
+  nodes={[
+    { id: "lib", label: "Local library", sub: "sourceprovider seam", col: 0, row: 0 },
+    { id: "cur", label: "Curator", sub: "all-day ingest · idempotent", col: 1, row: 0 },
+    { id: "seg", label: "Segment", sub: "allin1 → librosa fallback", col: 2, row: 0 },
+    { id: "ana", label: "Analyze", sub: "bpm · camelot · lufs", col: 3, row: 0 },
+    { id: "taste", label: "Taste loop", sub: "notes → 384-d · propagate", col: 0, row: 1, accent: true },
+    { id: "store", label: "Postgres + pgvector", sub: "tracks · sections · one row", col: 1, row: 1 },
+    { id: "clap", label: "CLAP encoder", sub: "512-d track + per-section", col: 2, row: 1 },
+    { id: "meta", label: "ID3 tags", sub: "mutagen", col: 3, row: 1 },
+    { id: "arch", label: "Architect", sub: "llm · brief → arc", col: 0, row: 2, accent: true },
+    { id: "sel", label: "Selector", sub: "llm · generate→verify→revise", col: 1, row: 2, accent: true },
+    { id: "critic", label: "Critic", sub: "deterministic verifier", col: 2, row: 2 },
+    { id: "hitl", label: "HITL gate", sub: "approve the plan as data", col: 3, row: 2, accent: true },
+    { id: "core", label: "agent-core", sub: "trace · complete() · budget", col: 0, row: 3 },
+    { id: "mixer", label: "Mixer", sub: "stretch · equal-power · eq", col: 1, row: 3 },
+    { id: "wav", label: "Rendered mix", sub: ".wav · peak-normalized", col: 2, row: 3 },
+    { id: "hist", label: "Set history", sub: "every plan, jsonl", col: 3, row: 3 }
+  ]}
+  edges={[
+    { from: "lib", to: "cur" },
+    { from: "cur", to: "seg" },
+    { from: "seg", to: "ana", label: "beat grid" },
+    { from: "seg", to: "clap", label: "bounds" },
+    { from: "cur", to: "meta" },
+    { from: "ana", to: "store" },
+    { from: "clap", to: "store" },
+    { from: "meta", to: "store" },
+    { from: "taste", to: "store", label: "vectors" },
+    { from: "arch", to: "sel", label: "arc" },
+    { from: "store", to: "sel", label: "blended pool" },
+    { from: "sel", to: "critic", label: "set plan" },
+    { from: "critic", to: "sel", label: "notes → revise", dashed: true },
+    { from: "critic", to: "hitl", label: "pass" },
+    { from: "hitl", to: "mixer", label: "approve" },
+    { from: "mixer", to: "wav" },
+    { from: "sel", to: "hist", label: "log", dashed: true },
+    { from: "core", to: "arch", label: "complete()", dashed: true }
+  ]}
+  stateMachines={[
+    {
+      title: "Set generation",
+      caption: "two llms, two gates, audio only at the very end",
+      states: [
+        { id: "brief", label: "vibe brief", col: 0, row: 0 },
+        { id: "arc", label: "arc", col: 1, row: 0 },
+        { id: "pool", label: "candidate pool", col: 2, row: 0 },
+        { id: "propose", label: "propose set", col: 3, row: 0 },
+        { id: "critic", label: "critic", col: 4, row: 0, kind: "gate" },
+        { id: "hitl", label: "hitl approve", col: 5, row: 0, kind: "gate" },
+        { id: "render", label: "render", col: 6, row: 0 },
+        { id: "wav", label: "mix .wav", col: 7, row: 0, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "brief", to: "arc", label: "architect" },
+        { from: "arc", to: "pool", label: "bpm band" },
+        { from: "pool", to: "propose", label: "selector" },
+        { from: "propose", to: "critic", label: "set plan" },
+        { from: "critic", to: "propose", label: "notes → revise", dashed: true },
+        { from: "critic", to: "hitl", label: "pass / budget" },
+        { from: "hitl", to: "propose", label: "nudge", dashed: true },
+        { from: "hitl", to: "render", label: "approve" },
+        { from: "render", to: "wav", label: "stretch · crossfade · eq" }
+      ]
+    },
+    {
+      title: "Taste capture",
+      caption: "reviews park until the file exists; ambiguity never guesses",
+      states: [
+        { id: "review", label: "review in the moment", col: 0, row: 0 },
+        { id: "parked", label: "pending_taste", col: 1, row: 0 },
+        { id: "match", label: "match at ingest", col: 2, row: 0, kind: "gate" },
+        { id: "applied", label: "applied", col: 3, row: 0, kind: "terminal" },
+        { id: "manual", label: "manual resolve", col: 3, row: 1, kind: "terminal" }
+      ],
+      transitions: [
+        { from: "review", to: "parked", label: "no file yet" },
+        { from: "parked", to: "match", label: "curator ingests" },
+        { from: "match", to: "applied", label: "isrc / name+duration" },
+        { from: "match", to: "manual", label: "ambiguous" }
+      ]
+    }
+  ]}
+  loops={[
+    { name: "architect", model: "tier-routed", shape: "single-shot", does: "vibe brief → arc control points; deterministic shape as the no-key fallback" },
+    { name: "selector", model: "tier-routed", shape: "verify loop", does: "ordered set + the right section per slot, revised against critic notes; greedy nearest-fit fallback doubles as the eval baseline" }
+  ]}
+  core={[
+    { name: "critic thresholds", rule: "≥ 70% camelot-compatible · ≤ 6 bpm max jump · ≤ 4 LUFS arc-RMSE · 0 back-to-back artists" },
+    { name: "camelot wheel", rule: "hard constraint — key clashes never reach scoring; the model chooses among legal moves only" },
+    { name: "crossfade math", rule: "half the outgoing section's bars, clamped 1–8 · converted to seconds at arc tempo" },
+    { name: "greedy fallback cost", rule: "1.0·|bpm−target| + 1.5·|lufs−target| − 8.0·taste + 25 key-clash + 15 same-artist" },
+    { name: "ingest transaction", rule: "one tracks row + N sections rows, ON CONFLICT(path) replaces sections — safe to re-run forever" },
+    { name: "blend weights", rule: "score = 0.5·acoustic + 0.4·taste·confidence + 0.1·rating — shifts taste-heavy as labels accumulate" }
+  ]}
+  layers={[
+    { name: "Ingest", note: "The Curator fans each file into four deterministic analyzers — sections, BPM/Camelot/LUFS, CLAP embeddings, tags — and writes one track row plus N section rows in a single idempotent transaction. Safe to re-run forever." },
+    { name: "Taste", note: "My notes become 384-d vectors; ~150 hand tags propagate to the rest of the library via CLAP neighbors with stored confidence. Blend: α 0.5 acoustic · β 0.4 taste · γ 0.1 rating. An active-learning queue surfaces what to tag next." },
+    { name: "Planning", note: "The Architect turns a brief into arc control points; the Selector orders tracks and picks the right section per moment, looping against the Critic until it passes. No key? Deterministic arc + greedy nearest-fit still ship a set — and double as the eval baseline." },
+    { name: "Render", note: "Crossfade length derives from the outgoing section's bar grid (half the section, clamped 1–8 bars), time-stretch to arc tempo, equal-power blend with an EQ swap, peak-normalize." }
+  ]}
+  invariants={[
+    "Everything is deterministic except the Architect and the Selector.",
+    "Camelot compatibility is a hard gate — the model only chooses among legal moves.",
+    "The human approves the plan as data before any compute is spent on audio.",
+    "Semantics live in vectors; mixing math lives in columns. Never mixed.",
+    "agent-core is a substrate, never forked — tracing, complete(), budgets are shared."
+  ]}
+/>
+
+<Update date="2026.06.05" title="Code-complete, audio-pending">
+
+A full review pass landed across phases 0–5: 103 fast tests green, every deterministic module covered. The best catch was real: librosa's beat tracker folds double-tempo genres — DnB, footwork — down to half-tempo, and a naive octave correction elsewhere was quietly un-folding them back. Fixed before any real audio ever got graded by it.
+
+Next gate is contact with reality: the first full ingest of my actual library, where the `allin1` → librosa fallback chain finds out which segmentation backend actually installs and which genres break the beat grid.
+
+</Update>
+
+<Update date="2026.06.04" title="The selector earns its loop">
+
+<TerminalLog
+  title="set generation — 2-hr sunset rooftop, slow build"
+  cursor={false}
+  lines={[
+    { k: "agent", s: "[architect] brief → arc control points (bpm + lufs over time)" },
+    { k: "out", s: "[selector] pool: blended acoustic + taste, arc bpm band → 84 candidates" },
+    { k: "agent", s: "[selector] propose: 24 slots, sections assigned to arc energy per moment" },
+    { k: "err", s: "[critic] harmonic 92% ✓ · max bpm jump 4 ✓ · arc-rmse 5.1 ✗ → notes, revise" },
+    { k: "agent", s: "[selector] swap slots 9–11, retarget peak section" },
+    { k: "out", s: "[critic] arc-rmse 3.2 ✓ — pass" },
+    { k: "sys", s: "[hitl] plan rendered as data — approve to spend compute on audio" }
+  ]}
+/>
+
+The Critic is the interesting half: harmonic compatibility, BPM continuity, energy-arc RMSE, artist spacing — pure math, reused unchanged as the eval scorecard. The Selector revises against its notes until pass or budget. With no API key the whole pipeline degrades to a deterministic arc and greedy nearest-fit ordering, which is also the A/B baseline the agents have to beat.
+
+</Update>
+
+<Update date="2026.06.03" title="Capture taste before you own the file">
+
+The strongest taste signal happens while *listening* — usually on Spotify, where there's no file to tag. So capture decouples from ingest: a review left in the moment ("Bicep — Glue: dreamy 3am closer, 5") parks in a `pending_taste` table and auto-applies when the Curator ingests a confident match — ISRC, or name plus duration. Anything ambiguous surfaces for a one-line manual resolve instead of guessing.
+
+That last part is the design: a wrong auto-match would poison the taste layer silently, and the taste layer is the only thing here that can't be recomputed from the audio.
+
+</Update>
+
+<Update date="2026.06.01" title="Bench assembled — two vectors, one row">
+
+"Sounds similar" and "is my kind of track" are different questions, so every track carries both: a 512-d CLAP acoustic vector and a 384-d taste vector embedded from my own notes — separate columns on the same Postgres row, blendable per query. "Surprise me" leans acoustic; "my favorites" leans taste. Sections are first-class rows with their own vectors, because a set doesn't mix *tracks*, it mixes the right *parts* of tracks on musical boundaries.
+
+</Update>
+
+<OpenQuestions
+  items={[
+    "Does taste propagation hold at ~150 hand tags, or does it quietly need 2,000?",
+    "Phase-locked downbeats at the splice: seams currently sit within ~1.5 BPM of each other — is that audible on a real floor or only in a DAW?",
+    "Plan approval is the acceptance metric — does approving a set as data actually predict liking it as audio?"
+  ]}
+/>

@@ -1,0 +1,117 @@
+---
+# WORK CASE STUDY — copy into content/work/<slug>.mdx
+# The site picks it up automatically; archive number, cross-links and
+# backlinks are computed at build time.
+title: "Project Name"
+summary: "One honest sentence — what it is, who it serves, what state it's in."
+date: "YYYY-MM-DD"            # drives ordering
+year: "2026"
+status: "LIVE"                # short stamp: LIVE / SHIPPED / SPINE PROVEN ...
+thesis: "The one-liner shown when the index row opens."
+domain: "FIELD · SUBFIELD"    # e.g. "FINTECH · PAYMENTS"
+accent: "#3fe07c"             # this project's color across the site
+role: "Solo — design, engineering"
+stack: ["Thing", "Thing", "Thing"]
+timeline: "Mon — Mon 2026"
+metrics:                      # 3 real numbers, big type on the dossier
+  - k: "what it counts"
+    v: "7"
+sections:                     # drives the sticky TOC; ids must match below
+  - { id: "brief", title: "Brief" }
+  - { id: "system", title: "The system" }
+  - { id: "how-i-built-it", title: "How I built it" }
+  - { id: "what-broke", title: "What broke" }
+  - { id: "decisions", title: "Decisions & tradeoffs" }
+  - { id: "whats-next", title: "What's next" }
+refs:                         # outbound links into other entries (anchors ok)
+  - "writing/some-post#some-heading"
+reflection: "writing/some-post"   # the steer at the end of the dossier
+---
+
+<Section id="brief" n="00" title="Brief">
+
+Two or three paragraphs. What problem, for whom, what's true today.
+
+</Section>
+
+<Section id="system" n="01" title="The system">
+
+<ArchitectureDiagram
+  title="at a glance"
+  caption="One sentence of orientation."
+  nodes={[
+    { id: "a", label: "Component", sub: "detail", col: 0, row: 0 },
+    { id: "b", label: "Component", sub: "detail", col: 1, row: 0, accent: true }
+  ]}
+  edges={[{ from: "a", to: "b", label: "flow" }]}
+/>
+
+<SystemDeepDive
+  title="Project Name"
+  subtitle="Every component and every gate, one map."
+  nodes={[ /* the FULL map — 12-20 components */ ]}
+  edges={[ /* ... */ ]}
+  layers={[{ name: "Layer", note: "What lives here and why." }]}
+  invariants={["The rule that always holds."]}
+/>
+
+</Section>
+
+<Section id="how-i-built-it" n="02" title="How I built it">
+
+Narrative. Drop in artifacts where they prove something:
+
+<TerminalLog
+  title="a real run"
+  lines={[
+    { t: "09:00:01", k: "sys", s: "..." },
+    { t: "09:00:02", k: "agent", s: "[component] ..." },
+    { t: "09:00:03", k: "err", s: "..." },
+    { t: "09:00:04", k: "out", s: "..." }
+  ]}
+/>
+
+<BuildTimeline
+  entries={[
+    { date: "Jun 2026", tag: "v0.1", title: "Milestone", note: "What changed." }
+  ]}
+/>
+
+</Section>
+
+<Section id="what-broke" n="03" title="What broke">
+
+<WhatBroke
+  items={[
+    {
+      title: "The incident",
+      sev: "SEV-1",
+      what: "What happened, concretely.",
+      fix: "What changed in the system.",
+      lesson: "The transferable rule."
+    }
+  ]}
+/>
+
+</Section>
+
+<Section id="decisions" n="04" title="Decisions & tradeoffs">
+
+<Decision
+  n="01"
+  title="The call"
+  chose="What was chosen."
+  over="The alternative."
+  cost="What it costs."
+  payoff="Why it wins anyway."
+/>
+
+</Section>
+
+<Section id="whats-next" n="05" title="What's next">
+
+<NextUp items={["Concrete intention.", "Another."]} />
+
+<Ref to="lab/some-bench" note="optional pointer onward" />
+
+</Section>

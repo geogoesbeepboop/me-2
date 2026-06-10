@@ -1,0 +1,36 @@
+---
+title: "Groceries Are a Benchmark"
+summary: "Forget leaderboards. A weekly cart with real money, a real store, and a real household is the most honest eval an agent can face."
+date: "2026-06-09"
+thesis: "Household problems are frontier evals wearing aprons."
+refs:
+  - "work/grocery-buddy#what-broke"
+  - "work/grocery-buddy#decisions"
+  - "work/procurement-agent#system"
+---
+
+## The cart is the eval
+
+Benchmarks saturate. The household does not.
+
+A weekly grocery run is adversarial in ways no leaderboard is: the store mutates under your scraper, the pantry drifts daily, the budget is real money, and ground truth arrives every Friday in the form of what actually shows up at the door. That's why Grocery Buddy went from empty repo to live in seven days — not because speed is impressive, but because **reality grades faster than any test suite**, and I wanted to be enrolled in that class immediately.
+
+It's also why the prediction core is deliberately boring: `days_left = (qty + incoming) / daily_rate`. One line, debuggable at a glance, no model in the loop. The LLM appears exactly where language lives — reading "we're out of the usual milk," composing the briefing — and nowhere near the arithmetic. When a prediction is wrong, I can see *why* in SQL, not guess at it in a prompt.
+
+## Failure is data with a receipt
+
+Three incidents shaped the architecture in week one: an import that silently returned nothing because the model was asked to read what code should have compressed; selector rot that made empty results look healthy; and two separate paths to buying twice.
+
+<Ref to="work/grocery-buddy#what-broke" note="all three, filed with severities and fixes" />
+
+Notice what they have in common: none of them were model failures. The model planned fine, matched fine, wrote fine. Every real failure was a *systems* failure — token budgets, silent empty lists, idempotency. The benchmark taught me where agent engineering actually lives, and it is mostly not in the prompt.
+
+## What the kitchen taught the lab
+
+The deepest lesson is about autonomy, and it came from the sibling project. Procurement Agent proved a money-control spine — signed mandates, deterministic gates, issuer-capped cards — in a test harness. Grocery Buddy runs against a real store with my real card on file. When it was time to connect them, the right answer turned out to be **shared design DNA, zero shared code**: the live product reimplements the authority pattern locally instead of importing a dependency that's still churning.
+
+<Ref to="work/procurement-agent#system" note="the authority plane the kitchen is quietly inheriting" />
+
+And the money-live gate stays shut until the evidence says otherwise: prediction precision ≥ 0.70, cost under a dollar a run, scraper probe green, checkout verification built. Autonomy isn't a config flag. It's a verdict the eval layer hands down — and so far, the verdict is "keep the human's thumb on the button."
+
+The leaderboards can keep their crowns. I'll keep the receipts.
