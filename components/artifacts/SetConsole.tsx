@@ -15,16 +15,18 @@ import {
  * An animated playback of one set-generation run: brief → arc →
  * candidate pool → proposal → critic → revision → pass → HITL →
  * render. The RULES are the repo's, verbatim — the Camelot legality
- * test, the critic thresholds, linear arc interpolation, RMSE and
- * jump math all execute right here on the data shown. The SET is
- * representative: a plausible plan generated to exercise those rules
- * (the first logged real ingest is the project's next gate).
+ * test, the open genre profile's thresholds, linear arc interpolation,
+ * RMSE and jump math all execute right here on the data shown. The SET
+ * is representative: a plausible plan generated to exercise those rules.
  * ────────────────────────────────────────────────────────────────────
  */
 
 /* ── the real rules, ported 1:1 from the repo ─────────────────────── */
 
-// src/dj/critic.py — Thresholds (defaults, verbatim)
+// The gates this run is graded on. "sunset" in the brief selects the
+// downtempo profile (src/dj/profiles.py), whose jump/harmonic gates
+// equal the open defaults; arc-RMSE and the artist rule are critic-wide
+// constants (src/dj/critic.py).
 const TH = {
   maxBpmJump: 6.0,
   minHarmonicCompat: 0.7,
@@ -109,7 +111,7 @@ function evaluateSet(slots: Slot[], arc: ArcPoint[]) {
 /* ── the representative run ───────────────────────────────────────── */
 
 // a "peak" shaped arc (one of the repo's named shapes), 5 control
-// points — inside the schema's 4–7 and the default 118–126 bpm band
+// points — inside the schema's 4–7
 const ARC: ArcPoint[] = [
   { position: 0.0, bpm: 118, lufs: -16 },
   { position: 0.35, bpm: 122, lufs: -13 },
@@ -165,7 +167,7 @@ const PHASES: readonly ConsolePhase[] = [
   { id: "propose", label: "PROPOSE", ms: 4400, who: "model",
     note: "the selector orders sections, not tracks — the right part of the right track for each moment of the arc" },
   { id: "critic", label: "CRITIC", ms: 5200, who: "code",
-    note: "no model here — four thresholds, pure math, and the failure becomes the next prompt" },
+    note: "no model here — thresholds from the genre profile (“sunset” reads as downtempo), pure math, and the failure becomes the next prompt" },
   { id: "revise", label: "REVISE", ms: 4000, who: "model",
     note: "notes appended, revision 1 of a maximum 3 — then the same math runs again" },
   { id: "verify", label: "PASS", ms: 4400, who: "code",
@@ -173,9 +175,9 @@ const PHASES: readonly ConsolePhase[] = [
   { id: "hitl", label: "APPROVE", ms: 4400, who: "human",
     note: "the plan is data — a human reads it before a second of audio is rendered. the y/n below is live: it does what the agent would do" },
   { id: "render", label: "RENDER", ms: 5000, who: "code",
-    note: "time-stretch dst÷src · equal-power crossfade (sin²+cos²=1) · incoming bass high-passed at 180 Hz · overlap = half the outgoing section, clamped 1–8 bars" },
+    note: "time-stretch dst÷src · equal-power crossfade (sin²+cos²=1) · incoming bass high-passed at 180 Hz · overlap = half the outgoing section, quantized down to a power of two, capped by the genre" },
   { id: "live", label: "ON AIR", ms: 4000, who: "code",
-    note: "the booth goes quiet and the set plays — one continuous .wav, with rekordbox.xml cues, BPM and key exported alongside" },
+    note: "the booth goes quiet and the set plays — one continuous .wav, with rekordbox.xml cues, an .m3u8 and a printable set sheet exported alongside" },
 ];
 
 const HITL_IDX = PHASES.findIndex((p) => p.id === "hitl");
@@ -274,10 +276,12 @@ export default function SetConsole({ title }: { title?: string }) {
       footnote={
         <>
           The rules here are real and running: the Camelot legality test, the
-          critic&apos;s four thresholds, the arc interpolation and RMSE math
-          execute on this page exactly as coded in the repo. The set itself is
-          representative — the first logged run on my real library is the
-          project&apos;s next gate.
+          four thresholds, the arc interpolation and RMSE math execute on this
+          page exactly as coded in the repo. The brief&apos;s “sunset” selects
+          the downtempo genre profile — its jump and harmonic gates equal the
+          open defaults shown; a hip-hop or house brief would swap in different
+          ones. The set itself is representative, built to exercise those
+          rules.
         </>
       }
     >
@@ -288,7 +292,10 @@ export default function SetConsole({ title }: { title?: string }) {
           “two hours, rooftop, sunset into night — start mellow, peak late,
           land soft”
         </span>
-        <span className="text-dim"> → architect</span>
+        <span className="text-dim">
+          {" "}
+          → “sunset” · downtempo profile → architect
+        </span>
       </div>
 
       {/* the arc canvas */}
@@ -554,7 +561,7 @@ export default function SetConsole({ title }: { title?: string }) {
         >
           <div className="border border-(--accent) p-3">
             <p className="mb-2 flex items-baseline justify-between font-mono text-label tracking-[0.2em] uppercase">
-              <span className="text-(--accent)">critic — deterministic</span>
+              <span className="text-(--accent)">critic — downtempo profile</span>
               <span className={past("verify") ? "text-(--accent)" : "text-ember"}>
                 {past("verify") ? "pass" : at("critic") || at("revise") ? "fail" : ""}
               </span>
@@ -657,9 +664,10 @@ export default function SetConsole({ title }: { title?: string }) {
                 className="mt-auto pt-3 font-mono text-[0.7rem] text-dim"
                 style={fade(past("render"))}
               >
-                only now does the mixer spend compute — stretch dst÷src,
-                equal-power crossfade, bass swapped at 180 Hz, overlap = half
-                the outgoing section (1–8 bars) → one .wav
+                xml, m3u8 and set sheet are written on the yes — only the
+                render costs compute: stretch dst÷src, equal-power crossfade,
+                bass swapped at 180 Hz, overlap = half the outgoing section,
+                quantized to a power-of-two bar count → one .wav
               </p>
             )}
           </div>
