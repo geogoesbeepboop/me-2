@@ -7,6 +7,8 @@ status: "LIVE"
 thesis: "It does everything except spend your money. That's the feature."
 domain: "HOME OPS · COMMERCE"
 accent: "#3fe07c"
+stage: "ship"
+repo: "/Users/geoandr/dev/grocery-buddy"
 role: "Solo — design, engineering, evals, ops"
 stack: ["Claude Haiku 4.5 + Sonnet 4.6", "Temporal", "FastAPI", "Postgres", "Playwright", "Telegram"]
 timeline: "Jun 2026 — operating"
@@ -25,7 +27,7 @@ sections:
   - { id: "decisions", title: "Decisions & tradeoffs" }
   - { id: "whats-next", title: "What's next" }
 refs:
-  - "work/procurement-agent#decisions"
+  - "projects/procurement-agent#decisions"
   - "writing/four-agents-one-nervous-system#approval-is-a-feature"
 ---
 
@@ -36,6 +38,10 @@ Groceries are a standing tax on attention: notice what's low, remember the brand
 Two invariants hold everywhere. **The agent never places an order** — it stages the cart and hands back a checkout link; the human taps "Place order." And **nothing touches the pantry or a cart without the user's say-so** — every purchase passes an approval gate, and imports stage a proposal before a single row is written.
 
 It went from empty repo to live on Fly.io in seven days, and it has been running my household since. A full run — prediction, pricing, briefing — costs between fifteen and forty cents.
+
+Here's one of those runs, end to end — the automation made visible:
+
+<PantryConsole />
 
 </Section>
 
@@ -301,6 +307,6 @@ Filed candidly — every fix below is now load-bearing architecture.
   ]}
 />
 
-<Ref to="work/procurement-agent#decisions" note="the convergence decision: shared design DNA, deliberately zero shared code" />
+<Ref to="projects/procurement-agent#decisions" note="the convergence decision: shared design DNA, deliberately zero shared code" />
 
 </Section>

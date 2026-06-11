@@ -52,7 +52,7 @@ export const DJ_AGENT: InspectMap = {
 
   seg: {
     path: "src/dj/audio/segment.py",
-    note: "the detector cascade, plus the octave fold that fixes librosa's half/double tempo",
+    note: "the detector cascade — allin1 out-of-process, plus the octave fold for librosa's half/double tempo",
     blocks: [
       {
         kind: "flow",
@@ -60,17 +60,47 @@ export const DJ_AGENT: InspectMap = {
         caption: "dashed = degradation path, taken on any detector failure",
         states: [
           { id: "in", label: "audio file", col: 0, row: 0 },
-          { id: "a1", label: "all-in-1 detector", col: 1, row: 0 },
+          { id: "a1", label: "allin1 cli · subprocess", col: 1, row: 0 },
+          { id: "cache", label: "json cache", col: 2, row: 0 },
           { id: "lib", label: "librosa fallback", col: 1, row: 1 },
           { id: "one", label: "single section", col: 1, row: 2, kind: "terminal" },
-          { id: "out", label: "structure", col: 2, row: 0, kind: "terminal" },
+          { id: "out", label: "structure", col: 3, row: 0, kind: "terminal" },
         ],
         transitions: [
           { from: "in", to: "a1" },
-          { from: "a1", to: "out", label: "beat grid + sections" },
+          { from: "a1", to: "cache", label: "per track" },
+          { from: "cache", to: "out", label: "beat grid + sections" },
           { from: "a1", to: "lib", label: "fails", dashed: true },
           { from: "lib", to: "out", label: "estimate" },
           { from: "lib", to: "one", label: "fails — whole file", dashed: true },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "Making allin1 actually run (ADR 0012)",
+        items: [
+          {
+            name: "the problem",
+            value: "11.3 GB / 30 s",
+            detail:
+              "allin1 had never run for real — librosa carried every ingest. The uncompiled CPU attention path materializes full T×T score matrices: 11.3 GB peak for a 30-second clip; a full track OOMs 16 GB.",
+          },
+          {
+            name: "out-of-process",
+            detail:
+              "the allin1 CLI runs as a subprocess from any Python on PATH, JSON-cached per track — the host venv's torch pins stop mattering.",
+          },
+          {
+            name: "memory-linear attention",
+            value: "O(T·k), not O(T²)",
+            detail:
+              "a vendored pure-torch patch computes the same neighborhood attention windowed — verified to float32 epsilon, and it restores the trained relative positional bias the upstream API migration silently dropped. 30-s clip: 2.07 GB; full track: 5.2 GB.",
+          },
+          {
+            name: "label map",
+            detail:
+              "allin1's vocabulary folds into the section labels the selector already speaks: start → intro, end → outro, inst → break, solo → bridge.",
+          },
         ],
       },
       {
@@ -245,6 +275,46 @@ export const DJ_AGENT: InspectMap = {
     ],
   },
 
+  prof: {
+    path: "src/dj/profiles.py",
+    note: "a frozen dataclass table — nine genres plus an open default that is exactly the old behavior",
+    blocks: [
+      {
+        kind: "rules",
+        title: "One table, many readers — architect, selector, critic, mixer, set sheet",
+        items: [
+          {
+            name: "open / default",
+            value: "6 bpm · 70% · 8 bars",
+            detail:
+              "max_bpm_jump 6.0 · min_harmonic_compat 0.7 · max_stretch 0.06 · max_xfade_bars 8 · play 120–330 s · 3.5 min per slot — no keyword hit means yesterday's constants.",
+          },
+          {
+            name: "hip-hop",
+            value: "12 bpm · 40% · 2 bars",
+            detail:
+              "max_bpm_jump 12.0 · min_harmonic_compat 0.4 · max_stretch 0.03 — big jumps and key clashes are the genre; blends are quick cuts.",
+          },
+          {
+            name: "house",
+            value: "4 bpm · 80% · 16 bars",
+            detail:
+              "max_bpm_jump 4.0 · min_harmonic_compat 0.8 · max_stretch 0.08 — tight tempo, harmonic discipline, long blends.",
+          },
+          {
+            name: "detection",
+            detail:
+              "detect(brief) is first-keyword substring matching; --genre overrides. ADR 0013 explicitly rejected an LLM judge — genre stays out of the model's hands.",
+          },
+        ],
+      },
+      {
+        kind: "note",
+        text: "The point isn't the specific numbers — it's that thresholds became data. Changing what 'mixes well' means for a genre is a table edit with a unit test, not a code change scattered across four modules.",
+      },
+    ],
+  },
+
   arch: {
     path: "src/dj/agents/architect.py",
     note: "the whole llm step: a prompt for arc control points, with a deterministic fallback",
@@ -299,6 +369,11 @@ export const DJ_AGENT: InspectMap = {
         kind: "rules",
         items: [
           {
+            name: "play spans, not points",
+            detail:
+              "each slot plans entry → core → exit: a mix-in-flagged section at or before the core, a mix-out-flagged one at or after, chosen to fill the genre's airtime window. The critic still grades the core's LUFS.",
+          },
+          {
             name: "what the prompt optimizes",
             detail:
               "BPM and LUFS tracking the arc at each position · smooth Camelot transitions · no back-to-back same artist · lean on higher-taste tracks — exactly the dimensions the critic measures.",
@@ -315,11 +390,11 @@ export const DJ_AGENT: InspectMap = {
 
   critic: {
     path: "src/dj/critic.py",
-    note: "the deterministic verifier the selector must pass — no model, just thresholds",
+    note: "the deterministic verifier the selector must pass — no model, just the genre's thresholds",
     blocks: [
       {
         kind: "rules",
-        title: "The thresholds (deliberately forgiving v1)",
+        title: "The default gates — genres override the jump and harmonic bars",
         items: [
           { name: "max_bpm_jump", value: "6.0", detail: "BPM difference between adjacent slots." },
           { name: "max_lufs_jump", value: "5.0", detail: "energy difference between adjacent slots." },
@@ -332,7 +407,7 @@ export const DJ_AGENT: InspectMap = {
       },
       {
         kind: "note",
-        text: "passed = harmonic% ≥ 0.7 AND max BPM jump ≤ 6 AND arc RMSE ≤ 4 AND artist repeats = 0. The report carries every measurement, so a failure becomes the critique the next revision is prompted with.",
+        text: "Since ADR 0013 the BPM-jump and harmonic bars come from the brief's genre profile; arc-RMSE and the artist rules hold for every genre. The same set with a 7-BPM jump and one key clash passes as hip-hop (12 BPM, 40% harmonic) and fails as house (4 BPM, 80%); that exact case is a unit test. The report carries every measurement, so a failure becomes the critique the next revision is prompted with.",
       },
     ],
   },
@@ -345,9 +420,9 @@ export const DJ_AGENT: InspectMap = {
         kind: "steps",
         title: "The approval gate",
         items: [
-          { name: "render_plan", tag: "gate", detail: "tracklist, sections, arc shape, estimated length vs target, rough-transition flags — the whole set as readable data" },
-          { name: "approve?", tag: "human", detail: "“Approve this set for rendering? [y/N]” — a one-line yes/no before any audio is rendered" },
-          { name: "render", tag: "io", detail: "only on yes does the mixer start spending compute" },
+          { name: "render_plan", tag: "gate", detail: "tracklist, sections, arc shape, estimated length vs target, the genre-graded critic report — the whole set as readable data" },
+          { name: "approve?", tag: "human", detail: "“Approve this set for rendering? [y/N]” — a one-line yes/no before any artifact is written" },
+          { name: "export", tag: "io", detail: "yes writes rekordbox.xml + .m3u8 + the set sheet; only --render makes the mixer spend compute on audio" },
         ],
       },
       {
@@ -427,6 +502,17 @@ export const DJ_AGENT: InspectMap = {
               "the incoming track is Butterworth high-passed through the overlap so two basslines never clash; the outgoing track owns the low end until the join completes.",
           },
           {
+            name: "phrase quantization",
+            value: "1 · 2 · 4 · 8 · 16 · 32",
+            detail:
+              "crossfade bars — half the outgoing section — quantize DOWN to a power of two and cap at the genre's blend limit, so joins land on phrase boundaries: 2-bar cuts for hip-hop, 16-bar blends for house.",
+          },
+          {
+            name: "stretch budget",
+            detail:
+              "the tempo bend toward the arc is clamped by the genre's max_stretch in both planning and render — a track is never warped past what the genre tolerates.",
+          },
+          {
             name: "graceful without scipy",
             detail:
               "no scipy → the swap is skipped but the equal-power crossfade still happens — degraded, never broken.",
@@ -436,13 +522,23 @@ export const DJ_AGENT: InspectMap = {
     ],
   },
 
-  wav: {
-    path: "src/dj/mixer.py",
-    note: "the render tail: robust-peak normalize, then write the .wav",
+  exp: {
+    path: "src/dj/export/",
+    note: "the plan is the product — every approval writes three artifacts; the .wav is on demand",
     blocks: [
       {
+        kind: "steps",
+        title: "What an approval writes",
+        items: [
+          { name: "rekordbox.xml", tag: "io", detail: "per-track cues — MIX IN, MIX OUT, and a third hot cue on the core's hit point — plus a real TEMPO anchor at the first downbeat, so the decks show the grid the mixer assumed" },
+          { name: ".m3u8", tag: "io", detail: "the plain playlist — works in anything" },
+          { name: "set sheet", tag: "io", detail: "a printable markdown cue card: track table, per-transition bar counts and blend style (long blend · blend · short blend · quick cut), critic warnings inline" },
+          { name: ".wav, on --render", tag: "io", detail: "the automatic mix of the whole set — the only artifact that costs audio compute" },
+        ],
+      },
+      {
         kind: "rules",
-        title: "Loudness-preserving normalize",
+        title: "The render tail — loudness-preserving normalize",
         items: [
           {
             name: "robust peak",
@@ -457,10 +553,6 @@ export const DJ_AGENT: InspectMap = {
               "the robust peak is scaled to 0.97; the rare samples above it are hard-clipped — preserving the arc's relative dynamics at the cost of a handful of clipped overs.",
           },
         ],
-      },
-      {
-        kind: "note",
-        text: "The output filename is the arc's name, slugified, into the configured output dir — the deliverable is one rendered .wav of the whole set.",
       },
     ],
   },

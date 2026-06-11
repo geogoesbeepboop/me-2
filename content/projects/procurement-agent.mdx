@@ -1,12 +1,14 @@
 ---
 title: "Procurement Agent"
-summary: "An agent that can shop but structurally cannot spend. Deterministic money authority on real card rails — built and red-teamed before any AI was allowed in the building."
+summary: "An agent that runs the household's buying errands. Known staples pay with a virtual card minted for that purchase alone — merchant-locked, capped to the dollar, dead after one swipe; anything novel parks for a human. Red-teamed before any AI was allowed in the building."
 date: "2026-06-04"
 year: "2026"
 status: "SPINE PROVEN"
-thesis: "The model drafts. The gate decides. The attacks bounce."
+thesis: "Known errands run on a card born for one purchase. The model never holds it."
 domain: "FINTECH · PAYMENTS"
 accent: "#f0b429"
+stage: "ship"
+repo: "/Users/geoandr/dev/procurement-agent"
 role: "Solo — architecture, policy engine, red-team"
 stack: ["Claude Haiku/Sonnet/Opus (tiered)", "Temporal", "Privacy.com", "Lithic ASA", "Python"]
 timeline: "May — Jun 2026 · ~2 weeks"
@@ -25,7 +27,7 @@ sections:
   - { id: "decisions", title: "Decisions & tradeoffs" }
   - { id: "whats-next", title: "What's next" }
 refs:
-  - "work/grocery-buddy#whats-next"
+  - "projects/grocery-buddy#whats-next"
   - "writing/four-agents-one-nervous-system#approval-is-a-feature"
   - "writing/ship-the-how#the-how-is-the-product"
 reflection: "writing/four-agents-one-nervous-system"
@@ -33,11 +35,15 @@ reflection: "writing/four-agents-one-nervous-system"
 
 <Section id="brief" n="00" title="Brief">
 
-The number-one risk in agentic commerce is excessive agency: a model that can be talked into spending money. Most projects bolt safety on after the demo. This one inverted the order — **the deterministic money control shipped before any AI existed**, and the differentiator was retired in week one.
+Restocking a household is a queue of tiny purchases nobody wants to manage. This agent runs the queue: it notices a staple is low, sources it, and — when policy clears the purchase to run autonomously — pays with a **virtual card minted for that purchase alone**, locked to one merchant, capped at the mandate's dollar amount, retired after a single swipe. Novel asks like "buy a 6-ft HDMI cable under $20" ride the guarded rail instead: a card whose every authorization our own pure function rules in real time.
 
-The agent restocks known items and handles "buy a 6-ft HDMI cable under $20" requests. What it cannot do, structurally, is spend: every purchase rides a signed, TTL'd mandate that only deterministic code can issue, matched against real card rails — Privacy.com cards locked to one merchant with a hard cap, and Lithic's auth stream where our own pure function approves or declines in under three seconds.
+That card design is also the answer to agentic commerce's number-one risk — excessive agency, a model talked into spending money. Here the order of construction was inverted: **the deterministic money control shipped before any AI existed.** Every purchase rides a signed, TTL'd mandate that only deterministic code can issue, matched against real rails — Privacy.com cards whose merchant lock and cap the *issuer* enforces, and Lithic's auth stream where our own pure function approves or declines in under three seconds. There is no saved card on file for a hijacked model to drain.
 
 The whole spine runs offline today — 54 tests, a creds-free demo that stages an autonomous purchase, parks a high-value one for human approval, and bounces a planted malicious listing. What's left is keys, not engineering.
+
+Watch one errand run itself — and one attack bounce off the same gates:
+
+<MandateConsole />
 
 </Section>
 
@@ -214,13 +220,13 @@ The seam between thinking and spending is a signed mandate: `{ mandate_id, max_a
     { t: "08:00:01", k: "out", s: "low: coffee filters #4 — last paid $11.20, band $9–13" },
     { t: "08:00:03", k: "agent", s: "[router · haiku] class hint: AUTONOMOUS (advisory)" },
     { t: "08:00:03", k: "out", s: "policy.classify → AUTONOMOUS — budget ok · merchant allow-listed · price in band" },
-    { t: "08:00:09", k: "agent", s: "[sourcing · sonnet] 3 candidates → best $11.49, known merchant" },
+    { t: "08:00:09", k: "agent", s: "[sourcing · sonnet] 3 candidates → best $12.00, known merchant" },
     { t: "08:00:10", k: "agent", s: "[mandate.propose] draft: max $12.00 · ttl 24h · merchant-locked" },
     { t: "08:00:10", k: "out", s: "policy.validate_mandate → ACCEPT · mandate.sign → hmac, ttl'd" },
     { t: "08:00:11", k: "out", s: "card.activate → privacy.com · MERCHANT_LOCKED · cap $12.00" },
     { t: "08:00:14", k: "sys", s: "auth event ← lithic asa" },
-    { t: "08:00:16", k: "out", s: "match_auth + decide() → APPROVE in 2.1s — pure function, no model" },
-    { t: "08:00:16", k: "sys", s: "audit: every step cites its rule. spent $11.49 of $12.00." }
+    { t: "08:00:16", k: "out", s: "match_auth + decide() → APPROVE — pure function, no model" },
+    { t: "08:00:16", k: "sys", s: "audit: every step cites its rule. spent $12.00 — the exact cap." }
   ]}
 />
 
@@ -320,6 +326,6 @@ Everything blocked is a credential, not engineering: Privacy.com and Lithic sand
   ]}
 />
 
-<Ref to="work/grocery-buddy#whats-next" note="where this design ships next — reimplemented, deliberately not imported" />
+<Ref to="projects/grocery-buddy#whats-next" note="where this design ships next — reimplemented, deliberately not imported" />
 
 </Section>

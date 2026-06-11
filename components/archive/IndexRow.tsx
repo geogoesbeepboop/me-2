@@ -12,7 +12,11 @@ import Link from "next/link";
  * line and dense metadata slide into view while the title physically
  * widens along Archivo's wdth axis. Click cuts to the dossier with a
  * full-bleed wipe (see app/template.tsx). The same reveal runs on
- * "/", /work, /lab and /writing — it IS the navigation.
+ * "/", /projects and /writing — it IS the navigation.
+ *
+ * The wdth axis carries exactly two pointer meanings on this site:
+ * index titles WIDEN on touch (here), and the hero motto YIELDS under
+ * the pointer (AdaptiveHeadline). Don't add a third.
  * ────────────────────────────────────────────────────────────────────
  */
 export interface IndexRowProps {

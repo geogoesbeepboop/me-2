@@ -1,15 +1,17 @@
 # andrade-muñoz.dev
 
 Personal site for George Andrade-Muñoz — all products, not just agents: a
-living archive of work, lab benches, and writing, fed directly by the docs the
+living archive of projects and writing, fed directly by the docs the
 projects already produce. Dark, editorial, one accent color per project.
+Projects carry a stage — `ship` (polished dossier) or `bench` (raw, still
+moving) — one index instead of separate work/lab sections.
 
 ## Signature interaction — "INDEX → DOSSIER"
 
 The archive reads as a flat mono index until touched. Hover/focus inverts a
 row, the project's accent bar drops in, and a clipped second layer opens
 (thesis + dense metadata); click cuts to the dossier with a full-bleed wipe.
-Identical on `/`, `/work`, `/lab`, `/writing`. Declared in
+Identical on `/`, `/projects`, `/writing`. Declared in
 `components/archive/IndexRow.tsx`; the cut lives in `app/template.tsx`.
 
 Every project dossier also carries a **SystemDeepDive** — a one-click,
@@ -39,17 +41,23 @@ changes, update that one file.
 
 ## The content model
 
-Every file in `content/{work,lab,writing}` is an entry. Frontmatter `refs:`
-declares outbound links (`"work/grocery-buddy#what-broke"`); `lib/content.ts`
+Every file in `content/{projects,writing}` is an entry. Frontmatter `refs:`
+declares outbound links (`"projects/grocery-buddy#what-broke"`); `lib/content.ts`
 builds the graph and computes backlinks, so "Related" blocks are real and
 bidirectional. `reflection:` steers each dossier's outro to its paired essay.
 `accent:` and `domain:` give each project its color and field label.
+`stage:` sets the posture (`bench` entries keep the workbench look and the
+dated update feed; flipping to `ship` switches the same URL to the polished
+dossier layout). `repo:` points at the source repo on disk — it's the
+registry the `update-project` skill reads.
 
 ## Growing the archive (the living-lab loop)
 
 1. Build something; write docs in that repo as usual.
-2. `npm run new work "Project Name"` (or `lab` / `writing`) — scaffolds a
-   pre-filled entry from `content/_templates/`.
+2. `npm run new projects "Project Name"` (or `writing`) — scaffolds a
+   pre-filled entry from `content/_templates/`. Or run the
+   `/update-project <slug>` skill, which mines the repo and writes the
+   update for you.
 3. Distill the project's own docs into the entry — real diagrams as
    `ArchitectureDiagram`/`SystemDeepDive` data, real runs as `TerminalLog`
    lines, ADRs as `Decision` blocks, incidents as `WhatBroke`.

@@ -2,19 +2,18 @@
 /**
  * Scaffold a new archive entry from a template.
  *
- *   npm run new work "Project Name"
- *   npm run new lab "BENCH NAME"
+ *   npm run new projects "Project Name"   (starts at stage: bench)
  *   npm run new writing "Post Title"
  *
  * Copies the matching template into content/<kind>/<slug>.mdx with
  * title/dates pre-filled. The site picks it up on next build.
+ * Projects graduate by flipping `stage: bench` → `ship` in place.
  */
 import fs from "node:fs";
 import path from "node:path";
 
 const TEMPLATE = {
-  work: "case-study.mdx",
-  lab: "lab-bench.mdx",
+  projects: "project.mdx",
   writing: "post.mdx",
 };
 
@@ -22,7 +21,7 @@ const [kind, ...titleParts] = process.argv.slice(2);
 const title = titleParts.join(" ");
 
 if (!TEMPLATE[kind] || !title) {
-  console.error('usage: npm run new <work|lab|writing> "Title"');
+  console.error('usage: npm run new <projects|writing> "Title"');
   process.exit(1);
 }
 

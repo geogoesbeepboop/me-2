@@ -4,13 +4,18 @@ import matter from "gray-matter";
 
 /**
  * THE SYSTEMS ARCHIVE — content graph.
- * Every MDX file is a NODE (work | lab | writing). Nodes declare `refs:`
- * (paths like "work/grocery-buddy#what-broke") in frontmatter; this module
- * resolves them and computes the reverse map, so every cross-link on the
- * site is real and bidirectional. The archive grows by adding files.
+ * Every MDX file is a NODE (projects | writing). Nodes declare `refs:`
+ * (paths like "projects/grocery-buddy#what-broke") in frontmatter; this
+ * module resolves them and computes the reverse map, so every cross-link
+ * on the site is real and bidirectional. The archive grows by adding files.
+ *
+ * Projects carry a STAGE — "ship" (polished, done for now) or "bench"
+ * (raw, still moving) — one index, tagged, instead of two sections.
  */
 
-export type Kind = "work" | "lab" | "writing";
+export type Kind = "projects" | "writing";
+
+export type Stage = "ship" | "bench";
 
 export interface SectionDef {
   id: string;
@@ -20,7 +25,7 @@ export interface SectionDef {
 export interface NodeMeta {
   kind: Kind;
   slug: string;
-  /** stable node path, e.g. "work/grocery-buddy" */
+  /** stable node path, e.g. "projects/grocery-buddy" */
   path: string;
   title: string;
   summary: string;
@@ -45,6 +50,11 @@ export interface NodeMeta {
   accent?: string;
   /** short field label, e.g. "FINTECH · PAYMENTS" */
   domain?: string;
+  /** projects only: "ship" = polished dossier, "bench" = raw and moving */
+  stage?: Stage;
+  /** projects only: absolute path of the source repo this entry distills —
+   *  the registry the update-project skill reads */
+  repo?: string;
   /** chronological archive number, oldest = 001 */
   no: string;
 }
@@ -56,11 +66,13 @@ export interface Node extends NodeMeta {
 export interface ResolvedRef {
   href: string;
   kind: Kind;
+  /** display tag — SHIP / BENCH / POST */
+  tag: string;
   title: string;
 }
 
 const ROOT = path.join(process.cwd(), "content");
-const KINDS: Kind[] = ["work", "lab", "writing"];
+const KINDS: Kind[] = ["projects", "writing"];
 
 function readKind(kind: Kind): Node[] {
   const dir = path.join(ROOT, kind);
@@ -73,7 +85,8 @@ function readKind(kind: Kind): Node[] {
       const raw = fs.readFileSync(path.join(dir, file), "utf8");
       const { data, content } = matter(raw);
       const meta = data as Partial<NodeMeta>;
-      const sortDate = (kind === "lab" && meta.updated) || meta.date || "1970-01-01";
+      const sortDate =
+        (kind === "projects" && meta.updated) || meta.date || "1970-01-01";
       return {
         kind,
         slug,
@@ -97,6 +110,8 @@ function readKind(kind: Kind): Node[] {
         updated: meta.updated,
         accent: meta.accent,
         domain: meta.domain,
+        stage: kind === "projects" ? (meta.stage ?? "ship") : undefined,
+        repo: meta.repo,
         readingTime:
           kind === "writing"
             ? Math.max(2, Math.round(content.split(/\s+/).length / 200))
@@ -138,7 +153,7 @@ function findByPath(nodePath: string): Node | undefined {
 }
 
 /**
- * "work/grocery-buddy#what-broke" → href + display data.
+ * "projects/grocery-buddy#what-broke" → href + display data.
  * Anchors in frontmatter still shape the graph, but links land at the
  * top of the piece — a reference is an invitation to read the thing,
  * not a teleport into its middle.
@@ -150,6 +165,7 @@ export function resolveRef(ref: string): ResolvedRef | undefined {
   return {
     href: `/${node.path}`,
     kind: node.kind,
+    tag: tagOf(node),
     title: node.title,
   };
 }
@@ -232,16 +248,15 @@ export function fullStamp(iso: string): string {
   return iso.replaceAll("-", ".");
 }
 
-export const KIND_TAG: Record<Kind, string> = {
-  work: "CASE",
-  lab: "LAB",
-  writing: "POST",
-};
+/** index/cross-link tag — projects are tagged by stage, not by section */
+export function tagOf(node: Pick<NodeMeta, "kind" | "stage">): string {
+  if (node.kind === "writing") return "POST";
+  return node.stage === "bench" ? "BENCH" : "SHIP";
+}
 
 /** track-level fallback accents; projects override via frontmatter `accent` */
 export const KIND_ACCENT: Record<Kind, string> = {
-  work: "var(--color-ember)",
-  lab: "var(--color-lab)",
+  projects: "var(--color-ember)",
   writing: "var(--color-post)",
 };
 

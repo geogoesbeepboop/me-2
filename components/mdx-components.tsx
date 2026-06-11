@@ -12,6 +12,10 @@ import Ref from "@/components/artifacts/Ref";
 import Update from "@/components/artifacts/Update";
 import OpenQuestions from "@/components/artifacts/OpenQuestions";
 import Bench from "@/components/artifacts/Bench";
+import SetConsole from "@/components/artifacts/SetConsole";
+import PantryConsole from "@/components/artifacts/PantryConsole";
+import X402Console from "@/components/artifacts/X402Console";
+import MandateConsole from "@/components/artifacts/MandateConsole";
 
 /**
  * Prose defaults + the artifact library. Text keeps a 68ch measure;
@@ -107,4 +111,8 @@ export const mdxComponents: MDXComponents = {
   Update,
   OpenQuestions,
   Bench,
+  SetConsole,
+  PantryConsole,
+  X402Console,
+  MandateConsole,
 };

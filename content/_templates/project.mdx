@@ -1,0 +1,57 @@
+---
+# PROJECT — copy into content/projects/<slug>.mdx
+# One section, two stages. New projects start as stage "bench" (raw, a
+# dated update feed). When it's done for now, flip stage to "ship", add
+# role/stack/timeline/metrics/sections and restructure into <Section>
+# blocks — same URL, the entry just changes posture.
+title: "Project Name"
+summary: "One honest sentence — what it is, who it serves, what state it's in."
+question: "Bench stage: the driving question, phrased so a stranger feels the stakes?"
+date: "YYYY-MM-DD"            # when the project opened
+started: "YYYY-MM-DD"
+updated: "YYYY-MM-DD"         # bump on every update — drives ordering
+status: "LIVE"                # short stamp: LIVE / SHIPPED / SPINE PROVEN ...
+domain: "FIELD · SUBFIELD"    # e.g. "FINTECH · PAYMENTS"
+accent: "#c77dff"             # this project's color across the site
+stage: "bench"                # "bench" = raw, still moving · "ship" = polished dossier
+repo: "/Users/geoandr/dev/<repo>"  # source repo — the update-project skill reads this
+# ── ship-stage fields (uncomment when the project graduates) ──
+# thesis: "The one-liner shown when the index row opens."
+# role: "Solo — design, engineering"
+# stack: ["Thing", "Thing", "Thing"]
+# timeline: "Mon — Mon 2026"
+# metrics:
+#   - k: "what it counts"
+#     v: "7"
+# sections:
+#   - { id: "brief", title: "Brief" }
+#   - { id: "system", title: "The system" }
+#   - { id: "what-broke", title: "What broke" }
+#   - { id: "decisions", title: "Decisions & tradeoffs" }
+#   - { id: "whats-next", title: "What's next" }
+refs:
+  - "writing/some-post#anchor"
+reflection: "writing/some-post"
+---
+
+<Bench
+  rows={[
+    { k: "state", v: "what's true right now" },
+    { k: "stack", v: "the moving parts" }
+  ]}
+/>
+
+<Update date="2026.06.09" title="What happened">
+
+A few honest paragraphs. Artifacts welcome — TerminalLog, diagrams,
+even a SystemDeepDive once the architecture firms up. Everything must
+be real: facts from the repo, never invented.
+
+</Update>
+
+<OpenQuestions
+  items={[
+    "The thing genuinely not known yet.",
+    "Another."
+  ]}
+/>

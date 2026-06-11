@@ -115,6 +115,51 @@ body {
   stroke: var(--accent);
 }
 
+/* film grain — the frame sits on stock, not pixels. Monochrome noise,
+   jittered in steps like a projector gate; static under reduced motion.
+   z-40 is deliberate: under the header (z-50) and under the deep-dive
+   overlay (z-150) — reading modes get clean glass, the editorial
+   surfaces get the stock. */
+.film-grain {
+  position: fixed;
+  inset: -100%;
+  z-index: 40;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  opacity: 0.04;
+  animation: grain-shift 0.9s steps(1) infinite;
+}
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  16% { transform: translate(-1.5%, 1%); }
+  33% { transform: translate(1%, -1.5%); }
+  50% { transform: translate(-1%, 1.5%); }
+  66% { transform: translate(1.5%, 1%); }
+  83% { transform: translate(-1.5%, -1%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-grain { animation: none; }
+}
+
+/* signal ticker — the archive index on the wire. Two identical copies
+   ride the track; -50% loops seamlessly. Hover or press holds the
+   frame; reduced motion drops the band (a frozen marquee cropped
+   mid-item is worse than no band — the real index is one scroll down). */
+.ticker-track {
+  animation: ticker-scroll linear infinite;
+}
+.ticker-track:hover,
+.ticker-track:active {
+  animation-play-state: paused;
+}
+@keyframes ticker-scroll {
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .signal-ticker { display: none; }
+}
+
 /* live signal pulse */
 @keyframes live-pulse {
   0%, 100% { opacity: 1; }
