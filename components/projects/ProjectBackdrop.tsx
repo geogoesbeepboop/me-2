@@ -19,7 +19,7 @@ import type { ReactNode } from "react";
 const S = {
   fill: "none",
   stroke: "var(--accent)",
-  strokeWidth: 1.2,
+  strokeWidth: 1.4,
 } as const;
 
 /** two platters and a mixer — the booth */
@@ -131,7 +131,7 @@ function MarketWall() {
           fontFamily="var(--font-mono)"
           fill="none"
           stroke="var(--accent)"
-          strokeWidth={1.2}
+          strokeWidth={1.4}
           opacity={0.55}
         >
           402
@@ -147,7 +147,7 @@ function MarketWall() {
           fontFamily="var(--font-mono)"
           fill="none"
           stroke="var(--accent)"
-          strokeWidth={1.2}
+          strokeWidth={1.4}
         >
           $
         </text>
@@ -212,12 +212,12 @@ export default function ProjectBackdrop({ slug }: { slug: string }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 right-0 hidden w-[68%] overflow-hidden opacity-[0.13] sm:block md:w-[52%]"
+      className="pointer-events-none absolute inset-y-0 right-0 hidden w-[68%] overflow-hidden opacity-[0.21] sm:block md:w-[52%]"
       style={{
         maskImage:
-          "linear-gradient(to left, black 35%, transparent 96%)",
+          "linear-gradient(to left, black 45%, transparent 97%)",
         WebkitMaskImage:
-          "linear-gradient(to left, black 35%, transparent 96%)",
+          "linear-gradient(to left, black 45%, transparent 97%)",
       }}
     >
       {art}

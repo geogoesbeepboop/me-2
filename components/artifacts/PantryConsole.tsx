@@ -47,13 +47,14 @@ interface Item {
   unit: string;
   rate: number; // effective daily rate (declared ⊕ observed)
   price?: number; // staged price, must-buys + filler only
+  refill?: number; // what the order adds when it lands
   filler?: boolean;
 }
 
 const PANTRY: Item[] = [
-  { name: "eggs", qty: 3, unit: "eggs", rate: 1.0, price: 4.29 },
-  { name: "whole milk", qty: 0.5, unit: "gal", rate: 0.25, price: 3.89 },
-  { name: "coffee", qty: 0.15, unit: "lb", rate: 0.06, price: 11.99 },
+  { name: "eggs", qty: 3, unit: "eggs", rate: 1.0, price: 4.29, refill: 12 },
+  { name: "whole milk", qty: 0.5, unit: "gal", rate: 0.25, price: 3.89, refill: 1 },
+  { name: "coffee", qty: 0.15, unit: "lb", rate: 0.06, price: 11.99, refill: 0.75 },
   { name: "rice", qty: 8, unit: "cups", rate: 0.4 },
   { name: "paper towels", qty: 6, unit: "rolls", rate: 0.5 },
   { name: "granola", qty: 2.5, unit: "cups", rate: 0.3, price: 5.49, filler: true },
@@ -64,24 +65,26 @@ const CART = [...MUST_BUYS, ...PANTRY.filter((i) => i.filler)];
 const CART_TOTAL = CART.reduce((s, i) => s + (i.price ?? 0), 0);
 
 const PHASES: readonly ConsolePhase[] = [
-  { id: "cron", label: "CRON", ms: 2000, who: "code",
+  { id: "cron", label: "CRON", ms: 3000, who: "code",
     note: "a Temporal schedule fires GroceryRunWorkflow — trigger=schedule honors a 3-hour cooldown and stays silent when nothing's low" },
-  { id: "predict", label: "PREDICT", ms: 2800, who: "code",
+  { id: "predict", label: "PREDICT", ms: 4400, who: "code",
     note: "one line of arithmetic per item: days_left = qty ÷ rate, low at ≤ 3 days (2-day lead + 1-day buffer). the rate blends my declared habits with observed consumption, observed capped at 80%" },
-  { id: "price", label: "PRICE", ms: 2400, who: "model",
+  { id: "price", label: "PRICE", ms: 3800, who: "model",
     note: "playwright searches amazon for each low item; haiku picks the brand among the results — pennies of model per item" },
-  { id: "cart", label: "CART", ms: 2400, who: "code",
+  { id: "cart", label: "CART", ms: 3800, who: "code",
     note: "assemble_run_cart keeps every must-buy and adds fillers until the $25 free-shipping bar — deterministic list math, no model" },
-  { id: "brief", label: "BRIEF", ms: 2600, who: "model",
+  { id: "brief", label: "BRIEF", ms: 4200, who: "model",
     note: "haiku writes the briefing in plain language; telegram shows ✅ / ❌ and the workflow parks in a durable 24-hour wait for the answer" },
-  { id: "approve", label: "APPROVE", ms: 2000, who: "human",
+  { id: "approve", label: "APPROVE", ms: 3200, who: "human",
     note: "a tap. nothing touches the real cart until a human says so" },
-  { id: "stage", label: "STAGE", ms: 3000, who: "code",
+  { id: "stage", label: "STAGE", ms: 5000, who: "code",
     note: "clear the real cart first — then add each approved item by ASIN, confirmed against the cart-mutation response. the checkout page is never visited" },
-  { id: "handoff", label: "HANDOFF", ms: 3000, who: "human",
+  { id: "handoff", label: "HANDOFF", ms: 4600, who: "human",
     note: "“nothing's been bought yet” — the cart opens in your own amazon app; you place the order. checkout_verified is hardcoded False, so auto-buy structurally cannot arm" },
-  { id: "restock", label: "RESTOCK", ms: 2800, who: "code",
+  { id: "restock", label: "RESTOCK", ms: 4200, who: "code",
     note: "a 72-hour confirm window, items marked in-transit with an ETA, a durable sleep until arrival — then the pantry tops itself back up" },
+  { id: "steady", label: "STEADY", ms: 4000, who: "code",
+    note: "the loop closes — the bars are full again, and tomorrow at 13:00 utc it looks again, silent unless something's low" },
 ];
 
 // scale a days-left value onto the bar (14-day window)
@@ -111,16 +114,19 @@ function Bubble({
   );
 }
 
+// the road already written into the repo — schema columns, event tables,
+// and the cross-project authority design (see NextUp in the entry)
+const ROADMAP: [string, string][] = [
+  ["today", "predicts, prices, stages — you tap Place order. running my household since jun 2026"],
+  ["budget envelopes", "monthly_budget_usd is already in the schema; carts warn before they spend it"],
+  ["learned rates", "consumption learned from confirmed orders — the cadence sits in the events table"],
+  ["delivery tracking", "gmail arrival dates land restocks on the real day; the “did you order it?” tap disappears"],
+  ["tiered auto-buy", "procurement agent's authority design, reimplemented locally — cheap staples self-approve, novel or expensive stays human"],
+];
+
 export default function PantryConsole({ title }: { title?: string }) {
   const playback = usePlayback(PHASES);
-  const { at, past } = playback;
-
-  const gateRows: [string, string, boolean][] = [
-    ["flags_enabled", "auto_buy_enabled=False · money_live=False", false],
-    ["predictor_precision", "≥ 0.70 floor", true],
-    ["scraper_green", "selector health", true],
-    ["cost_under_ceiling", "≤ $0.50 / run", true],
-  ];
+  const { at, past, reduced } = playback;
 
   return (
     <ConsoleShell
@@ -143,8 +149,9 @@ export default function PantryConsole({ title }: { title?: string }) {
           repo&apos;s 2-day lead + 1-day buffer executes on this pantry in your
           browser. The cron spec, activity sequence, durable waits, message
           templates and the hardcoded checkout_verified=False hard stop are
-          quoted from the code. The pantry contents and prices are
-          representative.
+          quoted from the code; the roadmap is the repo&apos;s own — the
+          monthly_budget_usd column already exists. The pantry contents,
+          prices and the staging scene are representative.
         </>
       }
     >
@@ -169,8 +176,11 @@ export default function PantryConsole({ title }: { title?: string }) {
           </p>
           <div className="space-y-2.5">
             {PANTRY.filter((i) => !i.filler).map((item) => {
-              const d = daysLeft(item.qty, item.rate);
-              const low = isLow(item.qty, item.rate);
+              // once the order lands, the delivered qty rejoins the math
+              const landed = past("restock") && item.refill !== undefined;
+              const qty = landed ? item.qty + item.refill! : item.qty;
+              const d = daysLeft(qty, item.rate);
+              const low = isLow(qty, item.rate);
               const flagged = low && past("predict");
               return (
                 <div key={item.name} className="font-mono text-[0.7rem]">
@@ -183,9 +193,14 @@ export default function PantryConsole({ title }: { title?: string }) {
                       {flagged && past("cart") && item.price && (
                         <span className="text-dim"> → cart ${item.price.toFixed(2)}</span>
                       )}
+                      {landed && (
+                        <span className="ml-2 text-(--accent)">
+                          +{item.refill} landed
+                        </span>
+                      )}
                     </span>
                     <span className="text-dim">
-                      {item.qty} {item.unit} ÷ {item.rate}/d ={" "}
+                      {qty} {item.unit} ÷ {item.rate}/d ={" "}
                       <span className={flagged ? "text-(--accent)" : ""}>
                         {d.toFixed(1)} d
                       </span>
@@ -199,7 +214,9 @@ export default function PantryConsole({ title }: { title?: string }) {
                         width: `${barPct(d)}%`,
                         background: flagged
                           ? "var(--accent)"
-                          : "var(--color-line-loud)",
+                          : landed
+                            ? "color-mix(in srgb, var(--accent) 55%, var(--color-line-loud))"
+                            : "var(--color-line-loud)",
                       }}
                     />
                     <span
@@ -212,8 +229,20 @@ export default function PantryConsole({ title }: { title?: string }) {
               );
             })}
           </div>
-          <p className="mt-2 font-mono text-[0.6rem] tracking-[0.1em] text-dim uppercase">
-            | = the 3-day line — lead 2 d + buffer 1 d
+          <p className="mt-2 flex items-baseline justify-between font-mono text-[0.6rem] tracking-[0.1em] text-dim uppercase">
+            <span>| = the 3-day line — lead 2 d + buffer 1 d</span>
+            <span
+              className="flex items-center gap-1.5 normal-case tracking-normal"
+              style={fade(past("steady"))}
+            >
+              <span className="relative flex h-1.5 w-1.5" aria-hidden>
+                {past("steady") && !reduced && (
+                  <span className="pc-ping absolute inline-flex h-full w-full rounded-full bg-(--accent) opacity-60" />
+                )}
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--accent)" />
+              </span>
+              <span className="text-(--accent)">watching</span> · next tick 13:00 utc
+            </span>
           </p>
 
           {/* the cart assembling toward free shipping */}
@@ -303,74 +332,192 @@ export default function PantryConsole({ title }: { title?: string }) {
         </div>
       </div>
 
-      {/* the automation lane + the hard stop */}
+      {/* the staging scene + where this goes next */}
       <div className="grid border-t border-line md:grid-cols-2">
+        {/* playwright, drawn — items land in the cart; the checkout door stays shut */}
         <div
           className="border-b border-line p-4 md:border-r md:border-b-0 md:p-5"
           style={fade(past("stage"))}
         >
-          <p className="mb-2 font-mono text-label tracking-[0.2em] text-dim uppercase">
-            playwright — the staged checkout
+          <p className="mb-1 font-mono text-label tracking-[0.2em] text-dim uppercase">
+            staging — the real cart, item by item
           </p>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 font-mono text-[0.68rem]">
-            {[
-              "clear_cart()",
-              ...CART.map((i) => `/dp/{${i.name.split(" ")[0]}-asin}`),
-              "cart badge +4",
-              "→ gp/cart/view.html",
-            ].map((s, i) => (
-              <span
-                key={s}
-                className="border border-line bg-void/40 px-1.5 py-0.5 text-ash transition-all duration-500"
-                style={{
-                  ...fade(past("stage")),
-                  transitionDelay: at("stage") ? `${i * 220}ms` : "0ms",
-                }}
-              >
-                {s}
-              </span>
-            ))}
-            <span
-              className="border border-ember/60 px-1.5 py-0.5 text-ember line-through decoration-2"
-              style={fade(past("handoff"))}
+          <svg viewBox="0 0 340 170" className="block w-full" aria-hidden>
+            {/* manifest — each approved item, confirmed as it lands */}
+            {CART.map((item, i) => {
+              const y = 26 + i * 32;
+              // where this item's parcel settles inside the basket
+              const tx = [150, 165, 180, 158][i] ?? 160;
+              const ty = [92, 86, 92, 76][i] ?? 88;
+              const landed = past("stage");
+              return (
+                <g key={item.name} fontFamily="var(--font-mono)">
+                  <text x={8} y={y} fontSize="9" fill="var(--color-ash)">
+                    {item.name}
+                  </text>
+                  <text
+                    x={8}
+                    y={y + 11}
+                    fontSize="7"
+                    fill="var(--color-dim)"
+                    style={{
+                      ...fade(landed),
+                      transitionDelay: at("stage") ? `${i * 500 + 700}ms` : "0ms",
+                    }}
+                  >
+                    ✓ added by ASIN · confirmed
+                  </text>
+                  {/* the parcel, flying into the basket */}
+                  <rect
+                    width={9}
+                    height={9}
+                    x={86}
+                    y={y - 8}
+                    fill="color-mix(in srgb, var(--accent) 35%, transparent)"
+                    stroke="var(--accent)"
+                    strokeWidth="1"
+                    style={{
+                      transform: landed
+                        ? `translate(${tx - 86}px, ${ty - (y - 8)}px)`
+                        : "translate(0px, 0px)",
+                      transition: `transform 900ms var(--ease-cine) ${landed && at("stage") ? i * 500 : 0}ms`,
+                    }}
+                  />
+                </g>
+              );
+            })}
+
+            {/* the cart */}
+            <g stroke="var(--accent)" strokeWidth="1.3" fill="none">
+              <path d="M 132 58 h 10 l 9 44 h 52 l 11 -32 H 156" />
+              <circle cx={158} cy={112} r={4.5} />
+              <circle cx={192} cy={112} r={4.5} />
+            </g>
+            <text
+              x={170}
+              y={154}
+              fontSize="7"
+              fontFamily="var(--font-mono)"
+              fill="var(--color-dim)"
+              textAnchor="middle"
+              style={fade(past("stage"))}
             >
-              /gp/buy/spc — place order
-            </span>
-            <span className="text-dim" style={fade(past("handoff"))}>
-              ← never visited
-            </span>
-          </div>
+              clear_cart() ran first
+            </text>
+            {/* badge — the count playwright reads back off the page */}
+            <g
+              style={{
+                ...fade(past("stage")),
+                transitionDelay: at("stage") ? "2400ms" : "0ms",
+              }}
+            >
+              <circle cx={212} cy={52} r={9} fill="var(--color-void)" stroke="var(--accent)" strokeWidth="1.2" />
+              <text x={212} y={55.5} fontSize="9" fontFamily="var(--font-mono)" fill="var(--accent)" textAnchor="middle">
+                {CART.length}
+              </text>
+            </g>
+
+            {/* the fork: checkout stays shut; the path bends to your phone */}
+            <g style={fade(past("handoff"))}>
+              <path
+                d="M 222 74 H 262"
+                stroke="var(--color-ember)"
+                strokeWidth="1.2"
+                strokeDasharray="3 4"
+                fill="none"
+                opacity="0.8"
+              />
+              <rect x={266} y={42} width={30} height={56} fill="none" stroke="var(--color-ember)" strokeWidth="1.2" opacity="0.8" />
+              <path d="M 270 46 l 22 48 M 292 46 l -22 48" stroke="var(--color-ember)" strokeWidth="1" opacity="0.7" />
+              <text x={281} y={110} fontSize="6.5" fontFamily="var(--font-mono)" fill="var(--color-ember)" textAnchor="middle">
+                /gp/buy/spc
+              </text>
+              <text x={281} y={119} fontSize="6.5" fontFamily="var(--font-mono)" fill="var(--color-dim)" textAnchor="middle">
+                never visited
+              </text>
+            </g>
+            <g style={fade(past("handoff"))}>
+              <path
+                d="M 222 90 C 244 90 244 132 266 132 h 38"
+                stroke="var(--accent)"
+                strokeWidth="1.3"
+                fill="none"
+              />
+              <rect x={308} y={112} width={24} height={44} rx={5} fill="var(--color-void)" stroke="var(--accent)" strokeWidth="1.3" />
+              <line x1={314} y1={148} x2={326} y2={148} stroke="var(--accent)" strokeWidth="1.2" />
+              <text x={320} y={167} fontSize="6.5" fontFamily="var(--font-mono)" fill="var(--accent)" textAnchor="middle">
+                your tap
+              </text>
+            </g>
+          </svg>
+          <p className="mt-1 font-mono text-[0.6rem] tracking-[0.1em] text-dim uppercase">
+            the cart fills itself · the{" "}
+            <span className="text-ember">checkout door</span> opens only from
+            your phone
+          </p>
         </div>
 
-        {/* the money gate — outlined: the model has no say here */}
+        {/* the road ahead — what the repo is already reaching for */}
         <div className="p-4 md:p-5" style={fade(past("handoff"))}>
-          <div className="border border-(--accent) p-3">
-            <p className="mb-2 flex items-baseline justify-between font-mono text-label tracking-[0.2em] uppercase">
-              <span className="text-(--accent)">money_live_ready — deterministic</span>
-              <span className="text-ember">blocked</span>
+          <div className="flex h-full flex-col border border-line-loud p-3">
+            <p className="mb-2.5 flex items-baseline justify-between font-mono text-label tracking-[0.2em] uppercase">
+              <span className="text-bone">where this goes next</span>
+              <span className="text-(--accent)">v1.0 — live</span>
             </p>
-            <div className="space-y-1 font-mono text-[0.68rem]">
-              {gateRows.map(([k, d, ok]) => (
-                <div key={k} className="flex items-baseline justify-between gap-3">
-                  <span className="text-ash">{k}</span>
-                  <span className={ok ? "text-dim" : "text-ember"}>
-                    {ok ? "✓" : "✗"} {d}
+            <div className="relative space-y-2.5 font-mono text-[0.66rem] leading-relaxed">
+              <span
+                aria-hidden
+                className="absolute top-2 bottom-2 left-[3px] w-px bg-line-loud"
+              />
+              {ROADMAP.map(([k, d], i) => (
+                <div
+                  key={k}
+                  className="relative flex gap-2.5"
+                  style={{
+                    ...fade(past("handoff")),
+                    transitionDelay: at("handoff") ? `${i * 320}ms` : "0ms",
+                  }}
+                >
+                  <span className="relative mt-[3px] flex h-[7px] w-[7px] shrink-0">
+                    {i === 0 ? (
+                      <>
+                        {past("handoff") && !reduced && (
+                          <span className="pc-ping absolute inline-flex h-full w-full rounded-full bg-(--accent) opacity-60" />
+                        )}
+                        <span className="relative inline-flex h-full w-full rounded-full bg-(--accent)" />
+                      </>
+                    ) : (
+                      <span className="h-full w-full rounded-full border border-line-loud bg-void" />
+                    )}
                   </span>
+                  <p className="text-ash">
+                    <span className={i === 0 ? "text-(--accent)" : "text-bone"}>
+                      {k}
+                    </span>{" "}
+                    <span className="text-dim">— {d}</span>
+                  </p>
                 </div>
               ))}
-              <div className="flex items-baseline justify-between gap-3 border-t border-line/60 pt-1">
-                <span className="text-bone">checkout_verified</span>
-                <span className="text-ember">✗ hardcoded False — hard stop</span>
-              </div>
             </div>
-            <p className="mt-2 font-mono text-[0.65rem] leading-relaxed text-dim">
-              every auto-buy path must pass this gate; the last condition
-              cannot pass. it does everything except spend your money —
-              that&apos;s the feature.
+            <p className="mt-auto pt-2.5 font-mono text-[0.62rem] leading-relaxed text-dim">
+              every rung still ends at a human tap until the five-condition
+              money-live gate — precision ≥ 0.70, cost ceiling, scraper green —
+              says otherwise. autonomy is earned with evals, not vibes.
             </p>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes pc-ping-k {
+          0% { scale: 1; opacity: 0.6; }
+          80%, 100% { scale: 2.6; opacity: 0; }
+        }
+        .pc-ping { animation: pc-ping-k 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .pc-ping { animation: none; }
+        }
+      `}</style>
     </ConsoleShell>
   );
 }

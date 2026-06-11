@@ -54,10 +54,26 @@ export interface Playback {
   at: (id: string) => boolean;
   /** has playback reached (or passed) this phase */
   past: (id: string) => boolean;
+  /** clock is held — waiting on the user */
+  paused: boolean;
+  /** hold the clock at the current phase */
+  pause: () => void;
+  /** release the clock; optionally jump somewhere first */
+  resume: (toStep?: number) => void;
+  /** bumps on every user scrub — lets a console re-arm its own state */
+  scrubSeq: number;
 }
 
-export function usePlayback(phases: readonly ConsolePhase[]): Playback {
+export function usePlayback(
+  phases: readonly ConsolePhase[],
+  opts?: {
+    /** scrubbing TO one of these phases via the chips holds the clock there */
+    holdOnScrub?: readonly string[];
+  }
+): Playback {
   const [rawStep, setStep] = useState(-1);
+  const [paused, setPaused] = useState(false);
+  const [scrubSeq, setScrubSeq] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
   // reduced motion = skip the playback, show the finished state
@@ -86,21 +102,34 @@ export function usePlayback(phases: readonly ConsolePhase[]): Playback {
   }, [reduced]);
 
   useEffect(() => {
-    if (reduced || rawStep < 0 || rawStep >= phases.length - 1) return;
+    if (reduced || paused || rawStep < 0 || rawStep >= phases.length - 1)
+      return;
     const t = setTimeout(() => setStep((s) => s + 1), phases[rawStep].ms);
     return () => clearTimeout(t);
-  }, [rawStep, reduced, phases]);
+  }, [rawStep, reduced, paused, phases]);
 
   return {
     step,
     setStep: (i: number) => {
       started.current = true;
+      setPaused(opts?.holdOnScrub?.includes(phases[i]?.id) ?? false);
+      setScrubSeq((s) => s + 1);
       setStep(i);
     },
     reduced,
     rootRef,
     at: (id) => (step >= 0 ? phases[step].id === id : false),
     past: (id) => step >= phases.findIndex((p) => p.id === id),
+    paused,
+    scrubSeq,
+    pause: () => setPaused(true),
+    resume: (toStep?: number) => {
+      setPaused(false);
+      if (toStep !== undefined) {
+        started.current = true;
+        setStep(toStep);
+      }
+    },
   };
 }
 

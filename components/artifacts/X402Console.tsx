@@ -105,64 +105,64 @@ function runGate(lines: MemoLine[]) {
 /* ── playback ─────────────────────────────────────────────────────── */
 
 const PHASES: readonly ConsolePhase[] = [
-  { id: "request", label: "REQUEST", ms: 2000, who: "code",
+  { id: "request", label: "REQUEST", ms: 3200, who: "code",
     note: "another agent wants research — a plain GET, no account, no API key, no sales call" },
-  { id: "pay402", label: "402", ms: 2600, who: "code",
+  { id: "pay402", label: "402", ms: 4200, who: "code",
     note: "the middleware answers 402 PAYMENT REQUIRED — the payment-required header carries the exact scheme, the network, and the USDC amount in base units" },
-  { id: "pay", label: "PAY", ms: 2400, who: "code",
+  { id: "pay", label: "PAY", ms: 4000, who: "code",
     note: "the buyer signs an EIP-3009 transferWithAuthorization and retries; the facilitator verifies before the route handler ever runs" },
-  { id: "source", label: "SOURCE", ms: 2800, who: "code",
+  { id: "source", label: "SOURCE", ms: 4600, who: "code",
     note: "jim is a buyer too: an unpaid pre-flight reads the upstream price from its 402, budget.propose checks it against the $0.10-per-query ceiling, then jim pays the same way it gets paid" },
-  { id: "draft", label: "DRAFT", ms: 2400, who: "model",
+  { id: "draft", label: "DRAFT", ms: 3800, who: "model",
     note: "sonnet writes the memo — every claim against the snapshot, every figure expected to carry a [C#] citation" },
-  { id: "gate", label: "GATE", ms: 3000, who: "code",
+  { id: "gate", label: "GATE", ms: 5200, who: "code",
     note: "no model — regex pulls every dollar figure, percentage and multiple; each must match a cited fact within max(2%, 0.05). a hallucinated number has no fact to match" },
-  { id: "pass", label: "PASS", ms: 2600, who: "model",
+  { id: "pass", label: "PASS", ms: 4200, who: "model",
     note: "the rejection text is the next prompt — attempt 2 of a hard maximum 2. exhausted attempts mean no memo and no charge, never a lowered bar" },
-  { id: "deliver", label: "DELIVER", ms: 3000, who: "code",
+  { id: "deliver", label: "DELIVER", ms: 4400, who: "code",
     note: "settle on-chain, receipt in the payment-response header, memo in the body — research that proves itself, $0.25 at a time" },
+  { id: "open", label: "OPEN", ms: 4000, who: "code",
+    note: "the storefront stays up — no signup, no invoice, the next buyer pays the same way. monitors poll quietly for free and bill $0.10 only when something material ships" },
 ];
 
-function Arrow({
-  dir,
-  label,
-  sub,
-  tone = "ash",
-  on,
-  side,
-}: {
-  dir: "→" | "←";
+/* ── the wire, drawn — three lifelines, six messages, two coins ──── */
+
+const LX = { buyer: 110, jim: 380, up: 650 };
+
+interface Msg {
+  y: number;
+  from: number;
+  to: number;
+  phase: string;
   label: string;
   sub?: string;
-  tone?: "ash" | "accent" | "ember";
-  on: boolean;
-  side: "left" | "right";
-}) {
-  const color =
-    tone === "accent"
-      ? "text-(--accent)"
-      : tone === "ember"
-        ? "text-ember"
-        : "text-ash";
-  return (
-    <div
-      className={`${side === "right" ? "col-start-2" : ""} px-2 font-mono text-[0.66rem]`}
-      style={fade(on)}
-    >
-      <p className={`${color} flex items-baseline gap-1`}>
-        {dir === "←" && <span aria-hidden>←</span>}
-        <span className="min-w-0 truncate">{label}</span>
-        {dir === "→" && <span aria-hidden>→</span>}
-      </p>
-      {sub && <p className="text-dim">{sub}</p>}
-      <div className="mt-0.5 border-b border-dashed border-line-loud" aria-hidden />
-    </div>
-  );
+  accent?: boolean;
+  hero?: boolean;
+  delay?: number;
 }
+
+const MSGS: Msg[] = [
+  { y: 56, from: LX.buyer, to: LX.jim, phase: "request",
+    label: "GET /research/fundamentals?ticker=AAPL" },
+  { y: 92, from: LX.jim, to: LX.buyer, phase: "pay402", accent: true, hero: true,
+    label: "402 PAYMENT REQUIRED",
+    sub: "payment-required: exact · eip155:8453 · 250000 µUSDC = $0.25" },
+  { y: 128, from: LX.buyer, to: LX.jim, phase: "pay",
+    label: "retry + payment-signature",
+    sub: "EIP-3009 transferWithAuthorization · facilitator /verify ✓" },
+  { y: 164, from: LX.jim, to: LX.up, phase: "source",
+    label: "pre-flight GET — the price read from upstream's own 402",
+    sub: "budget.propose($0.01 ≤ $0.10 ceiling) ✓" },
+  { y: 200, from: LX.up, to: LX.jim, phase: "source", accent: true, delay: 1800,
+    label: "data + payment-response (tx hash)",
+    sub: "cost_in $0.01 · cached 24 h — the next query is free" },
+  { y: 236, from: LX.jim, to: LX.buyer, phase: "deliver", accent: true,
+    label: "200 OK — memo + receipt in payment-response" },
+];
 
 export default function X402Console({ title }: { title?: string }) {
   const playback = usePlayback(PHASES);
-  const { at, past } = playback;
+  const { at, past, reduced } = playback;
 
   const lines = past("pass") ? DRAFT_2 : DRAFT_1;
   const report = useMemo(() => runGate(lines), [lines]);
@@ -176,7 +176,8 @@ export default function X402Console({ title }: { title?: string }) {
       playback={playback}
       legend={
         <>
-          <span className="text-(--accent)">cyan</span> = the model imagining ·{" "}
+          <span className="text-(--accent)">cyan</span> = value in motion —
+          payments, receipts, a memo that proved itself ·{" "}
           <span className="border border-(--accent) px-1">outline</span> = the
           model has no say — code decides ·{" "}
           <span className="text-ember">ember</span> = a number that
@@ -190,32 +191,172 @@ export default function X402Console({ title }: { title?: string }) {
           browser, exactly as coded. Prices, the 402 header flow, the
           $0.10-per-query buy ceiling and the 2-attempt bound are quoted from
           the repo; C1 is the repo&apos;s own EDGAR example fact. The memo
-          prose and the buyer are representative.
+          prose, the buyer and the open-phase traffic are representative.
         </>
       }
     >
-      {/* the three lanes */}
-      <div className="grid grid-cols-2 gap-y-2 px-4 pt-3 pb-4 md:px-5">
-        <div className="col-span-2 mb-1 grid grid-cols-3 font-mono text-label tracking-[0.18em] text-dim uppercase">
-          <span>buyer agent</span>
-          <span className="text-center text-(--accent)">jim</span>
-          <span className="text-right">upstream — the graph</span>
-        </div>
+      {/* the wire — a live sequence diagram */}
+      <div className="px-2 pt-2 pb-1 md:px-3">
+        <svg viewBox="0 0 760 268" className="block w-full" aria-hidden>
+          <defs>
+            <filter id="x4-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-        <Arrow side="left" on={past("request")} dir="→"
-          label="GET /research/fundamentals?ticker=AAPL" />
-        <Arrow side="left" on={past("pay402")} dir="←" tone="accent"
-          label="402 PAYMENT REQUIRED"
-          sub="payment-required: exact · eip155:8453 · 250000 µUSDC = $0.25" />
-        <Arrow side="left" on={past("pay")} dir="→"
-          label="retry + payment-signature"
-          sub="EIP-3009 transferWithAuthorization · facilitator /verify ✓" />
-        <Arrow side="right" on={past("source")} dir="→"
-          label="pre-flight GET — reads the price from upstream's 402"
-          sub="budget.propose($0.01 ≤ $0.10 ceiling) ✓" />
-        <Arrow side="right" on={past("source")} dir="←" tone="accent"
-          label="data + payment-response (tx hash)"
-          sub="cost_in $0.01 · cached 24 h — the next query is free" />
+          {/* lifelines */}
+          {(
+            [
+              [LX.buyer, "buyer agent", false],
+              [LX.jim, "jim", true],
+              [LX.up, "upstream — the graph", false],
+            ] as const
+          ).map(([x, name, isJim]) => (
+            <g key={x} fontFamily="var(--font-mono)">
+              <text
+                x={x}
+                y={16}
+                textAnchor="middle"
+                fontSize="10"
+                letterSpacing="1.5"
+                fill={isJim ? "var(--accent)" : "var(--color-dim)"}
+                style={{ textTransform: "uppercase" }}
+              >
+                {name}
+              </text>
+              <rect
+                x={x - 3}
+                y={24}
+                width={6}
+                height={6}
+                fill={isJim ? "var(--accent)" : "var(--color-line-loud)"}
+              />
+              <line
+                x1={x}
+                y1={30}
+                x2={x}
+                y2={256}
+                stroke="var(--color-line-loud)"
+                strokeDasharray="2 6"
+              />
+              {/* open for business — quiet traffic keeps moving */}
+              {at("open") && !reduced && (
+                <circle
+                  cx={x}
+                  cy={0}
+                  r={2.5}
+                  fill="var(--accent)"
+                  className="x4-flow"
+                  style={{ animationDelay: `${(x / LX.up) * 2.2}s` }}
+                />
+              )}
+            </g>
+          ))}
+
+          {/* messages */}
+          {MSGS.map((m) => {
+            const dir = m.to > m.from ? 1 : -1;
+            const x1 = m.from + dir * 8;
+            const x2 = m.to - dir * 8;
+            const len = Math.abs(x2 - x1);
+            const mid = (x1 + x2) / 2;
+            const on = past(m.phase);
+            const dly = on && at(m.phase) ? (m.delay ?? 0) : 0;
+            const color = m.accent ? "var(--accent)" : "var(--color-ash)";
+            return (
+              <g key={`${m.phase}-${m.y}`} fontFamily="var(--font-mono)">
+                <line
+                  x1={x1}
+                  y1={m.y}
+                  x2={x2}
+                  y2={m.y}
+                  stroke={color}
+                  strokeWidth={m.hero ? 1.6 : 1.2}
+                  strokeDasharray={len}
+                  filter={m.hero ? "url(#x4-glow)" : undefined}
+                  style={{
+                    strokeDashoffset: on ? 0 : len,
+                    transition: `stroke-dashoffset 1100ms var(--ease-cine) ${dly}ms, opacity 400ms`,
+                    opacity: on ? 1 : 0,
+                  }}
+                />
+                <path
+                  d={
+                    dir === 1
+                      ? `M ${x2} ${m.y} l -7 -4 v 8 z`
+                      : `M ${x2} ${m.y} l 7 -4 v 8 z`
+                  }
+                  fill={color}
+                  style={{
+                    opacity: on ? 1 : 0,
+                    transition: `opacity 500ms var(--ease-cine) ${dly + 800}ms`,
+                  }}
+                />
+                <text
+                  x={mid}
+                  y={m.y - 7}
+                  textAnchor="middle"
+                  fontSize={m.hero ? 10.5 : 8.5}
+                  letterSpacing={m.hero ? 1.4 : 0.2}
+                  fill={color}
+                  filter={m.hero ? "url(#x4-glow)" : undefined}
+                  className={m.hero && at("open") && !reduced ? "x4-breathe" : undefined}
+                  style={{
+                    opacity: on ? 1 : 0,
+                    transition: `opacity 700ms var(--ease-cine) ${dly + 200}ms`,
+                  }}
+                >
+                  {m.label}
+                </text>
+                {m.sub && (
+                  <text
+                    x={mid}
+                    y={m.y + 13}
+                    textAnchor="middle"
+                    fontSize="7.5"
+                    fill="var(--color-dim)"
+                    style={{
+                      opacity: on ? 1 : 0,
+                      transition: `opacity 700ms var(--ease-cine) ${dly + 500}ms`,
+                    }}
+                  >
+                    {m.sub}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* the coins — money actually moving, both directions of the business */}
+          {(
+            [
+              { from: LX.buyer, to: LX.jim, y: 128, on: past("pay") },
+              { from: LX.jim, to: LX.up, y: 164, on: past("source") },
+            ] as const
+          ).map((c, i) => (
+            <g
+              key={i}
+              fontFamily="var(--font-mono)"
+              style={{
+                transform: c.on
+                  ? `translate(${c.to - 26}px, ${c.y}px)`
+                  : `translate(${c.from + 18}px, ${c.y}px)`,
+                opacity: c.on ? 1 : 0,
+                transition:
+                  "transform 1600ms var(--ease-cine) 200ms, opacity 500ms var(--ease-cine) 200ms",
+              }}
+            >
+              <circle r={7} fill="var(--color-void)" stroke="var(--accent)" strokeWidth="1.3" filter="url(#x4-glow)" />
+              <text y={3} textAnchor="middle" fontSize="8" fill="var(--accent)">
+                $
+              </text>
+            </g>
+          ))}
+        </svg>
       </div>
 
       {/* the memo under the gate */}
@@ -302,15 +443,58 @@ export default function X402Console({ title }: { title?: string }) {
           <span className="text-ash">200 OK · payment-response: tx 0x…receipt</span>
           <span className="ml-auto text-bone">
             $0.25 in − $0.01 data − model ={" "}
-            <span className="text-(--accent)">margin on every memo</span>
+            <span
+              className={at("open") && !reduced ? "x4-margin text-(--accent)" : "text-(--accent)"}
+            >
+              margin on every memo
+            </span>
           </span>
         </div>
-        <p className="mt-1 font-mono text-[0.62rem] text-dim">
-          the tests pin this math: $0.25 out, $0.03 data, $0 test model → $0.22
-          margin · monitors bill $0.10 only when a material, cited update
-          ships — quiet polls are free
-        </p>
+        <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p className="font-mono text-[0.62rem] text-dim">
+            the tests pin this math: $0.25 out, $0.03 data, $0 test model →
+            $0.22 margin · monitors bill $0.10 only when a material, cited
+            update ships — quiet polls are free
+          </p>
+          <span
+            className="flex items-center gap-1.5 font-mono text-[0.62rem]"
+            style={fade(past("open"))}
+          >
+            <span className="relative flex h-1.5 w-1.5" aria-hidden>
+              {past("open") && !reduced && (
+                <span className="x4-ping absolute inline-flex h-full w-full rounded-full bg-(--accent) opacity-60" />
+              )}
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--accent)" />
+            </span>
+            <span className="text-(--accent)">open</span>
+            <span className="text-dim">— waiting on the next GET</span>
+          </span>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes x4-flow-y {
+          0% { transform: translateY(30px); opacity: 0; }
+          12% { opacity: 0.9; }
+          88% { opacity: 0.9; }
+          100% { transform: translateY(252px); opacity: 0; }
+        }
+        .x4-flow { animation: x4-flow-y 3.2s linear infinite; }
+        @keyframes x4-breathe-o {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        .x4-breathe { animation: x4-breathe-o 2.2s ease-in-out infinite; }
+        .x4-margin { animation: x4-breathe-o 2.2s ease-in-out infinite; }
+        @keyframes x4-ping-k {
+          0% { scale: 1; opacity: 0.6; }
+          80%, 100% { scale: 2.6; opacity: 0; }
+        }
+        .x4-ping { animation: x4-ping-k 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .x4-flow, .x4-breathe, .x4-margin, .x4-ping { animation: none; }
+        }
+      `}</style>
     </ConsoleShell>
   );
 }

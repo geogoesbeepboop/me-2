@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ConsoleShell,
   fade,
@@ -156,25 +156,29 @@ const ROUND_2: Slot[] = [
 const SWAPPED = new Set([5, 6, 7, 8, 9, 10]);
 
 const PHASES: readonly ConsolePhase[] = [
-  { id: "brief", label: "BRIEF", ms: 1800, who: "human",
+  { id: "brief", label: "BRIEF", ms: 3200, who: "human",
     note: "a vibe in plain words — the only input" },
-  { id: "arc", label: "ARC", ms: 2400, who: "model",
+  { id: "arc", label: "ARC", ms: 4400, who: "model",
     note: "the architect's whole authority: the shape of one curve — 4–7 {position, bpm, lufs} control points, interpolated linearly ever after" },
-  { id: "pool", label: "POOL", ms: 2200, who: "code",
+  { id: "pool", label: "POOL", ms: 3800, who: "code",
     note: "pgvector pulls candidates near the arc's bpm band — scored 0.5·acoustic + 0.4·taste + 0.1·rating" },
-  { id: "propose", label: "PROPOSE", ms: 2600, who: "model",
+  { id: "propose", label: "PROPOSE", ms: 4400, who: "model",
     note: "the selector orders sections, not tracks — the right part of the right track for each moment of the arc" },
-  { id: "critic", label: "CRITIC", ms: 3000, who: "code",
+  { id: "critic", label: "CRITIC", ms: 5200, who: "code",
     note: "no model here — four thresholds, pure math, and the failure becomes the next prompt" },
-  { id: "revise", label: "REVISE", ms: 2200, who: "model",
+  { id: "revise", label: "REVISE", ms: 4000, who: "model",
     note: "notes appended, revision 1 of a maximum 3 — then the same math runs again" },
-  { id: "verify", label: "PASS", ms: 2600, who: "code",
+  { id: "verify", label: "PASS", ms: 4400, who: "code",
     note: "same thresholds, no mercy, no model — this time the curve holds" },
-  { id: "hitl", label: "APPROVE", ms: 2400, who: "human",
-    note: "the plan is data — a human reads it before a second of audio is rendered" },
-  { id: "render", label: "RENDER", ms: 3200, who: "code",
+  { id: "hitl", label: "APPROVE", ms: 4400, who: "human",
+    note: "the plan is data — a human reads it before a second of audio is rendered. the y/n below is live: it does what the agent would do" },
+  { id: "render", label: "RENDER", ms: 5000, who: "code",
     note: "time-stretch dst÷src · equal-power crossfade (sin²+cos²=1) · incoming bass high-passed at 180 Hz · overlap = half the outgoing section, clamped 1–8 bars" },
+  { id: "live", label: "ON AIR", ms: 4000, who: "code",
+    note: "the booth goes quiet and the set plays — one continuous .wav, with rekordbox.xml cues, BPM and key exported alongside" },
 ];
+
+const HITL_IDX = PHASES.findIndex((p) => p.id === "hitl");
 
 const W = 760;
 const H = 230;
@@ -196,8 +200,22 @@ const jitter = (i: number, k: number) => {
 };
 
 export default function SetConsole({ title }: { title?: string }) {
-  const playback = usePlayback(PHASES);
-  const { at, past, reduced } = playback;
+  // scrubbing to APPROVE holds the clock — the y/n below becomes yours
+  const playback = usePlayback(PHASES, { holdOnScrub: ["hitl"] });
+  const { at, past, reduced, pause, resume, scrubSeq } = playback;
+
+  // the human's answer at the gate: auto = playback answers y for you.
+  // any scrub or replay re-arms the gate (state adjusted during render)
+  const [decision, setDecision] = useState<"auto" | "yes" | "no">("auto");
+  const [armedSeq, setArmedSeq] = useState(scrubSeq);
+  if (armedSeq !== scrubSeq) {
+    setArmedSeq(scrubSeq);
+    setDecision("auto");
+  }
+
+  const declined = decision === "no";
+  const onAir = at("live") && !declined;
+  const gateOpen = at("hitl") && decision === "auto";
 
   // which proposal is on the table right now
   const slots = past("verify") ? ROUND_2 : ROUND_1;
@@ -249,7 +267,8 @@ export default function SetConsole({ title }: { title?: string }) {
         <>
           <span className="text-(--accent)">violet</span> = the model imagining
           · <span className="border border-(--accent) px-1">outline</span> =
-          the model has no say — code or a human decides
+          the model has no say — code or a human decides ·{" "}
+          <span className="text-(--accent)">pulse</span> = the set, playing
         </>
       }
       footnote={
@@ -345,7 +364,7 @@ export default function SetConsole({ title }: { title?: string }) {
           </g>
 
           {/* the target arc — the architect's one artifact */}
-          <g style={fade(past("arc"), 900)}>
+          <g style={fade(past("arc"), 900)} className={onAir ? "sc-breathe" : undefined}>
             <path d={arcArea} fill="url(#sc-area)" />
             <path
               d={arcPath}
@@ -393,7 +412,7 @@ export default function SetConsole({ title }: { title?: string }) {
           />
 
           {/* render playhead sweep */}
-          {past("render") && !reduced && (
+          {at("render") && !reduced && !declined && (
             <rect
               x={PL}
               y={PT}
@@ -402,6 +421,21 @@ export default function SetConsole({ title }: { title?: string }) {
               fill="var(--accent)"
               opacity="0.07"
               className="sc-sweep"
+            />
+          )}
+
+          {/* on air — the needle drifting through the set, forever */}
+          {onAir && !reduced && (
+            <line
+              x1={PL}
+              y1={PT}
+              x2={PL}
+              y2={H - PB}
+              stroke="var(--accent)"
+              strokeWidth="1.5"
+              opacity="0.75"
+              filter="url(#sc-glow)"
+              className="sc-playhead"
             />
           )}
 
@@ -422,6 +456,34 @@ export default function SetConsole({ title }: { title?: string }) {
           <span className="text-(--accent)">──</span> target arc ·{" "}
           <span className="text-bone">- -</span> proposed set
         </div>
+
+        {/* on air badge — the set is playing now */}
+        <div
+          className="pointer-events-none absolute top-2 left-3 flex items-center gap-2 font-mono text-[0.6rem] tracking-[0.18em] uppercase"
+          style={fade(onAir)}
+        >
+          <span className="relative flex h-2 w-2" aria-hidden>
+            {onAir && !reduced && (
+              <span className="sc-ping absolute inline-flex h-full w-full rounded-full bg-(--accent) opacity-60" />
+            )}
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-(--accent)" />
+          </span>
+          <span className="text-(--accent)">on air</span>
+          {onAir && !reduced && (
+            <span className="flex h-[12px] items-end gap-[2px]" aria-hidden>
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className="sc-eq h-full w-[3px] bg-(--accent)"
+                  style={{
+                    animationDelay: `${i * 0.17}s`,
+                    animationDuration: `${0.9 + (i % 3) * 0.27}s`,
+                  }}
+                />
+              ))}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* slot lane — sections, keys, the splices between them */}
@@ -439,6 +501,11 @@ export default function SetConsole({ title }: { title?: string }) {
                   transitionDelay: !past("critic") ? `${i * 90}ms` : "0ms",
                   opacity: past("propose") ? 1 : 0,
                   transform: past("propose") ? "none" : "translateY(6px)",
+                  // one nod per bar, at this slot's own tempo
+                  animation:
+                    onAir && !reduced
+                      ? `sc-beat ${(240 / s.bpm).toFixed(3)}s ease-in-out ${(i * 0.13).toFixed(2)}s infinite`
+                      : undefined,
                 }}
               >
                 <p className="text-[0.62rem] leading-tight text-bone">
@@ -455,13 +522,16 @@ export default function SetConsole({ title }: { title?: string }) {
               {i < n - 1 && (
                 <span
                   aria-hidden
-                  className="absolute top-1/2 -right-[4.5px] z-10 block h-[7px] w-[7px] -translate-y-1/2 rotate-45"
+                  className={`absolute top-1/2 -right-[4.5px] z-10 block h-[7px] w-[7px] -translate-y-1/2 rotate-45 ${
+                    onAir && !reduced ? "sc-splice-live" : ""
+                  }`}
                   style={{
                     background: report.rough.includes(i)
                       ? "var(--color-ember)"
                       : "var(--accent)",
                     opacity: past("propose") ? 1 : 0,
                     transition: "background 700ms, opacity 700ms",
+                    animationDelay: `${(i * 0.13).toFixed(2)}s`,
                   }}
                 />
               )}
@@ -523,20 +593,75 @@ export default function SetConsole({ title }: { title?: string }) {
 
         <div className="p-4 md:p-5" style={fade(past("hitl"))}>
           <div className="flex h-full flex-col border border-(--accent) p-3">
-            <p className="mb-2 font-mono text-label tracking-[0.2em] text-(--accent) uppercase">
-              hitl — human
+            <p className="mb-2 flex items-baseline justify-between font-mono text-label tracking-[0.2em] uppercase">
+              <span className="text-(--accent)">approval — human</span>
+              <span className="text-dim normal-case tracking-normal">
+                {playback.paused && decision === "auto"
+                  ? "holding — your call"
+                  : gateOpen
+                    ? "answer, or it answers for you"
+                    : ""}
+              </span>
             </p>
             <p className="font-mono text-mono-sm text-bone">
               Approve this set for rendering? [y/N]{" "}
-              <span style={fade(past("render"))} className="text-(--accent)">
-                y
-              </span>
+              {declined ? (
+                <span className="text-ash">n</span>
+              ) : (
+                <span
+                  style={fade(decision === "yes" || past("render"))}
+                  className="text-(--accent)"
+                >
+                  y
+                </span>
+              )}
             </p>
-            <p className="mt-auto pt-3 font-mono text-[0.7rem] text-dim" style={fade(past("render"))}>
-              only now does the mixer spend compute — stretch dst÷src,
-              equal-power crossfade, bass swapped at 180 Hz, overlap = half
-              the outgoing section (1–8 bars) → one .wav
-            </p>
+            {/* the gate is live — these do exactly what the agent does */}
+            <div className="mt-2.5 flex gap-2 font-mono text-[0.68rem]">
+              <button
+                type="button"
+                disabled={!gateOpen}
+                onClick={() => {
+                  setDecision("yes");
+                  resume(HITL_IDX + 1);
+                }}
+                className="border border-(--accent) px-2.5 py-1 text-(--accent) transition-all duration-300 enabled:hover:bg-(--accent)/10 disabled:cursor-default disabled:opacity-30"
+              >
+                y — render it
+              </button>
+              <button
+                type="button"
+                disabled={!gateOpen}
+                onClick={() => {
+                  setDecision("no");
+                  pause();
+                }}
+                className="border border-line-loud px-2.5 py-1 text-ash transition-all duration-300 enabled:hover:border-bone/40 enabled:hover:text-bone disabled:cursor-default disabled:opacity-30"
+              >
+                n — stop here
+              </button>
+            </div>
+            {declined ? (
+              <div className="mt-auto pt-3 font-mono text-[0.7rem] leading-relaxed">
+                <p className="text-bone">
+                  Not approved — stopping before export/render.
+                </p>
+                <p className="mt-1 text-dim">
+                  [persist] logged this set anyway, approved=false — every
+                  rejection is a set-acceptance record · ↺ replay to spin
+                  again
+                </p>
+              </div>
+            ) : (
+              <p
+                className="mt-auto pt-3 font-mono text-[0.7rem] text-dim"
+                style={fade(past("render"))}
+              >
+                only now does the mixer spend compute — stretch dst÷src,
+                equal-power crossfade, bass swapped at 180 Hz, overlap = half
+                the outgoing section (1–8 bars) → one .wav
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -547,11 +672,45 @@ export default function SetConsole({ title }: { title?: string }) {
           to { transform: translateX(100%); }
         }
         .sc-sweep {
-          animation: sc-sweep-x 3s var(--ease-cine) 1;
+          animation: sc-sweep-x 4.5s var(--ease-cine) 1;
           transform-box: fill-box;
         }
+        @keyframes sc-playhead-x {
+          from { transform: translateX(0); }
+          to { transform: translateX(${W - PL - PR}px); }
+        }
+        .sc-playhead { animation: sc-playhead-x 22s linear infinite; }
+        @keyframes sc-breathe-o {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        .sc-breathe { animation: sc-breathe-o 1.9s ease-in-out infinite; }
+        @keyframes sc-beat {
+          0%, 35%, 100% { translate: 0 0; filter: brightness(1); }
+          12% { translate: 0 -2px; filter: brightness(1.45); }
+        }
+        @keyframes sc-splice-p {
+          0%, 100% { scale: 1; opacity: 1; }
+          50% { scale: 1.45; opacity: 0.55; }
+        }
+        .sc-splice-live { animation: sc-splice-p 1.9s ease-in-out infinite; }
+        @keyframes sc-eq-y {
+          0%, 100% { scale: 1 0.2; }
+          50% { scale: 1 1; }
+        }
+        .sc-eq {
+          transform-origin: bottom;
+          animation: sc-eq-y 1s ease-in-out infinite;
+        }
+        @keyframes sc-ping-k {
+          0% { scale: 1; opacity: 0.6; }
+          80%, 100% { scale: 2.4; opacity: 0; }
+        }
+        .sc-ping { animation: sc-ping-k 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .sc-sweep { animation: none; }
+          .sc-sweep, .sc-playhead, .sc-breathe, .sc-splice-live, .sc-eq, .sc-ping {
+            animation: none;
+          }
         }
       `}</style>
     </ConsoleShell>
