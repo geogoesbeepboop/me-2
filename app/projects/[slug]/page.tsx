@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import MaskReveal from "@/components/motion/MaskReveal";
 import Toc from "@/components/dossier/Toc";
 import CrossLinks from "@/components/dossier/CrossLinks";
+import ProjectBackdrop, { hasBackdrop } from "@/components/projects/ProjectBackdrop";
 import { Mdx } from "@/lib/mdx";
 import { accentOf, getNode, nodesOf, resolveRef, stamp } from "@/lib/content";
 
@@ -53,14 +54,17 @@ export default async function ProjectDossier({ params }: Props) {
       ];
 
   const hairline = bench ? "border-dashed border-line-loud" : "border-line";
+  // projects with their own backdrop art trade the grid texture for it
+  const art = hasBackdrop(node.slug);
 
   return (
     <article
-      className={`${bench ? "bench-grid" : ""} pt-36 pb-12`}
+      className={`${bench && !art ? "bench-grid" : ""} pt-36 pb-12`}
       style={{ "--accent": accentOf(node) } as React.CSSProperties}
     >
-      <header className="px-5 md:px-10">
-        <div className={bench ? "mx-auto w-full max-w-[880px]" : undefined}>
+      <header className="relative px-5 md:px-10">
+        <ProjectBackdrop slug={node.slug} />
+        <div className={`relative ${bench ? "mx-auto w-full max-w-[880px]" : ""}`}>
           <p className="flex items-center gap-3 font-mono text-label tracking-[0.16em] text-dim uppercase">
             {live && <span className="live-dot" aria-hidden />}
             /projects/{node.slug} — n°{node.no}

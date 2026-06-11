@@ -1,12 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+  ConsoleShell,
+  fade,
+  usePlayback,
+  type ConsolePhase,
+} from "./console/harness";
 
 /**
  * ────────────────────────────────────────────────────────────────────
@@ -19,9 +19,6 @@ import {
  * jump math all execute right here on the data shown. The SET is
  * representative: a plausible plan generated to exercise those rules
  * (the first logged real ingest is the project's next gate).
- *
- * Color doctrine: violet = the model imagining. Accent OUTLINE = the
- * model has no say — code or a human decides. Ember = a failure.
  * ────────────────────────────────────────────────────────────────────
  */
 
@@ -158,9 +155,7 @@ const ROUND_2: Slot[] = [
 
 const SWAPPED = new Set([5, 6, 7, 8, 9, 10]);
 
-/* ── playback ─────────────────────────────────────────────────────── */
-
-const PHASES = [
+const PHASES: readonly ConsolePhase[] = [
   { id: "brief", label: "BRIEF", ms: 1800, who: "human",
     note: "a vibe in plain words — the only input" },
   { id: "arc", label: "ARC", ms: 2400, who: "model",
@@ -179,7 +174,7 @@ const PHASES = [
     note: "the plan is data — a human reads it before a second of audio is rendered" },
   { id: "render", label: "RENDER", ms: 3200, who: "code",
     note: "time-stretch dst÷src · equal-power crossfade (sin²+cos²=1) · incoming bass high-passed at 180 Hz · overlap = half the outgoing section, clamped 1–8 bars" },
-] as const;
+];
 
 const W = 760;
 const H = 230;
@@ -200,53 +195,9 @@ const jitter = (i: number, k: number) => {
   return s / 2147483648;
 };
 
-function subscribeReducedMotion(cb: () => void) {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mq.addEventListener("change", cb);
-  return () => mq.removeEventListener("change", cb);
-}
-const reducedMotionNow = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 export default function SetConsole({ title }: { title?: string }) {
-  const [rawStep, setStep] = useState(-1); // -1 = not started
-  const rootRef = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-  // reduced motion = skip the playback, show the finished state
-  const reduced = useSyncExternalStore(
-    subscribeReducedMotion,
-    reducedMotionNow,
-    () => false
-  );
-  const step = reduced ? PHASES.length - 1 : rawStep;
-
-  useEffect(() => {
-    if (reduced) return;
-    const el = rootRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting && !started.current) {
-          started.current = true;
-          setStep(0);
-        }
-      },
-      { threshold: 0.35 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [reduced]);
-
-  useEffect(() => {
-    if (reduced || rawStep < 0 || rawStep >= PHASES.length - 1) return;
-    const t = setTimeout(() => setStep((s) => s + 1), PHASES[rawStep].ms);
-    return () => clearTimeout(t);
-  }, [rawStep, reduced]);
-
-  const phase = step >= 0 ? PHASES[step].id : "idle";
-  const at = (id: string) => phase === id;
-  const past = (id: string) =>
-    step >= PHASES.findIndex((p) => p.id === id);
+  const playback = usePlayback(PHASES);
+  const { at, past, reduced } = playback;
 
   // which proposal is on the table right now
   const slots = past("verify") ? ROUND_2 : ROUND_1;
@@ -288,57 +239,29 @@ export default function SetConsole({ title }: { title?: string }) {
     { k: "artist repeats", v: "0", th: "= 0", ok: true },
   ];
 
-  const fade = (on: boolean, dur = 700) =>
-    ({
-      opacity: on ? 1 : 0,
-      transition: `opacity ${dur}ms var(--ease-cine)`,
-    }) as React.CSSProperties;
-
   return (
-    <div
-      ref={rootRef}
-      className="my-10 border border-line bg-panel"
-      role="group"
-      aria-label="Animated playback of one set-generation run"
+    <ConsoleShell
+      title={title ?? "The booth, thinking"}
+      ariaLabel="Animated playback of one set-generation run"
+      phases={PHASES}
+      playback={playback}
+      legend={
+        <>
+          <span className="text-(--accent)">violet</span> = the model imagining
+          · <span className="border border-(--accent) px-1">outline</span> =
+          the model has no say — code or a human decides
+        </>
+      }
+      footnote={
+        <>
+          The rules here are real and running: the Camelot legality test, the
+          critic&apos;s four thresholds, the arc interpolation and RMSE math
+          execute on this page exactly as coded in the repo. The set itself is
+          representative — the first logged run on my real library is the
+          project&apos;s next gate.
+        </>
+      }
     >
-      {/* header — transport */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-3 md:px-5">
-        <p className="font-mono text-label tracking-[0.2em] text-dim uppercase">
-          {title ?? "The booth, thinking"}
-        </p>
-        <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1">
-          {PHASES.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => {
-                started.current = true;
-                setStep(i);
-              }}
-              aria-label={`Jump to ${p.label}`}
-              className={`font-mono text-label tracking-[0.14em] uppercase transition-colors duration-300 ${
-                i === step
-                  ? "text-(--accent)"
-                  : i < step
-                    ? "text-ash"
-                    : "text-dim/60"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-          {!reduced && (
-            <button
-              type="button"
-              onClick={() => setStep(0)}
-              className="ml-1 border border-line px-2 py-0.5 font-mono text-label tracking-[0.14em] text-ash uppercase transition-colors duration-300 hover:border-line-loud hover:text-bone"
-            >
-              ↺ replay
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* the brief — the run's only input */}
       <div className="border-b border-line px-4 py-3 font-mono text-mono-sm md:px-5" style={fade(past("brief"))}>
         <span className="text-dim">brief </span>
@@ -618,36 +541,6 @@ export default function SetConsole({ title }: { title?: string }) {
         </div>
       </div>
 
-      {/* narration + doctrine legend */}
-      <div className="border-t border-line px-4 py-3 md:px-5">
-        <p className="min-h-[2.6em] font-mono text-mono-sm text-ash">
-          {step >= 0 && (
-            <>
-              <span
-                className={
-                  PHASES[step].who === "model" ? "text-(--accent)" : "text-dim"
-                }
-              >
-                [{PHASES[step].who}]
-              </span>{" "}
-              {PHASES[step].note}
-            </>
-          )}
-        </p>
-        <p className="mt-2 font-mono text-[0.6rem] tracking-[0.12em] text-dim uppercase">
-          <span className="text-(--accent)">violet</span> = the model imagining
-          · <span className="border border-(--accent) px-1">outline</span> =
-          the model has no say — code or a human decides
-        </p>
-        <p className="mt-1.5 font-mono text-[0.6rem] leading-relaxed text-dim/80">
-          The rules here are real and running: the Camelot legality test, the
-          critic&apos;s four thresholds, the arc interpolation and RMSE math
-          execute on this page exactly as coded in the repo. The set itself is
-          representative — the first logged run on my real library is the
-          project&apos;s next gate.
-        </p>
-      </div>
-
       <style>{`
         @keyframes sc-sweep-x {
           from { transform: translateX(-100%); }
@@ -661,6 +554,6 @@ export default function SetConsole({ title }: { title?: string }) {
           .sc-sweep { animation: none; }
         }
       `}</style>
-    </div>
+    </ConsoleShell>
   );
 }
