@@ -14,8 +14,8 @@ import HeroTrace from "@/components/site/HeroTrace";
 /**
  * The hero states the motto at full scale, the doctrine underneath it,
  * and then PROVES both — the headline itself adapts (variable-width
- * letters that breathe and yield to the pointer), and a method trace
- * built from true facts plays back beside it. On scroll the layers
+ * letters breathing on their own clock), and a method trace built
+ * from true facts plays back beside it. On scroll the layers
  * leave at different speeds — a camera move, not a fade. The name
  * lives in the header, permanently visible. Copy here is deliberately
  * durable: no product names, no counts that stale as the archive grows.

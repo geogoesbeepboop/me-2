@@ -14,9 +14,10 @@ import Link from "next/link";
  * full-bleed wipe (see app/template.tsx). The same reveal runs on
  * "/", /projects and /writing — it IS the navigation.
  *
- * The wdth axis carries exactly two pointer meanings on this site:
- * index titles WIDEN on touch (here), and the hero motto YIELDS under
- * the pointer (AdaptiveHeadline). Don't add a third.
+ * The wdth axis carries exactly one pointer meaning on this site:
+ * index titles WIDEN on touch (here). The hero motto only breathes on
+ * its own clock (AdaptiveHeadline) — a pointer-driven squeeze was
+ * tried and cut; it read as lag. Don't add pointer meanings.
  * ────────────────────────────────────────────────────────────────────
  */
 export interface IndexRowProps {

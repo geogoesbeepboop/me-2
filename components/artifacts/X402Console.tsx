@@ -142,21 +142,21 @@ interface Msg {
 }
 
 const MSGS: Msg[] = [
-  { y: 56, from: LX.buyer, to: LX.jim, phase: "request",
+  { y: 58, from: LX.buyer, to: LX.jim, phase: "request",
     label: "GET /research/fundamentals?ticker=AAPL" },
-  { y: 92, from: LX.jim, to: LX.buyer, phase: "pay402", accent: true, hero: true,
+  { y: 100, from: LX.jim, to: LX.buyer, phase: "pay402", accent: true, hero: true,
     label: "402 PAYMENT REQUIRED",
     sub: "payment-required: exact · eip155:8453 · 250000 µUSDC = $0.25" },
-  { y: 128, from: LX.buyer, to: LX.jim, phase: "pay",
+  { y: 142, from: LX.buyer, to: LX.jim, phase: "pay",
     label: "retry + payment-signature",
     sub: "EIP-3009 transferWithAuthorization · facilitator /verify ✓" },
-  { y: 164, from: LX.jim, to: LX.up, phase: "source",
+  { y: 184, from: LX.jim, to: LX.up, phase: "source",
     label: "pre-flight GET — the price read from upstream's own 402",
     sub: "budget.propose($0.01 ≤ $0.10 ceiling) ✓" },
-  { y: 200, from: LX.up, to: LX.jim, phase: "source", accent: true, delay: 1800,
+  { y: 226, from: LX.up, to: LX.jim, phase: "source", accent: true, delay: 1800,
     label: "data + payment-response (tx hash)",
     sub: "cost_in $0.01 · cached 24 h — the next query is free" },
-  { y: 236, from: LX.jim, to: LX.buyer, phase: "deliver", accent: true,
+  { y: 268, from: LX.jim, to: LX.buyer, phase: "deliver", accent: true,
     label: "200 OK — memo + receipt in payment-response" },
 ];
 
@@ -195,9 +195,10 @@ export default function X402Console({ title }: { title?: string }) {
         </>
       }
     >
-      {/* the wire — a live sequence diagram */}
-      <div className="px-2 pt-2 pb-1 md:px-3">
-        <svg viewBox="0 0 760 268" className="block w-full" aria-hidden>
+      {/* the wire — a live sequence diagram. Min-width keeps the type
+          legible on phones; the band scrolls sideways instead of shrinking */}
+      <div className="overflow-x-auto px-2 pt-2 pb-1 md:px-3">
+        <svg viewBox="0 0 760 300" className="block w-full min-w-[640px]" aria-hidden>
           <defs>
             <filter id="x4-glow" x="-40%" y="-40%" width="180%" height="180%">
               <feGaussianBlur stdDeviation="3" result="b" />
@@ -219,27 +220,27 @@ export default function X402Console({ title }: { title?: string }) {
             <g key={x} fontFamily="var(--font-mono)">
               <text
                 x={x}
-                y={16}
+                y={17}
                 textAnchor="middle"
-                fontSize="10"
+                fontSize="12"
                 letterSpacing="1.5"
-                fill={isJim ? "var(--accent)" : "var(--color-dim)"}
+                fill={isJim ? "var(--accent)" : "var(--color-ash)"}
                 style={{ textTransform: "uppercase" }}
               >
                 {name}
               </text>
               <rect
                 x={x - 3}
-                y={24}
+                y={25}
                 width={6}
                 height={6}
                 fill={isJim ? "var(--accent)" : "var(--color-line-loud)"}
               />
               <line
                 x1={x}
-                y1={30}
+                y1={31}
                 x2={x}
-                y2={256}
+                y2={288}
                 stroke="var(--color-line-loud)"
                 strokeDasharray="2 6"
               />
@@ -298,11 +299,14 @@ export default function X402Console({ title }: { title?: string }) {
                 />
                 <text
                   x={mid}
-                  y={m.y - 7}
+                  y={m.y - 8}
                   textAnchor="middle"
-                  fontSize={m.hero ? 10.5 : 8.5}
+                  fontSize={m.hero ? 13 : 11}
                   letterSpacing={m.hero ? 1.4 : 0.2}
                   fill={color}
+                  stroke="var(--color-panel)"
+                  strokeWidth="4"
+                  paintOrder="stroke"
                   filter={m.hero ? "url(#x4-glow)" : undefined}
                   className={m.hero && at("open") && !reduced ? "x4-breathe" : undefined}
                   style={{
@@ -315,10 +319,13 @@ export default function X402Console({ title }: { title?: string }) {
                 {m.sub && (
                   <text
                     x={mid}
-                    y={m.y + 13}
+                    y={m.y + 15}
                     textAnchor="middle"
-                    fontSize="7.5"
+                    fontSize="9.5"
                     fill="var(--color-dim)"
+                    stroke="var(--color-panel)"
+                    strokeWidth="3.5"
+                    paintOrder="stroke"
                     style={{
                       opacity: on ? 1 : 0,
                       transition: `opacity 700ms var(--ease-cine) ${dly + 500}ms`,
@@ -334,8 +341,8 @@ export default function X402Console({ title }: { title?: string }) {
           {/* the coins — money actually moving, both directions of the business */}
           {(
             [
-              { from: LX.buyer, to: LX.jim, y: 128, on: past("pay") },
-              { from: LX.jim, to: LX.up, y: 164, on: past("source") },
+              { from: LX.buyer, to: LX.jim, y: 142, on: past("pay") },
+              { from: LX.jim, to: LX.up, y: 184, on: past("source") },
             ] as const
           ).map((c, i) => (
             <g
@@ -474,10 +481,10 @@ export default function X402Console({ title }: { title?: string }) {
 
       <style>{`
         @keyframes x4-flow-y {
-          0% { transform: translateY(30px); opacity: 0; }
+          0% { transform: translateY(31px); opacity: 0; }
           12% { opacity: 0.9; }
           88% { opacity: 0.9; }
-          100% { transform: translateY(252px); opacity: 0; }
+          100% { transform: translateY(284px); opacity: 0; }
         }
         .x4-flow { animation: x4-flow-y 3.2s linear infinite; }
         @keyframes x4-breathe-o {

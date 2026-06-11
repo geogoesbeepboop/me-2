@@ -157,14 +157,14 @@ const PHASES: readonly ConsolePhase[] = [
     note: "HMAC-SHA256 over the unit-separated authority fields, server-held key — authority is granted here, and nowhere else" },
   { id: "card", label: "CARD", ms: 4600, who: "code",
     note: "a virtual card is minted for this errand alone — locked to the merchant, capped at the mandate's $12.00, single-transaction limit. the issuer enforces the ceiling even if every line of our code is wrong" },
-  { id: "auth", label: "AUTH", ms: 4600, who: "code",
-    note: "the card is swiped; lithic asks our webhook. decide() — a pure function, no model, no network, no clock — approves in under 3 s" },
-  { id: "attack", label: "ATTACK", ms: 4800, who: "model",
-    note: "meanwhile the red team plants a prompt injection in the item text. it rides along untouched — description is not an authority field, and the amount still has to face the math" },
-  { id: "verdict", label: "VERDICT", ms: 4400, who: "code",
-    note: "five planted attacks, five deterministic blocks — stopped by rules the audit log can cite, not by model reluctance" },
+  { id: "auth", label: "SWIPE", ms: 4600, who: "code",
+    note: "the card is swiped; lithic asks our webhook. decide() — a pure function, no model, no network, no clock — approves in under 3 s. the filters are bought; your errand is over" },
+  { id: "attack", label: "RED TEAM", ms: 4800, who: "model",
+    note: "your purchase already settled. now a different mandate enters — drafted from item text the red-team suite poisoned, a prompt injection demanding $999.99. same pipeline, no special casing" },
+  { id: "verdict", label: "BLOCKED", ms: 4400, who: "code",
+    note: "five planted attacks, five deterministic blocks — stopped by rules the audit log can cite, not by model reluctance. none of them ever touched your purchase" },
   { id: "done", label: "DONE", ms: 4000, who: "code",
-    note: "coffee filters on the way — $12.00 spent at the card's exact cap, the card retired, every step in the audit log. your part in this errand: nothing" },
+    note: "two endings, one audit log: your $12.00 settled and the card retired; five attacks dead at the gates. your part in this errand: nothing" },
 ];
 
 function MandateCard({
@@ -460,7 +460,20 @@ export default function MandateConsole({ title }: { title?: string }) {
         </div>
       </div>
 
-      {/* second act — the same gates, under attack */}
+      {/* second act — a visible curtain between the stories, so the
+          attack can't read as your errand getting blocked */}
+      <div
+        className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-line px-4 py-2.5 font-mono md:px-5"
+        style={fade(past("attack"))}
+      >
+        <span className="text-label tracking-[0.18em] text-ember uppercase">
+          meanwhile — the red team
+        </span>
+        <span className="text-[0.68rem] text-dim">
+          a separate, planted mandate enters the same pipeline · your coffee
+          filters are already paid for
+        </span>
+      </div>
       <div className="grid border-t border-line md:grid-cols-2">
         <div className="space-y-3 border-b border-line p-4 md:border-r md:border-b-0 md:p-5">
           <MandateCard p={ATTACK} attack on={past("attack")} />
@@ -517,7 +530,12 @@ export default function MandateConsole({ title }: { title?: string }) {
           </span>
           <span className="text-(--accent)">done</span>
           <span className="text-ash">
-            coffee filters on the way · card retired · audit log cites every rule
+            coffee filters on the way — $12.00 settled, card retired
+          </span>
+          <span className="text-dim">·</span>
+          <span className="text-ash">
+            <span className="text-ember">5/5 attacks</span> blocked at the
+            gates — same audit log
           </span>
           <span className="ml-auto text-dim">your part: nothing</span>
         </div>
