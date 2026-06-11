@@ -42,7 +42,7 @@ export default function Home() {
           </Reveal>
           <div className="max-w-xs font-mono text-label tracking-[0.18em] text-dim uppercase md:text-right">
             <p>
-              Work, lab, writing — one index.
+              Projects and writing — one index.
               <br />
               Open anything. It links onward.
             </p>

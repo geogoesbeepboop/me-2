@@ -69,7 +69,7 @@ export default function MethodPage() {
 
       {/* never a dead end — steer into the archive it explains */}
       <Link
-        href="/work"
+        href="/projects"
         className="group mt-12 block border-t border-line px-5 py-16 transition-colors duration-500 ease-(--ease-cine) hover:bg-bone hover:text-void md:px-10"
       >
         <p className="font-mono text-label tracking-[0.2em] text-dim uppercase transition-colors duration-500 group-hover:text-void/60">

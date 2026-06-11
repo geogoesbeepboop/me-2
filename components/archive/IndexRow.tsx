@@ -12,7 +12,7 @@ import Link from "next/link";
  * line and dense metadata slide into view while the title physically
  * widens along Archivo's wdth axis. Click cuts to the dossier with a
  * full-bleed wipe (see app/template.tsx). The same reveal runs on
- * "/", /work, /lab and /writing — it IS the navigation.
+ * "/", /projects and /writing — it IS the navigation.
  * ────────────────────────────────────────────────────────────────────
  */
 export interface IndexRowProps {

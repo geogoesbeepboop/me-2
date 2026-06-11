@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { KIND_TAG, resolveRef } from "@/lib/content";
+import { resolveRef } from "@/lib/content";
 
 /**
  * An inline deep-link into another node — the writing reaches into
@@ -19,7 +19,7 @@ export default function Ref({ to, note }: { to: string; note?: string }) {
         ↳
       </span>
       <span className="text-label tracking-[0.18em] text-dim uppercase">
-        {KIND_TAG[res.kind]}
+        {res.tag}
       </span>
       <span className="text-bone">
         {res.title}

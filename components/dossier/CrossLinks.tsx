@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { backlinks, KIND_TAG, resolveRef, type Node } from "@/lib/content";
+import { backlinks, resolveRef, tagOf, type Node } from "@/lib/content";
 
 /**
  * The archive's connective tissue — rendered from the content graph,
@@ -47,7 +47,7 @@ export default function CrossLinks({ node, n = "XX" }: { node: Node; n?: string 
                   className="group flex items-baseline gap-3 font-mono text-mono-sm"
                 >
                   <span className="text-label tracking-[0.18em] text-dim uppercase">
-                    {KIND_TAG[res!.kind]}
+                    {res!.tag}
                   </span>
                   <span className="text-bone underline-offset-4 group-hover:underline">
                     {res!.title}
@@ -72,7 +72,7 @@ export default function CrossLinks({ node, n = "XX" }: { node: Node; n?: string 
                   className="group flex items-baseline gap-3 font-mono text-mono-sm"
                 >
                   <span className="text-label tracking-[0.18em] text-dim uppercase">
-                    {KIND_TAG[n.kind]}
+                    {tagOf(n)}
                   </span>
                   <span className="text-bone underline-offset-4 group-hover:underline">
                     {n.title}

@@ -1,13 +1,15 @@
 ---
 title: "DJ Agent"
 summary: "A personal DJ that turns my real library into a vibe database, learns my taste from how I annotate tracks, and plans beatmatched sets a deterministic critic must pass before any audio renders."
-question: "Can software mix a set like someone who knows me?"
+question: "Can we leverage agentic intelligence to curate an authentic vibe?"
 date: "2026-06-01"
 started: "2026-06-01"
-updated: "2026-06-05"
+updated: "2026-06-10"
 status: "LIVE"
 domain: "AUDIO · ML"
 accent: "#c77dff"
+stage: "bench"
+repo: "/Users/geoandr/dev/dj-agent"
 refs:
   - "writing/four-agents-one-nervous-system#the-substrate"
   - "writing/ship-the-how#make-people-care"
@@ -19,11 +21,15 @@ reflection: "writing/four-agents-one-nervous-system"
     { k: "representations", v: "512-d clap (track + section) · 384-d taste · bpm / camelot / lufs columns" },
     { k: "agents", v: "2 llm (architect, selector) — everything else deterministic" },
     { k: "critic gate", v: "≥70% harmonic · ≤6 bpm jump · ≤4 lufs arc-rmse · 0 artist repeats" },
-    { k: "state", v: "phases 0–5 code-complete · 103 fast tests · first real ingest next" }
+    { k: "state", v: "pipeline runs end-to-end · 227 fast tests · first real-library ingest next" }
   ]}
 />
 
 Spotify DJ is a recommender in a costume — it legally can't touch audio, and it optimizes for everyone. This bench goes the other way: personal use, my actual files, my taste as the center of gravity, and real beatmatched renders that need the raw decodable audio streaming services can never give an algorithm.
+
+Here's the whole idea in one run — watch the booth think:
+
+<SetConsole />
 
 <SystemDeepDive
   title="DJ Agent"
@@ -138,6 +144,16 @@ Spotify DJ is a recommender in a costume — it legally can't touch audio, and i
   ]}
 />
 
+<Update date="2026.06.10" title="Rescope: the pipeline runs end-to-end">
+
+The `clap-first-rescope` branch landed — the live pipeline now runs brief-to-render without a gap, and the test suite grew from 103 to 227 fast tests, all green without a database, a model, or audio on disk. Three ADRs went code-complete with it:
+
+- **Link ingestion (ADR 0009).** Paste a Spotify or YouTube URL and the curator resolves metadata, pulls the audio via yt-dlp to FLAC, and feeds it the same idempotent ingest path as a local file. A bulk judge (`dj.taste.judge <url>`) scores a whole playlist against my taste vectors without downloading anything.
+- **Two-form export (ADR 0010).** Every approved plan exports a `rekordbox.xml` for manual decks and an `.m3u8` always; `--render` still produces the automatic .wav. The plan is the product — the render is one of its outputs.
+- **Grid truth (ADR 0011).** Real downbeat phase estimation, section bounds snapped to the beat grid, and `first_downbeat_s` exported as the TEMPO anchor — so what rekordbox shows matches what the mixer assumed.
+
+</Update>
+
 <Update date="2026.06.05" title="Code-complete, audio-pending">
 
 A full review pass landed across phases 0–5: 103 fast tests green, every deterministic module covered. The best catch was real: librosa's beat tracker folds double-tempo genres — DnB, footwork — down to half-tempo, and a naive octave correction elsewhere was quietly un-folding them back. Fixed before any real audio ever got graded by it.
@@ -148,20 +164,7 @@ Next gate is contact with reality: the first full ingest of my actual library, w
 
 <Update date="2026.06.04" title="The selector earns its loop">
 
-<TerminalLog
-  title="set generation — 2-hr sunset rooftop, slow build"
-  lines={[
-    { k: "agent", s: "[architect] brief → arc control points (bpm + lufs over time)" },
-    { k: "out", s: "[selector] pool: blended acoustic + taste, arc bpm band → 84 candidates" },
-    { k: "agent", s: "[selector] propose: 24 slots, sections assigned to arc energy per moment" },
-    { k: "err", s: "[critic] harmonic 92% ✓ · max bpm jump 4 ✓ · arc-rmse 5.1 ✗ → notes, revise" },
-    { k: "agent", s: "[selector] swap slots 9–11, retarget peak section" },
-    { k: "out", s: "[critic] arc-rmse 3.2 ✓ — pass" },
-    { k: "sys", s: "[hitl] plan rendered as data — approve to spend compute on audio" }
-  ]}
-/>
-
-The Critic is the interesting half: harmonic compatibility, BPM continuity, energy-arc RMSE, artist spacing — pure math, reused unchanged as the eval scorecard. The Selector revises against its notes until pass or budget. With no API key the whole pipeline degrades to a deterministic arc and greedy nearest-fit ordering, which is also the A/B baseline the agents have to beat.
+The Critic is the interesting half: harmonic compatibility, BPM continuity, energy-arc RMSE, artist spacing — pure math, reused unchanged as the eval scorecard. The Selector revises against its notes until pass or budget (three revisions, then best-so-far wins). The console at the top of this bench plays that exact loop. With no API key the whole pipeline degrades to a deterministic arc and greedy nearest-fit ordering, which is also the A/B baseline the agents have to beat.
 
 </Update>
 
