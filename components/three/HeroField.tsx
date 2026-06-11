@@ -101,7 +101,10 @@ function Field({ animate }: { animate: boolean }) {
 
   return (
     <group ref={group} rotation={[-1.12, 0, 0]} position={[0, -1.1, 0]}>
-      <Cloud positions={bone} color="#e9e7e0" size={0.02} opacity={0.4} animate={animate} />
+      {/* the bone lattice carries the field; the colored motes stay
+          sub-threshold ambience — ember and violet are semantic hues,
+          and at higher presence they'd read as decoration */}
+      <Cloud positions={bone} color="#e9e7e0" size={0.024} opacity={0.5} animate={animate} />
       <Cloud positions={ember} color="#ff5a1f" size={0.045} opacity={0.65} animate={animate} />
       <Cloud positions={violet} color="#c77dff" size={0.04} opacity={0.5} animate={animate} />
     </group>
@@ -114,7 +117,7 @@ export default function HeroField() {
   return (
     <div
       aria-hidden
-      className="absolute inset-0 [mask-image:radial-gradient(120%_85%_at_50%_0%,black_35%,transparent_78%)]"
+      className="absolute inset-0 [mask-image:radial-gradient(125%_95%_at_50%_0%,black_40%,transparent_84%)]"
     >
       <Canvas
         dpr={[1, 1.5]}

@@ -35,6 +35,7 @@ export default function RootLayout({
       className={`${archivo.variable} ${jetbrains.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-void text-bone">
+        <div className="film-grain" aria-hidden />
         <a href="#content" className="skip-link">
           Skip to content
         </a>

@@ -2,17 +2,40 @@ import Link from "next/link";
 import Hero from "@/components/site/Hero";
 import ArchiveIndex from "@/components/archive/ArchiveIndex";
 import IndexRow from "@/components/archive/IndexRow";
+import LocalClock from "@/components/site/LocalClock";
+import SignalTicker from "@/components/site/SignalTicker";
+import MaskReveal from "@/components/motion/MaskReveal";
 import Reveal from "@/components/motion/Reveal";
-import { allNodes, getMethod, getAbout } from "@/lib/content";
+import { allNodes, getMethod, getAbout, tagOf } from "@/lib/content";
 
 export default function Home() {
   const nodes = allNodes();
   const about = getAbout();
   const method = getMethod();
 
+  // the wire — every entry in the archive, oldest story last on the tape
+  const signal = [
+    {
+      no: "N°000",
+      tag: "META",
+      title: method.title,
+      status: method.status,
+      live: false,
+    },
+    ...nodes.map((node) => ({
+      no: `N°${node.no}`,
+      tag: tagOf(node),
+      title: node.title,
+      status: node.status,
+      live: node.status === "LIVE",
+    })),
+  ];
+
   return (
     <>
       <Hero />
+
+      <SignalTicker items={signal} />
 
       {/* about strip — the person behind the archive, one line */}
       <Link
@@ -26,8 +49,11 @@ export default function Home() {
           <span className="text-mono-sm">
             {about.headline} Engineer, {about.location.replace(", CA", "")}.
           </span>
-          <span className="ml-auto text-label tracking-[0.16em] text-dim uppercase group-hover:text-void/60">
-            the person behind the archive →
+          <span className="ml-auto flex items-baseline gap-6 text-label tracking-[0.16em] text-dim uppercase group-hover:text-void/60">
+            <span className="hidden md:inline">
+              SF <LocalClock timeZone="America/Los_Angeles" />
+            </span>
+            <span>the person behind the archive →</span>
           </span>
         </div>
       </Link>
@@ -35,11 +61,9 @@ export default function Home() {
       {/* the archive — work, lab, writing on one surface */}
       <section aria-label="The archive" className="pt-24 pb-28 md:pt-32">
         <div className="mb-12 flex flex-col gap-4 px-5 md:flex-row md:items-end md:justify-between md:px-10">
-          <Reveal>
-            <h2 className="text-display font-black uppercase stretch-125">
-              The archive
-            </h2>
-          </Reveal>
+          <h2 className="text-display font-black uppercase stretch-125">
+            <MaskReveal lines={["The archive"]} inView />
+          </h2>
           <div className="max-w-xs font-mono text-label tracking-[0.18em] text-dim uppercase md:text-right">
             <p>
               Projects and writing — one index.
