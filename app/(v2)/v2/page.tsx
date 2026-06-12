@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { allNodes, accentOf } from "@/lib/content";
 import { loadFleet } from "@/lib/ops/fleet";
 import { sceneFor, sfHour } from "@/lib/ops/time";
-import CityLanding, { type LogRow } from "./city-landing";
+import CityLanding from "./city-landing";
+import type { WriteRow } from "./shared";
 import "./v2.css";
 
 export const metadata: Metadata = {
@@ -26,13 +27,13 @@ export default async function V2Landing() {
   const fleet = await loadFleet(24);
 
   // archive writes for the shift log — entry updates are real events
-  const writes: LogRow[] = allNodes()
+  const writes: WriteRow[] = allNodes()
     .slice(0, 10)
     .map((n) => ({
       at: n.sortDate,
       dateOnly: true,
       accent: accentOf(n),
-      main: n.title,
+      title: n.title,
       tag:
         n.kind === "writing"
           ? "post published"
@@ -40,7 +41,6 @@ export default async function V2Landing() {
             ? "entry rewritten"
             : "entry published",
       href: `/${n.path}`,
-      kind: "entry" as const,
     }));
 
   return (

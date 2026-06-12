@@ -3,7 +3,7 @@ import { allNodes, accentOf } from "@/lib/content";
 import { loadFleet } from "@/lib/ops/fleet";
 import { STEERING_HOOK_SNIPPET } from "@/lib/ops/steer";
 import { sceneFor, sfHour } from "@/lib/ops/time";
-import type { LogRow } from "../city-landing";
+import type { WriteRow } from "../shared";
 import OpsRoom from "./room";
 import "../v2.css";
 
@@ -24,13 +24,13 @@ export const dynamic = "force-dynamic";
 export default async function OpsPage() {
   const fleet = await loadFleet(24);
 
-  const writes: LogRow[] = allNodes()
+  const writes: WriteRow[] = allNodes()
     .slice(0, 12)
     .map((n) => ({
       at: n.sortDate,
       dateOnly: true,
       accent: accentOf(n),
-      main: n.title,
+      title: n.title,
       tag:
         n.kind === "writing"
           ? "post published"
@@ -38,7 +38,6 @@ export default async function OpsPage() {
             ? "entry rewritten"
             : "entry published",
       href: `/${n.path}`,
-      kind: "entry" as const,
     }));
 
   return (

@@ -1,23 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import SfScene, { type SceneName } from "@/components/city/SfScene";
-import { sceneFor, sfClock, sfHour, relTime, sfStamp, dayStamp } from "@/lib/ops/time";
-import { STATE_WORDS, type FleetSnapshot } from "@/lib/ops/types";
-
-export interface LogRow {
-  at: string;
-  /** frontmatter dates carry no clock — render the day, never invent a time */
-  dateOnly?: boolean;
-  accent: string;
-  /** the event itself — a commit subject, or the entry that moved */
-  main: string;
-  /** who/what it belongs to — agent name, or the kind of write */
-  tag: string;
-  href: string;
-  kind: "commit" | "entry";
-}
+import { relTime } from "@/lib/ops/time";
+import type { FleetSnapshot } from "@/lib/ops/types";
+import {
+  FeedChip,
+  Legend,
+  SceneSwitch,
+  ShiftLog,
+  fmtActive,
+  sessionName,
+  useCityTime,
+  useFleet,
+  windowWork,
+  windowWorkLine,
+  type WriteRow,
+} from "./shared";
 
 /* one voice per hour of the city — durable lines, no counts.
    "you" is whoever holds the watch; the chrome says "the operator". */
@@ -44,131 +44,20 @@ const HERO: Record<SceneName, { eyebrow: string; h1: [string, string]; sub: stri
   },
 };
 
-const SCENE_ORDER: SceneName[] = ["morning", "day", "evening", "night"];
-
-export function useCityTime(initialScene: SceneName) {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    const update = () => setNow(new Date());
-    update();
-    const t = setInterval(update, 1000);
-    return () => clearInterval(t);
-  }, []);
-  return {
-    clock: now ? sfClock(now) : "--:--:--",
-    liveScene: now ? sceneFor(sfHour(now)) : initialScene,
-  };
-}
-
-export function useFleet(initial: FleetSnapshot) {
-  const [fleet, setFleet] = useState(initial);
-  useEffect(() => {
-    if (initial.mode !== "live") return;
-    let stop = false;
-    const tick = async () => {
-      if (document.visibilityState !== "visible") return;
-      try {
-        const res = await fetch(`/api/ops?window=${initial.windowHours}`, { cache: "no-store" });
-        if (res.ok && !stop) setFleet(await res.json());
-      } catch {
-        /* a missed beat is fine — the next one will land */
-      }
-    };
-    const t = setInterval(tick, 8000);
-    return () => {
-      stop = true;
-      clearInterval(t);
-    };
-  }, [initial.mode, initial.windowHours]);
-  return fleet;
-}
-
-export function FeedChip({ fleet }: { fleet: FleetSnapshot }) {
-  const live = fleet.mode === "live";
-  const empty = fleet.agents.length === 0;
-  return (
-    <span className="v2-feed" data-live={live}>
-      {live
-        ? "live — measured on the operator's machine"
-        : empty
-          ? "no record yet"
-          : `recorded ${sfStamp(fleet.generatedAt)}`}
-    </span>
-  );
-}
-
-export function SceneSwitch({
-  scene,
-  override,
-  onOverride,
-}: {
-  scene: SceneName;
-  override: SceneName | null;
-  onOverride: (s: SceneName | null) => void;
-}) {
-  return (
-    <span className="v2-scenes" role="group" aria-label="Scene — the clock decides unless you do">
-      <span className="v2-scenes-note">scene</span>
-      <button aria-pressed={override === null} onClick={() => onOverride(null)}>
-        clock
-      </button>
-      {SCENE_ORDER.map((s) => (
-        <button key={s} aria-pressed={override === s} onClick={() => onOverride(s)}>
-          {s}
-        </button>
-      ))}
-      {override === null && (
-        <span className="v2-scenes-note" aria-hidden>
-          → {scene}
-        </span>
-      )}
-    </span>
-  );
-}
-
-export function Legend() {
-  return (
-    <span className="v2-legend" aria-label="State legend">
-      <span><i className="v2-dot" data-state="running" /> working</span>
-      <span><i className="v2-dot" data-state="waiting" /> a human decides next</span>
-      <span><i className="v2-dot" data-state="blocked" /> blocked</span>
-      <span><i className="v2-dot" data-state="parked" /> asleep</span>
-      <span><i className="v2-dot" data-state="dark" /> dark</span>
-    </span>
-  );
-}
-
 export default function CityLanding({
   initialFleet,
   writes,
   initialScene,
 }: {
   initialFleet: FleetSnapshot;
-  writes: LogRow[];
+  writes: WriteRow[];
   initialScene: SceneName;
 }) {
   const { clock, liveScene } = useCityTime(initialScene);
   const [override, setOverride] = useState<SceneName | null>(null);
   const scene = override ?? liveScene;
-  const fleet = useFleet(initialFleet);
+  const { fleet, windowHours, live } = useFleet(initialFleet);
   const hero = HERO[scene];
-
-  /* the shift log — commits from the fleet + writes from the archive */
-  const log = useMemo(() => {
-    const commits: LogRow[] = fleet.agents.flatMap((a) =>
-      a.commits.map((c) => ({
-        at: c.at,
-        accent: a.accent,
-        main: c.subject,
-        tag: a.title,
-        href: `/v2/ops#shift`,
-        kind: "commit" as const,
-      }))
-    );
-    return [...commits, ...writes]
-      .sort((x, y) => (Date.parse(y.at) || 0) - (Date.parse(x.at) || 0))
-      .slice(0, 14);
-  }, [fleet, writes]);
 
   return (
     <div className="v2-root">
@@ -200,50 +89,57 @@ export default function CityLanding({
         <section className="v2-panel" aria-label="The fleet">
           <div className="v2-panel-head">
             <h2>THE FLEET</h2>
-            <Legend />
+            <span className="v2-panel-sub">the last {windowHours}h, per agent</span>
           </div>
-          {fleet.agents.map((a) => (
-            <Link
-              key={a.slug}
-              href={`/v2/ops#${a.slug}`}
-              className="v2-row"
-              style={{ "--c": a.accent } as React.CSSProperties}
-            >
-              <span className="v2-dot" data-state={a.state} aria-hidden />
-              <span className="v2-row-title">{a.title}</span>
-              <span className="v2-row-state">{STATE_WORDS[a.state]}</span>
-              <span className="v2-row-doing">
-                {a.sessions[0] ? a.sessions[0].title : "no sessions on record"}
-              </span>
-              <span className="v2-row-time">
-                {a.lastActiveAt ? relTime(a.lastActiveAt) : "—"}
-              </span>
-            </Link>
-          ))}
-          <p className="v2-note">
-            the skyline is drawn — this board is measured; states inferred from session transcripts on disk
-          </p>
+          {fleet.agents.map((a) => {
+            const cut = (Date.parse(fleet.generatedAt) || 0) - windowHours * 3600_000;
+            const current =
+              a.sessions[0] && (Date.parse(a.sessions[0].lastActiveAt) || 0) >= cut
+                ? a.sessions[0]
+                : undefined;
+            const named = current ? sessionName(current) : null;
+            const ww = windowWork(a, windowHours, fleet.generatedAt);
+            return (
+              <Link
+                key={a.slug}
+                href={`/v2/ops#${a.slug}`}
+                className="v2-row"
+                style={{ "--c": a.accent } as React.CSSProperties}
+              >
+                <span className="v2-dot" data-state={a.state} aria-hidden />
+                <span className="v2-row-title">{a.title}</span>
+                <span className="v2-row-doing">
+                  {a.state === "dark"
+                    ? "no sessions on record"
+                    : named ?? windowWorkLine(ww)}
+                </span>
+                <span className="v2-row-time" suppressHydrationWarning>
+                  {a.lastActiveAt ? relTime(a.lastActiveAt) : "—"}
+                </span>
+              </Link>
+            );
+          })}
+          <FleetTotals fleet={fleet} windowHours={windowHours} />
+          <div className="v2-panel-foot">
+            <Legend />
+            <p className="v2-note">
+              the skyline is drawn — this board is measured; states inferred from transcripts on
+              disk, active time counts gaps under 5m
+            </p>
+          </div>
         </section>
 
         <section className="v2-panel" aria-label="The shift log">
           <div className="v2-panel-head">
             <h2>THE SHIFT LOG</h2>
+            <span className="v2-panel-sub">every row opens — full log in the ops room</span>
           </div>
-          {log.map((e, i) => (
-            <Link
-              key={`${e.href}-${e.at}-${i}`}
-              href={e.href}
-              className="v2-row"
-              style={{ "--c": e.accent } as React.CSSProperties}
-            >
-              <span className="v2-log-date" suppressHydrationWarning>
-                {e.dateOnly ? dayStamp(e.at) : sfStamp(e.at)}
-              </span>
-              <span className="v2-row-doing">{e.main}</span>
-              <span className="v2-log-kind">{e.tag}</span>
-            </Link>
-          ))}
-          <p className="v2-note">commits and archive writes, newest first — all of it real</p>
+          <ShiftLog fleet={fleet} writes={writes} live={live} cap={12} />
+          <div className="v2-panel-foot">
+            <p className="v2-note">
+              sessions, commits and archive writes, newest first — all of it real
+            </p>
+          </div>
         </section>
       </div>
 
@@ -260,5 +156,28 @@ export default function CityLanding({
         </nav>
       </footer>
     </div>
+  );
+}
+
+/** the whole fleet's output in one line — real sums of the rows above */
+function FleetTotals({ fleet, windowHours }: { fleet: FleetSnapshot; windowHours: number }) {
+  const totals = fleet.agents.reduce(
+    (t, a) => {
+      const w = windowWork(a, windowHours, fleet.generatedAt);
+      t.activeMinutes += w.activeMinutes;
+      t.edits += w.edits;
+      t.commands += w.commands;
+      t.commits += w.commits;
+      t.sessions += w.sessions;
+      return t;
+    },
+    { sessions: 0, activeMinutes: 0, edits: 0, commands: 0, commits: 0 }
+  );
+  if (totals.sessions === 0 && totals.commits === 0) return null;
+  return (
+    <p className="v2-totals">
+      across the fleet: {totals.sessions} sessions · {fmtActive(totals.activeMinutes)} active ·{" "}
+      {totals.edits} edits · {totals.commands} commands · {totals.commits} commits
+    </p>
   );
 }

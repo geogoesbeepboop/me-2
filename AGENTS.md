@@ -33,20 +33,33 @@ explore layer reaches actual implementation depth.
 
 - `/v2` is the second face of the site: a drawn San Francisco that keeps
   real city time (morning / day / evening / night), over a live fleet
-  board. `/v2/ops` is the working dashboard: fleet states, shift report
-  with readable diffs, the temporal ledger, steering. v1 (`/`) stays
-  canonical; content pages are shared between faces, never forked.
+  board. `/v2/ops` is the working dashboard: fleet states with per-window
+  work summaries, THE SHIFT LOG (one expandable timeline of sessions,
+  commits, PRs and archive writes), steering. v1 (`/`) stays canonical;
+  content pages are shared between faces, never forked.
 - `lib/ops/` measures everything: sessions from `~/.claude/projects`
   transcripts (resolved from each entry's `repo:` frontmatter, including
   `.claude-worktrees` checkouts), git telemetry from the repos
   themselves. The fleet roster = entries with `repo:` + the site's own
-  repo ("The Archive"). States are inferred from transcript activity and
-  must stay visibly labeled as inferred.
-- Live mode exists only on George's machine. The deployed site serves
-  `data/fleet-snapshot.json` — regenerate with `npm run ops:snapshot`,
-  review the diff like any content change, commit — labeled RECORDED
-  with its cut time. Prompts, patches and steering notes never enter the
-  snapshot; titles and measured numbers only.
+  repo ("The Archive"). Transcripts are mined two ways: state (inferred
+  from activity, visibly labeled) and **work facts** — tool calls, edits,
+  files touched, commands, test/check runs, active minutes — so the board
+  shows what the agent *did*, not just what landed in git. Active time is
+  inferred (event gaps capped at 5m) and labeled.
+- Live mode exists only on George's machine. The deployed site serves the
+  last **filed report** (`data/fleet-snapshot.json`), labeled with its cut
+  time. Filing a report is the deploy-update path:
+  `npm run ops:snapshot -- 24 --commit --push` cuts, sanitizes, commits
+  only the snapshot file (refuses a dirty stage) and pushes; the host
+  redeploys and serves it. Sanitization is enforced in
+  `sanitizeForRecord` — prompts, prompt-derived titles, repo and file
+  paths, patches and steering notes never enter the record; assigned
+  titles and measured numbers only. The script commits to whatever branch
+  is checked out — run it from the branch you publish from. To file
+  automatically at shift change, schedule it with launchd
+  (`~/Library/LaunchAgents/me.ops-report.plist` running
+  `npm run ops:snapshot -- 24 --commit --push` in this repo at 06:00 PT)
+  or any cron equivalent.
 - Steering notes land in `~/.claude/fleet/steering/<repo basename>/`;
   nothing reads them automatically — repos opt in with the SessionStart
   hook shown in /v2/ops under PROTOCOL.

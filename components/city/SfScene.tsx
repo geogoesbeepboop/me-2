@@ -1,11 +1,16 @@
 /**
- * THE CITY — San Francisco drawn in silhouette, west to east:
- * Marin headlands, the Golden Gate, Sutro Tower on Twin Peaks, a
- * painted-ladies hill, downtown (555 California, the Transamerica
- * Pyramid, Salesforce Tower and its night crown), Coit Tower, the
- * Ferry Building, the piers, the Bay Bridge, Oracle Park and Chase
- * Center — with the bay in front, a ferry crossing it, a cable-car
- * grade in the near foreground and the fog doing what the fog does.
+ * THE CITY — San Francisco drawn in layered silhouette, west to east:
+ * two ridges of Marin, the Golden Gate with its traffic, the Presidio
+ * treeline, the Palace of Fine Arts at the shore, Sutro Tower on Twin
+ * Peaks, the painted ladies, row houses cresting Russian Hill, downtown
+ * (555 California, the Transamerica Pyramid, Salesforce Tower and its
+ * night crown), Coit Tower, the Ferry Building, the arched pier sheds,
+ * the Bay Bridge running to Treasure Island and the new east-span mast,
+ * the port cranes of Oakland on the far shore, Oracle Park and Chase
+ * Center — and the bay in front of it all: Alcatraz sweeping its light,
+ * a ferry and a container ship passing, sailboats out when the sun is,
+ * gulls in the morning, the fog doing what the fog does, and the
+ * cable-car grade in the near foreground.
  *
  * The drawing is scenery; every palette, light and motion is driven by
  * the `scene` prop (night / morning / day / evening) through CSS
@@ -67,6 +72,8 @@ const TOWERS: TowerGrid[] = [
   { x: 1014, y: 248, cols: 3, rows: 13, sx: 7, sy: 11, keep: 0.3 }, // Millennium
   { x: 768, y: 300, cols: 3, rows: 9, sx: 7, sy: 11, keep: 0.3 }, // back slab west
   { x: 1052, y: 296, cols: 2, rows: 9, sx: 7, sy: 11, keep: 0.32 }, // back slab east
+  { x: 747, y: 336, cols: 2, rows: 7, sx: 6, sy: 10, keep: 0.3 }, // mid-rise west
+  { x: 1109, y: 342, cols: 2, rows: 6, sx: 6, sy: 10, keep: 0.32 }, // North Beach mid-rise
 ];
 const winRand = mulberry32(41587); // area codes of the city
 const WINDOWS: { x: number; y: number; late: boolean }[] = [];
@@ -88,6 +95,30 @@ const LADIES = Array.from({ length: 6 }, (_, i) => {
   const h = 30 - i * 1.2;
   return { x, base, h, i };
 });
+
+/* row houses cresting Russian Hill, in front of the towers' feet —
+   positions ride a gentle crest curve, heights jittered by PRNG */
+const houseRand = mulberry32(94109); // Russian Hill's own zip
+const HILL_CREST = (x: number) => 372 - 16 * Math.sin(((x - 758) / 96) * Math.PI);
+const HILL_HOUSES = Array.from({ length: 9 }, (_, i) => {
+  const x = 762 + i * 10.4;
+  const base = Math.round(HILL_CREST(x + 4) * 10) / 10;
+  const h = 9 + Math.round(houseRand() * 5);
+  return { x: Math.round(x * 10) / 10, base, h, i };
+});
+
+/* Presidio conifers on the bluff east of the toll plaza */
+const TREES = [480, 491, 503, 516, 528, 541].map((x, i) => {
+  const base = 350 + (x - 480) * 0.78;
+  const h = 13 - (i % 3) * 2;
+  return { x, base: Math.round(base), h };
+});
+
+/* container ship — barge hull + two rows of boxes, drawn once */
+const SHIP_BOXES = [
+  { x: 12, y: -12, w: 18 }, { x: 34, y: -12, w: 22 }, { x: 60, y: -12, w: 14 },
+  { x: 18, y: -6, w: 20 }, { x: 46, y: -6, w: 24 },
+];
 
 export default function SfScene({ scene }: { scene: SceneName }) {
   return (
@@ -138,6 +169,10 @@ export default function SfScene({ scene }: { scene: SceneName }) {
             <stop offset="0%" stopColor="var(--sf-glow)" stopOpacity="0" />
             <stop offset="100%" stopColor="var(--sf-glow)" stopOpacity="0.5" />
           </linearGradient>
+          <linearGradient id="sf-beamgrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#fff6dd" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#fff6dd" stopOpacity="0" />
+          </linearGradient>
         </defs>
 
         {/* the city's own light against the night sky */}
@@ -147,6 +182,35 @@ export default function SfScene({ scene }: { scene: SceneName }) {
         <g className="sf-sun-g">
           <circle className="sf-sun-halo" r="120" fill="url(#sf-sunglow)" />
           <circle className="sf-sun" r="26" />
+        </g>
+
+        {/* gulls cross the whole stage when the sun is out */}
+        <g className="sf-gulls">
+          <g className="sf-gull-a">
+            <path className="flap" d="M0 0 Q3.5 -3.5 7 0 M7 0 Q10.5 -3.5 14 0" />
+          </g>
+          <g className="sf-gull-b">
+            <path className="flap" d="M0 0 Q3 -3 6 0 M6 0 Q9 -3 12 0" />
+          </g>
+        </g>
+
+        {/* ── deepest band: Marin's back ridge + the East Bay shore ── */}
+        <path
+          className="sf-far2"
+          d="M-600 410 L -600 372 Q -300 332 -60 352 Q 60 296 170 338 Q 250 310 310 348 L 340 410 Z"
+        />
+        <path
+          className="sf-far2"
+          d="M1150 410 Q 1180 384 1250 372 Q 1330 360 1400 368 Q 1424 371 1440 374 L 2040 380 L 2040 410 Z"
+        />
+        {/* Oakland's port cranes on that far shore, behind the bridge */}
+        <g className="sf-cranes">
+          {[1342, 1376, 1416].map((x) => (
+            <path
+              key={x}
+              d={`M${x} 410 V 380 M${x + 9} 410 V 380 M${x - 3} 380 H ${x + 12} M${x + 9} 380 L ${x - 14} 364 M${x + 9} 380 L ${x + 18} 374`}
+            />
+          ))}
         </g>
 
         {/* ── far band: Marin headlands (west) ── */}
@@ -181,6 +245,11 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           {GG_SUSPENDERS.map((s) => (
             <line key={s.x} x1={s.x} y1={s.y} x2={s.x} y2={GG.deck} className="sf-suspender" />
           ))}
+          {/* traffic takes the span — headlights west, taillights east */}
+          <g className="sf-traffic">
+            <path className="t-head" d="M474 334.5 H -600" />
+            <path className="t-tail" d="M-600 338.5 H 474" />
+          </g>
           {/* beacons + cable necklace, lit by CSS at night */}
           <circle cx={GG.t1} cy="184" r="1.8" className="sf-beacon" />
           <circle cx={GG.t2} cy="184" r="1.8" className="sf-beacon" />
@@ -189,6 +258,16 @@ export default function SfScene({ scene }: { scene: SceneName }) {
               <circle key={l.x} cx={l.x} cy={l.y} r="1.1" />
             ))}
           </g>
+        </g>
+
+        {/* Presidio conifers on the bluff */}
+        <g className="sf-trees">
+          {TREES.map((t) => (
+            <path
+              key={t.x}
+              d={`M${t.x - 5} ${t.base} L ${t.x} ${t.base - t.h} L ${t.x + 5} ${t.base} Z M${t.x - 3.4} ${t.base - t.h * 0.45} L ${t.x} ${t.base - t.h - 4} L ${t.x + 3.4} ${t.base - t.h * 0.45} Z`}
+            />
+          ))}
         </g>
 
         {/* ── mid band: Twin Peaks, Sutro, the hills into downtown ── */}
@@ -203,6 +282,16 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           <line x1="591" y1="222" x2="609" y2="222" />
           <line x1="593" y1="196" x2="607" y2="196" />
           <circle cx="600" cy="186" r="1.6" className="sf-beacon" />
+        </g>
+
+        {/* the Palace of Fine Arts at the shore, under the bluff */}
+        <g className="sf-palace">
+          <rect x="498" y="393" width="62" height="3" />
+          {[500, 511, 522, 533, 544, 555].map((cx) => (
+            <rect key={cx} x={cx} y="396" width="2.6" height="12" />
+          ))}
+          <rect x="514" y="389" width="30" height="5" />
+          <path d="M512 389 A 16 16 0 0 1 544 389 Z" />
         </g>
 
         {/* painted ladies on their slope */}
@@ -221,9 +310,11 @@ export default function SfScene({ scene }: { scene: SceneName }) {
         <g className="sf-city">
           {/* back row */}
           <rect x="762" y="294" width="26" height="116" />
+          <rect x="744" y="330" width="15" height="80" />
           <rect x="900" y="306" width="22" height="104" />
           <rect x="1046" y="290" width="20" height="120" />
           <rect x="1090" y="316" width="18" height="94" />
+          <rect x="1106" y="336" width="16" height="74" />
           {/* 555 California — fluted slab */}
           <rect x="800" y="254" width="42" height="156" />
           <path d="M804 254 V410 M812 254 V410 M820 254 V410 M828 254 V410 M836 254 V410" className="sf-flute" />
@@ -244,9 +335,21 @@ export default function SfScene({ scene }: { scene: SceneName }) {
               <rect key={i} x={932 + i * 7} y="146" width="4" height="10" style={{ ["--i" as string]: i }} />
             ))}
           </g>
-          {/* 181 Fremont — sloped crown; Millennium — flat */}
+          {/* 181 Fremont — sloped crown; Millennium — flat + penthouse */}
           <path d="M980 410 V 224 L 1002 210 V 410 Z" />
           <rect x="1010" y="242" width="26" height="168" />
+          <rect x="1016" y="236" width="13" height="6" />
+          {/* rooftop antennas, lit at night */}
+          <line x1="821" y1="254" x2="821" y2="234" className="sf-antenna" />
+          <line x1="1099" y1="316" x2="1099" y2="298" className="sf-antenna" />
+          <circle cx="821" cy="232" r="1.5" className="sf-beacon" />
+          <circle cx="1099" cy="296" r="1.4" className="sf-beacon" />
+          {/* one face of each slab catches the light — depth on the flats */}
+          <rect x="838.5" y="254" width="2.5" height="156" className="sf-edge" />
+          <rect x="962.5" y="152" width="2.5" height="258" className="sf-edge" />
+          <rect x="999" y="212" width="2.5" height="198" className="sf-edge" />
+          <rect x="1033" y="242" width="2.5" height="168" className="sf-edge" />
+          <rect x="785.5" y="294" width="2" height="116" className="sf-edge" />
           {/* lit windows — opacity is the scene's call */}
           <g className="sf-windows">
             {WINDOWS.filter((w) => !w.late).map((w, i) => (
@@ -258,6 +361,20 @@ export default function SfScene({ scene }: { scene: SceneName }) {
               <rect key={i} x={w.x} y={w.y} width="3" height="4" />
             ))}
           </g>
+        </g>
+
+        {/* row houses cresting Russian Hill, in front of the towers' feet */}
+        <g className="sf-hillhouses">
+          <path d="M752 410 L 752 392 Q 800 348 852 366 L 860 410 Z" />
+          {HILL_HOUSES.map((h) => (
+            <g key={h.i}>
+              <rect x={h.x} y={h.base - h.h} width="8" height={h.h} />
+              <path d={`M${h.x - 0.8} ${h.base - h.h} L ${h.x + 4} ${h.base - h.h - 4.5} L ${h.x + 8.8} ${h.base - h.h} Z`} />
+              {h.i % 2 === 0 && (
+                <rect x={h.x + 2.6} y={h.base - h.h + 3.4} width="3" height="4" className="sf-lady-win" />
+              )}
+            </g>
+          ))}
         </g>
 
         {/* Telegraph Hill + Coit */}
@@ -277,14 +394,29 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           <rect x="1232.5" y="338" width="6" height="6" className="sf-clock" />
         </g>
 
-        {/* piers — the wharf gesture, masts in the water */}
+        {/* the arched pier sheds — the wharf gesture, masts behind */}
         <g className="sf-piers">
-          <rect x="1130" y="408" width="46" height="3" />
-          <rect x="1284" y="408" width="40" height="3" />
-          <path d="M1140 408 V 396 M1148 408 V 392 M1158 408 V 398 M1294 408 V 396 M1302 408 V 393 M1312 408 V 398" />
+          <path d="M1126 410 L 1131 394 H 1171 L 1176 410 Z" />
+          <path d="M1142 410 A 9 8 0 0 1 1160 410 Z" className="sf-arch" />
+          <path d="M1286 410 L 1290 396 H 1324 L 1328 410 Z" />
+          <path d="M1299 410 A 8 7 0 0 1 1315 410 Z" className="sf-arch" />
+          <line x1="1137" y1="394" x2="1137" y2="384" />
+          <line x1="1165" y1="394" x2="1165" y2="386" />
+          <line x1="1295" y1="396" x2="1295" y2="387" />
+          <line x1="1319" y1="396" x2="1319" y2="388" />
         </g>
 
-        {/* ── Bay Bridge, east — deck runs off toward Oakland ── */}
+        {/* Treasure Island under the bridge's east run */}
+        <g className="sf-far">
+          <path d="M1404 410 Q 1436 392 1472 395 Q 1502 397 1516 410 Z" className="sf-far" />
+          <g className="sf-windows">
+            <rect x="1438" y="399" width="2.5" height="3" />
+            <rect x="1452" y="397" width="2.5" height="3" />
+            <rect x="1466" y="399" width="2.5" height="3" />
+          </g>
+        </g>
+
+        {/* ── Bay Bridge, east — west spans, then the new single mast ── */}
         <g className="sf-baybridge">
           <rect x="1196" y="350" width="844" height="4.5" />
           {[1268, 1392].map((tx) => (
@@ -298,7 +430,16 @@ export default function SfScene({ scene }: { scene: SceneName }) {
               <circle cx={tx} cy="258" r="1.6" className="sf-beacon" />
             </g>
           ))}
-          <path d="M1196 322 Q 1232 350 1268 268 M1268 268 Q 1330 354 1392 268 M1392 268 Q 1448 326 1500 334 L 2040 346" className="sf-cable" />
+          <path d="M1196 322 Q 1232 350 1268 268 M1268 268 Q 1330 354 1392 268 M1392 268 Q 1430 330 1468 342" className="sf-cable" />
+          {/* the self-anchored mast east of Yerba Buena */}
+          <rect x="1524" y="256" width="5" height="94" />
+          <circle cx="1526.5" cy="252" r="1.6" className="sf-beacon" />
+          <path d="M1526 260 L 1448 350 M1526 264 L 1474 350 M1526 268 L 1500 350 M1527 260 L 1604 350 M1527 264 L 1578 350 M1527 268 L 1552 350" className="sf-fan" />
+          {/* two-way traffic on the deck */}
+          <g className="sf-traffic">
+            <path className="t-head" d="M2040 349 H 1196" />
+            <path className="t-tail" d="M1196 353 H 2040" />
+          </g>
         </g>
 
         {/* ── the yards: Oracle Park + Chase Center, on the south water ── */}
@@ -317,9 +458,44 @@ export default function SfScene({ scene }: { scene: SceneName }) {
         {/* ── the bay — wider than any screen ── */}
         <rect className="sf-bay" x="-600" y="410" width="2640" height="110" />
         <g className="sf-refl">
-          <path d="M60 424 h26 M130 432 h34 M236 420 h22 M320 438 h30 M450 446 h26 M520 426 h24 M610 440 h20 M700 434 h28 M880 422 h32 M940 444 h24 M1010 430 h22 M1150 424 h30 M1240 442 h20 M1290 436 h26 M1380 422 h22" />
+          <path d="M60 424 h26 M130 432 h34 M236 420 h22 M320 438 h30 M450 446 h26 M520 426 h24 M700 434 h28 M880 422 h32 M940 444 h24 M1010 430 h22 M1150 424 h30 M1240 442 h20 M1290 436 h26 M1380 422 h22" />
         </g>
-        {/* the ferry, crossing */}
+        {/* downtown pours its light into the water */}
+        <g className="sf-glimmer">
+          {[
+            { x: 818, h: 30 }, { x: 884, h: 24 }, { x: 946, h: 38 },
+            { x: 992, h: 28 }, { x: 1022, h: 33 }, { x: 1148, h: 20 },
+          ].map((g, i) => (
+            <rect key={g.x} x={g.x} y="413" width="2" height={g.h} style={{ ["--i" as string]: i }} />
+          ))}
+        </g>
+
+        {/* ── Alcatraz — the rock holds its light over the water ── */}
+        <g className="sf-alcatraz">
+          <g className="sf-beam-g">
+            <path d="M588 404 L 836 374 L 836 430 Z" fill="url(#sf-beamgrad)" />
+          </g>
+          <path
+            className="rock"
+            d="M520 488 Q 548 462 584 456 Q 622 450 652 460 Q 672 466 684 478 L 690 492 Q 600 503 514 495 Z"
+          />
+          <rect className="house" x="556" y="436" width="56" height="22" rx="1" />
+          <g>
+            {[562, 570, 578, 594, 602].map((wx) => (
+              <rect key={wx} className="cell-win" x={wx} y="444" width="2.6" height="3.4" />
+            ))}
+          </g>
+          {/* the water tower */}
+          <line x1="630" y1="436" x2="633" y2="416" />
+          <line x1="644" y1="436" x2="641" y2="416" />
+          <rect className="house" x="629" y="406" width="16" height="11" rx="2" />
+          {/* the lighthouse */}
+          <rect className="house" x="584" y="408" width="7" height="30" />
+          <rect className="house" x="581.5" y="405" width="12" height="3.4" />
+          <circle className="sf-beacon" cx="587.5" cy="402" r="2.2" />
+        </g>
+
+        {/* the ferry, crossing east to west */}
         <g className="sf-ferry">
           <path d="M0 0 L 30 0 L 26 6 L 4 6 Z" />
           <rect x="7" y="-6" width="16" height="6" rx="1" />
@@ -327,9 +503,39 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           <rect x="16" y="-4" width="3" height="2.4" className="sf-ferry-win" />
         </g>
 
-        {/* ── fog — Karl, drawn twice ── */}
+        {/* a container ship takes the deep channel the other way */}
+        <g className="sf-ship">
+          {SHIP_BOXES.map((b) => (
+            <rect key={`${b.x}-${b.y}`} className="box" x={b.x} y={b.y} width={b.w} height="5.4" rx="0.5" />
+          ))}
+          <path className="hull" d="M0 0 H 96 L 89 12 H 9 Z" />
+          <rect className="castle" x="76" y="-17" width="13" height="17" rx="1" />
+          <rect className="ship-win" x="78.5" y="-14.5" width="8" height="2.6" />
+        </g>
+
+        {/* sailboats, out when the sun is */}
+        <g className="sf-sails">
+          {[
+            { x: 790, y: 452, s: 1 },
+            { x: 1002, y: 446, s: 0.85 },
+            { x: 1214, y: 456, s: 1.1 },
+          ].map((b) => (
+            /* outer g holds position — the bob animation owns the inner
+               transform, so it must not share an element with translate */
+            <g key={b.x} transform={`translate(${b.x} ${b.y}) scale(${b.s})`}>
+              <g className="sf-sail-g">
+                <path className="sail" d="M0 -16 L 0 -2 L -7.5 -2 Z" />
+                <path className="sail" d="M1 -14 L 6.5 -2 L 1 -2 Z" />
+                <path className="hull" d="M-9 0 Q 0 4 9 0 L 7 3.4 H -7 Z" />
+              </g>
+            </g>
+          ))}
+        </g>
+
+        {/* ── fog — Karl, drawn three times ── */}
         <g className="sf-fog" filter="url(#sf-fog)">
           <ellipse className="sf-fog-gate" cx="240" cy="330" rx="240" ry="34" />
+          <ellipse className="sf-fog-low" cx="520" cy="372" rx="290" ry="22" />
           <ellipse className="sf-fog-city" cx="900" cy="300" rx="300" ry="30" />
         </g>
 

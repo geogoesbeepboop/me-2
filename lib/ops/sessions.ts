@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import readline from "node:readline";
-import type { OpsSession, SessionState } from "./types";
+import type { OpsSession, SessionState, SessionWork } from "./types";
 
 /**
  * TRANSCRIPT SCANNER — turns Claude Code session files into session facts.
@@ -77,6 +77,10 @@ interface ParsedFile {
   lastEvent?: string;
   /** hook command, when the tail shows a stop-hook that blocked the turn */
   blockedBy?: string;
+  /** the agent's own labor — tool calls counted off assistant lines */
+  work: SessionWork;
+  /** edit counts per file path, for the live-only top-files detail */
+  fileEdits: Map<string, number>;
 }
 
 const parseCache = new Map<string, { key: string; parsed: ParsedFile }>();
@@ -91,6 +95,65 @@ const MARKERS = [
 
 /** event types that count as "somebody did something" for tail analysis */
 const MEANINGFUL = new Set(["user", "assistant", "system", "attachment"]);
+
+/* ── the agent's own labor ────────────────────────────────
+   Tool calls live in assistant lines as {"type":"tool_use","name":…}.
+   Small-enough lines get a real JSON walk (exact); oversized lines fall
+   back to counting name markers. Both read the same bytes the state
+   inference reads — nothing here comes from anywhere but the transcript. */
+
+const EDIT_TOOLS = new Set(["Edit", "Write", "NotebookEdit"]);
+const READ_TOOLS = new Set(["Read", "Grep", "Glob"]);
+/** commands that read as a test or check run — an inference, labeled so */
+const TEST_CMD =
+  /\b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?(?:test\w*|check\w*|lint)\b|\bvitest\b|\bjest\b|\bpytest\b|\bgo\s+test\b|\bcargo\s+test\b|\beslint\b|\btsc\b/;
+/** JSON-parse ceiling — beyond this, count markers instead of parsing */
+const PARSE_CAP = 4_000_000;
+/** a gap longer than this is idle time, not work */
+const ACTIVE_GAP_MS = 5 * 60_000;
+
+function emptyWork(): SessionWork {
+  return { toolCalls: 0, edits: 0, filesTouched: 0, commands: 0, reads: 0, testRuns: 0, activeMinutes: 0 };
+}
+
+function tallyToolUse(p: ParsedFile, line: string): void {
+  if (line.length < PARSE_CAP) {
+    try {
+      const j = JSON.parse(line);
+      const content = j.message?.content;
+      if (!Array.isArray(content)) return;
+      for (const b of content) {
+        if (b?.type !== "tool_use") continue;
+        p.work.toolCalls += 1;
+        const name: string = typeof b.name === "string" ? b.name : "";
+        const input = b.input ?? {};
+        if (EDIT_TOOLS.has(name)) {
+          p.work.edits += 1;
+          if (typeof input.file_path === "string") {
+            p.fileEdits.set(input.file_path, (p.fileEdits.get(input.file_path) ?? 0) + 1);
+          }
+        } else if (name === "Bash") {
+          p.work.commands += 1;
+          if (typeof input.command === "string" && TEST_CMD.test(input.command)) {
+            p.work.testRuns += 1;
+          }
+        } else if (READ_TOOLS.has(name)) {
+          p.work.reads += 1;
+        }
+      }
+      return;
+    } catch {
+      /* fall through to marker counting */
+    }
+  }
+  p.work.toolCalls += (line.match(/"type":"tool_use"/g) ?? []).length;
+  for (const m of line.matchAll(/"name":"([A-Za-z][\w-]*)","input"/g)) {
+    const name = m[1];
+    if (EDIT_TOOLS.has(name)) p.work.edits += 1;
+    else if (name === "Bash") p.work.commands += 1;
+    else if (READ_TOOLS.has(name)) p.work.reads += 1;
+  }
+}
 
 function clip(s: string, n: number): string {
   const t = s.replace(/\s+/g, " ").trim();
@@ -117,8 +180,10 @@ async function parseFile(file: string, stat: fs.Stats): Promise<ParsedFile> {
   const hit = parseCache.get(file);
   if (hit && hit.key === key) return hit.parsed;
 
-  const p: ParsedFile = { events: 0 };
+  const p: ParsedFile = { events: 0, work: emptyWork(), fileEdits: new Map() };
   const tail: { type: string; raw: string }[] = [];
+  let activeMs = 0;
+  let prevTs = NaN;
 
   const rl = readline.createInterface({
     input: fs.createReadStream(file, { encoding: "utf8" }),
@@ -132,6 +197,23 @@ async function parseFile(file: string, stat: fs.Stats): Promise<ParsedFile> {
     // cheap type sniff without parsing giant lines
     const tm = line.match(/^\{"(?:parentUuid|type)"/) ? line.match(/"type":"([a-z-]+)"/) : null;
     const type = tm?.[1];
+
+    // active time: capped gaps between event stamps (idle never counts)
+    const ts = line.match(/"timestamp":"(20\d{2}-\d{2}-\d{2}T[^"]{6,30})"/);
+    if (ts) {
+      const t = Date.parse(ts[1]);
+      if (!Number.isNaN(t)) {
+        if (!Number.isNaN(prevTs)) activeMs += Math.min(Math.max(t - prevTs, 0), ACTIVE_GAP_MS);
+        prevTs = t;
+      }
+    }
+
+    // assistant lines carry "type":"message" inside the envelope before
+    // the top-level type, so sniff the role + a tool_use marker instead;
+    // the JSON walk only counts real tool_use blocks either way
+    if (line.includes('"type":"tool_use"') && line.includes('"role":"assistant"')) {
+      tallyToolUse(p, line);
+    }
 
     if (type && MARKERS.some((m) => line.includes(m)) && line.length < 8192) {
       try {
@@ -192,6 +274,8 @@ async function parseFile(file: string, stat: fs.Stats): Promise<ParsedFile> {
   }
 
   p.lastEvent = tail.at(-1)?.type;
+  p.work.filesTouched = p.fileEdits.size;
+  p.work.activeMinutes = Math.round(activeMs / 60_000);
 
   // a stop-hook that prevented continuation at the very end = blocked turn
   for (const t of tail.slice(-3)) {
@@ -282,6 +366,10 @@ export async function scanSessions(repoPath: string): Promise<OpsSession[]> {
             : parsed.firstPrompt
               ? ("prompt" as const)
               : ("none" as const);
+      const topFiles = [...parsed.fileEdits.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([f]) => path.basename(f));
       out.push({
         id,
         title:
@@ -300,6 +388,8 @@ export async function scanSessions(repoPath: string): Promise<OpsSession[]> {
         stateDetail: detail,
         events: parsed.events,
         subagents: countSubagents(dir, id),
+        work: parsed.work,
+        topFiles: topFiles.length > 0 ? topFiles : undefined,
         prUrl: parsed.prUrl,
         prNumber: parsed.prNumber,
         lastPrompt: parsed.lastPrompt ?? parsed.firstPrompt,

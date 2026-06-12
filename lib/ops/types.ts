@@ -11,6 +11,25 @@ export type SessionState = "running" | "waiting" | "blocked" | "parked";
 /** fleet-level state adds "dark" — no transcript activity at all */
 export type AgentState = SessionState | "dark";
 
+/** what the agent itself did in a session — counted straight off the
+ *  transcript's tool calls, not from git. All numbers, snapshot-safe. */
+export interface SessionWork {
+  /** total tool_use blocks in assistant turns */
+  toolCalls: number;
+  /** Edit / Write / NotebookEdit calls */
+  edits: number;
+  /** distinct files named by those edit calls */
+  filesTouched: number;
+  /** Bash commands run */
+  commands: number;
+  /** Read / Grep / Glob calls */
+  reads: number;
+  /** commands matching test/check patterns — inferred, label it */
+  testRuns: number;
+  /** minutes with the transcript moving (gaps capped at 5m) — inferred */
+  activeMinutes: number;
+}
+
 export interface OpsSession {
   id: string;
   /** custom title ?? ai title ?? agent name ?? trimmed first prompt */
@@ -31,6 +50,11 @@ export interface OpsSession {
   events: number;
   /** subagent transcripts dispatched by this session */
   subagents: number;
+  /** the agent's own labor, measured from the transcript — absent on
+   *  records cut before work mining existed (absent ≠ zero) */
+  work?: SessionWork;
+  /** most-edited file basenames — live mode only, never snapshotted */
+  topFiles?: string[];
   prUrl?: string;
   prNumber?: number;
   /** the most recent ask, verbatim — live mode only, never snapshotted */
@@ -63,8 +87,9 @@ export interface AgentOps {
   accent: string;
   domain?: string;
   href: string;
-  /** absolute path of the source repo (already public in frontmatter) */
-  repoPath: string;
+  /** absolute path of the source repo — live mode only; stripped from
+   *  the committed record like every other path */
+  repoPath?: string;
   branch?: string;
   detached?: boolean;
   /** uncommitted change count (`git status --porcelain` lines) */

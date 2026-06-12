@@ -135,18 +135,21 @@ export async function loadFleet(windowHours = 24): Promise<FleetSnapshot> {
 }
 
 /** what the committed snapshot may carry — assigned titles and measured
- *  numbers only. Prompt text (including prompt-derived titles) stays on
- *  the machine; the record states its own mode. */
+ *  numbers only. Prompt text (including prompt-derived titles) and every
+ *  kind of path (repo, file) stay on the machine; the record states its
+ *  own mode. */
 export function sanitizeForRecord(snap: FleetSnapshot): FleetSnapshot {
   return {
     ...snap,
     mode: "recorded",
     agents: snap.agents.map((a) => ({
       ...a,
+      repoPath: undefined,
       steering: undefined,
       sessions: a.sessions.map((s) => ({
         ...s,
         lastPrompt: undefined,
+        topFiles: undefined,
         title: s.titleSource === "prompt" ? "untitled session" : s.title,
       })),
     })),
