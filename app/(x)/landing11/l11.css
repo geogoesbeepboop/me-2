@@ -1,0 +1,218 @@
+/* ════════════════════════════════════════════════════════
+   Nº11 — THE WALL
+   A corkboard after midnight: index cards, brass pins,
+   red string, one desk lamp. The graph is real.
+   ════════════════════════════════════════════════════════ */
+
+.l11-room {
+  --l11-ink: #e6e0d2;
+  --l11-dim: #75695a;
+  --l11-string: #ff4242;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: #0c0a08;
+  color: var(--l11-ink);
+  font-family: var(--font-mono);
+  padding: 0 clamp(10px, 2.5vw, 36px);
+  overflow-x: clip;
+}
+
+/* the one light in the room */
+.l11-lamp {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    55% 50% at 22% 8%,
+    rgba(255, 214, 150, 0.10),
+    transparent 70%
+  );
+}
+
+/* ── bar ─────────────────────────────────────────────── */
+.l11-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 26px;
+  padding: 18px 4px 14px;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.l11-brand { font-weight: 700; }
+.l11-bar-dim { color: var(--l11-dim); font-size: 9.5px; }
+.l11-tidy {
+  margin-left: auto;
+  font: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  color: var(--l11-dim);
+  background: none;
+  border: 1px solid rgba(230, 224, 210, 0.18);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.l11-tidy:hover { color: var(--l11-ink); border-color: var(--l11-dim); }
+
+/* ── the board ───────────────────────────────────────── */
+.l11-board {
+  position: relative;
+  flex: 1;
+  min-height: 66svh;
+  border: 10px solid #271c12;
+  border-radius: 4px;
+  background:
+    radial-gradient(140% 100% at 30% 0%, rgba(255, 214, 150, 0.05), transparent 55%),
+    radial-gradient(1.5px 1.5px at 23% 31%, rgba(0, 0, 0, 0.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 67% 59%, rgba(0, 0, 0, 0.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 45% 82%, rgba(0, 0, 0, 0.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 22%, rgba(0, 0, 0, 0.5) 50%, transparent 51%),
+    #1d1610;
+  background-size: auto, auto, 160px 160px, 200px 200px, 180px 180px, auto;
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.65),
+    0 20px 60px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+}
+
+/* strings cross OVER the cards — that's how a real wall reads.
+   Pins and the hot card sit above the thread. */
+.l11-strings {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.l11-string {
+  fill: none;
+  stroke: var(--l11-string);
+  stroke-width: 1.6;
+  opacity: 0.8;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+  transition: opacity 0.3s ease;
+}
+.l11-string.is-dim { opacity: 0.16; }
+
+/* ── cards ───────────────────────────────────────────── */
+.l11-card {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background:
+    linear-gradient(to bottom, transparent 26px, rgba(160, 40, 40, 0.35) 26px, rgba(160, 40, 40, 0.35) 27px, transparent 27px),
+    repeating-linear-gradient(to bottom, transparent 0 18px, rgba(60, 90, 140, 0.12) 18px 19px),
+    #ece6d4;
+  color: #1c1812;
+  border-radius: 2px;
+  padding: 16px 13px 11px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+  cursor: grab;
+  user-select: none;
+  rotate: var(--tilt);
+  transition: rotate 0.25s ease, box-shadow 0.25s ease;
+}
+.l11-card.is-hot {
+  z-index: 4;
+  rotate: 0deg;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.7);
+}
+.l11-pin { z-index: 5; }
+.l11-card:active { cursor: grabbing; }
+.l11-card:focus-visible { outline: 2px solid var(--l11-string); outline-offset: 3px; }
+
+.l11-pin {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8a80, var(--l11-string) 55%, #8f1d1d);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.l11-card-no {
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: #8a7a5e;
+}
+.l11-card-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--c);
+  padding-bottom: 4px;
+}
+.l11-card-line {
+  font-size: 9.5px;
+  line-height: 1.65;
+  letter-spacing: 0.02em;
+  color: #4a4234;
+}
+.l11-card-date {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  color: #8a7a5e;
+}
+
+/* stickies */
+.l11-sticky {
+  position: absolute;
+  z-index: 1;
+  width: 86px;
+  padding: 10px 9px 14px;
+  background: #d9c96a;
+  color: #2a2410;
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  rotate: var(--tilt);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  .l11-sticky { display: none; }
+}
+
+/* ── ledge ───────────────────────────────────────────── */
+.l11-ledge {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 30px;
+  padding: 16px 4px 18px;
+}
+.l11-legend {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--l11-dim);
+  text-transform: uppercase;
+  line-height: 1.9;
+  max-width: 520px;
+}
+.l11-legend b { color: var(--l11-string); }
+.l11-exits {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.l11-exits a { color: var(--l11-dim); text-decoration: none; transition: color 0.25s ease; }
+.l11-exits a:hover { color: var(--l11-ink); }
+.l11-exit-main { color: var(--l11-ink) !important; font-weight: 700; }

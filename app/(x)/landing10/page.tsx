@@ -1,28 +1,62 @@
 import type { Metadata } from "next";
 import { archive } from "../data";
-import Film from "./film";
+import Machine from "./machine";
 import "./l10.css";
 
 export const metadata: Metadata = {
-  title: "Landing Nº10 — Title sequence",
+  title: "Landing Nº10 — The machine",
   description:
-    "Exploration: the motto as a film. Letterboxed acts, a timecode for a scrollbar, credits that are all real.",
+    "Exploration: a 2am vending machine. It takes attention, not money — the keypad actually vends.",
   robots: { index: false },
 };
 
 /**
- * Nº10 — TITLE SEQUENCE.
- * The site's film motif taken to its logical end: the landing as an
- * opening sequence. Scroll is the projector — a timecode runs in the
- * letterbox, each system gets an act with a lateral pan, and the
- * credits roll nothing but real frontmatter.
+ * Nº10 — THE MACHINE.
+ * A vending machine glowing on a dark street. The systems sit on the
+ * coils as packaged goods (net weight: their real metrics), the
+ * essays are zines on the bottom row, and the method is the nutrition
+ * label taped to the glass. Punch a code and the machine actually
+ * vends. The card reader is disabled by policy — the model never
+ * holds the card.
  */
 export default function Landing10() {
-  const { projects, writing } = archive();
+  const { projects, writing, method } = archive();
+
+  const slots = [
+    ...projects.map((p, i) => ({
+      code: `A${i + 1}`,
+      title: p.title,
+      tagline: p.domain ?? "",
+      net: p.metrics[0] ? `${p.metrics[0].v} ${p.metrics[0].k}` : (p.status || ""),
+      href: p.href,
+      accent: p.accent,
+      line: p.line,
+      no: p.no,
+      status: p.status,
+      kind: "SYSTEM",
+    })),
+    ...writing.map((w, i) => ({
+      code: `B${i + 1}`,
+      title: w.title,
+      tagline: "ZINE — ESSAY",
+      net: `${w.readingTime} MIN READ`,
+      href: w.href,
+      accent: w.accent,
+      line: w.line,
+      no: w.no,
+      status: "IN PRINT",
+      kind: "TEXT",
+    })),
+  ];
+
   return (
-    <Film
-      acts={[...projects].sort((a, b) => Number(a.no) - Number(b.no))}
-      essays={writing}
+    <Machine
+      slots={slots}
+      methodFacts={{
+        title: method.title,
+        thesis: method.thesis,
+        metrics: method.metrics,
+      }}
     />
   );
 }

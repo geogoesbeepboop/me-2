@@ -35,6 +35,8 @@ export interface SlimNode {
   timeline?: string;
   metrics: { k: string; v: string }[];
   readingTime?: number;
+  /** ref targets as node paths (anchors stripped) — the real graph */
+  refs: string[];
 }
 
 function slim(n: Node): SlimNode {
@@ -60,7 +62,29 @@ function slim(n: Node): SlimNode {
     timeline: n.timeline,
     metrics: n.metrics ?? [],
     readingTime: n.readingTime,
+    refs: [...new Set(n.refs.map((r) => r.split("#")[0]))],
   };
+}
+
+/** undirected, deduped edge list over `nodes` (indices), from real refs */
+export function refEdges(nodes: SlimNode[]): [number, number][] {
+  const byPath = new Map<string, number>(
+    nodes.map((n, i) => [`${n.kind}/${n.slug}`, i])
+  );
+  const seen = new Set<string>();
+  const edges: [number, number][] = [];
+  nodes.forEach((n, i) => {
+    n.refs.forEach((p) => {
+      const j = byPath.get(p);
+      if (j === undefined || j === i) return;
+      const key = `${Math.min(i, j)}-${Math.max(i, j)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        edges.push([Math.min(i, j), Math.max(i, j)]);
+      }
+    });
+  });
+  return edges;
 }
 
 export function archive() {

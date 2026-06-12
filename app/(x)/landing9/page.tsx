@@ -1,29 +1,31 @@
 import type { Metadata } from "next";
 import { archive } from "../data";
-import Gallery from "./gallery";
+import Plan from "./plan";
 import "./l9.css";
 
 export const metadata: Metadata = {
-  title: "Landing Nº9 — Permanent collection",
+  title: "Landing Nº9 — The floorplan",
   description:
-    "Exploration: the systems hung as works, with wall labels that tell the truth.",
+    "Exploration: the household drawn to scale. Every agent has a room; the method is the corridor.",
   robots: { index: false },
 };
 
 /**
- * Nº9 — PERMANENT COLLECTION.
- * A gallery wing in warm charcoal. Each system hangs as a framed
- * study — drawn from its real shape, labeled as a study — with a
- * museum placard carrying the real medium, year and status. Writing
- * is the reading room; the method is a conservation note. Walk slowly.
+ * Nº9 — THE FLOORPLAN.
+ * The agents already live like a household — one runs the pantry, one
+ * runs the errands, one keeps the ledger, one runs the booth. So draw
+ * the house. Plan view, thin lines, door swings; the method is the
+ * corridor that connects every room, and the reading nook holds the
+ * essays. Hover a room to light it; enter to open the file.
  */
 export default function Landing9() {
   const { projects, writing, method } = archive();
   return (
-    <Gallery
-      projects={[...projects].sort((a, b) => Number(a.no) - Number(b.no))}
+    <Plan
+      projects={projects}
       writing={writing}
       method={{ title: method.title, thesis: method.thesis, status: method.status }}
+      rev={projects.map((p) => p.updated ?? p.date).sort().at(-1)!}
     />
   );
 }

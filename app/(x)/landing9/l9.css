@@ -1,213 +1,170 @@
 /* ════════════════════════════════════════════════════════
-   Nº9 — PERMANENT COLLECTION
-   Warm charcoal walls, brass-adjacent hairlines, serif
-   placards. The pacing of a person walking slowly.
+   Nº9 — THE FLOORPLAN
+   A technical drawing of the household. Thin bone lines on
+   dark stock; rooms light up when you stand in the doorway.
    ════════════════════════════════════════════════════════ */
 
-.l9-wing {
-  --l9-wall: #1b1916;
-  --l9-bone: #e8e2d6;
-  --l9-dim: #9a9181;
-  --l9-faint: #6e6557;
-  --l9-hair: rgba(232, 226, 214, 0.14);
+.l9-site {
+  --l9-ink: #d6deeb;
+  --l9-dim: #5d6878;
+  --l9-line: rgba(214, 222, 235, 0.34);
+  --l9-faint: rgba(214, 222, 235, 0.14);
   min-height: 100svh;
-  background:
-    radial-gradient(100% 50% at 50% 0%, rgba(255, 243, 214, 0.045), transparent 60%),
-    var(--l9-wall);
-  color: var(--l9-bone);
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
-  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  background: #0a0c10;
+  color: var(--l9-ink);
+  font-family: var(--font-mono);
+  padding: 0 clamp(12px, 2.5vw, 40px);
 }
 
-/* the visitor's torch */
-.l9-torch {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* ── entry wall ──────────────────────────────────────── */
-.l9-entry {
-  position: relative;
-  z-index: 2;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 18vh 26px 16vh;
-  text-align: center;
-}
-.l9-entry-kicker {
-  font-size: 10.5px;
-  letter-spacing: 0.42em;
-  color: var(--l9-faint);
-  margin-bottom: 26px;
-}
-.l9-entry-title {
-  font-size: clamp(2.6rem, 7vw, 5.4rem);
-  line-height: 1.04;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-}
-.l9-didactic {
-  margin: 34px auto 0;
-  max-width: 56ch;
-  font-size: 1.02rem;
-  line-height: 1.85;
-  color: var(--l9-dim);
-  text-align: center;
-}
-.l9-didactic em { color: var(--l9-bone); }
-.l9-scroll-cue {
-  margin-top: 7vh;
+/* ── bar ─────────────────────────────────────────────── */
+.l9-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 28px;
+  padding: 20px 4px 14px;
+  border-bottom: 1px solid var(--l9-faint);
   font-size: 11px;
-  letter-spacing: 0.34em;
-  color: var(--l9-faint);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.l9-brand { font-weight: 700; }
+.l9-bar-dim { color: var(--l9-dim); font-size: 9.5px; }
+.l9-bar-right { margin-left: auto; }
+
+/* ── sheet: plan + panel ─────────────────────────────── */
+.l9-sheet {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: clamp(14px, 2.5vw, 34px);
+  align-items: stretch;
+  padding: clamp(14px, 2.5vh, 28px) 0;
+}
+@media (max-width: 920px) {
+  .l9-sheet { grid-template-columns: 1fr; }
+}
+
+.l9-plan {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* line weights — a real pen set */
+.l9-wall-heavy { fill: none; stroke: var(--l9-line); stroke-width: 2.5; }
+.l9-wall { fill: none; stroke: var(--l9-line); stroke-width: 1.2; }
+.l9-door { fill: none; stroke: var(--l9-dim); stroke-width: 0.8; stroke-dasharray: 3 3; }
+
+/* rooms */
+.l9-room { cursor: pointer; outline: none; }
+.l9-room-fill {
+  fill: transparent;
+  stroke: none;
+  transition: fill 0.4s ease;
+}
+.l9-room.is-hot .l9-room-fill,
+.l9-room:hover .l9-room-fill {
+  fill: color-mix(in srgb, var(--c) 7%, transparent);
+}
+.l9-room:focus-visible .l9-room-fill {
+  fill: color-mix(in srgb, var(--c) 10%, transparent);
+}
+.l9-room-label {
+  fill: var(--l9-ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  transition: fill 0.3s ease;
+}
+.l9-room.is-hot .l9-room-label,
+.l9-room:hover .l9-room-label { fill: var(--c); }
+.l9-room-sub {
+  fill: var(--l9-dim);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+/* furniture */
+.l9-furn line, .l9-furn rect, .l9-furn circle, .l9-furn-line, .l9-furn ellipse {
+  fill: none;
+  stroke: var(--l9-dim);
+  stroke-width: 1;
+}
+.l9-furn-note {
+  fill: var(--l9-dim);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  stroke: none;
+}
+.l9-hook { fill: none; stroke: var(--l9-dim); stroke-width: 1; }
+.l9-room.is-hot .l9-hook { stroke: var(--c); }
+.l9-book { fill: none; stroke: var(--l9-dim); stroke-width: 1; }
+.l9-nook { stroke: var(--l9-faint); stroke-width: 1; stroke-dasharray: 5 4; }
+
+/* annotations */
+.l9-dim line { stroke: var(--l9-dim); stroke-width: 0.8; }
+.l9-dim text { fill: var(--l9-dim); font-size: 9.5px; letter-spacing: 0.24em; }
+.l9-compass circle { fill: none; stroke: var(--l9-dim); stroke-width: 1; }
+.l9-compass path { fill: none; stroke: var(--l9-ink); stroke-width: 1.2; }
+.l9-compass text { fill: var(--l9-dim); font-size: 9px; letter-spacing: 0.2em; }
+
+/* ── the placard panel ───────────────────────────────── */
+.l9-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--l9-faint);
+  border-left: 3px solid var(--c);
+  padding: clamp(16px, 2vw, 26px);
+  background: rgba(214, 222, 235, 0.02);
+}
+.l9-panel-tag { font-size: 9.5px; letter-spacing: 0.3em; color: var(--c); }
+.l9-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+.l9-panel-meta { font-size: 9.5px; letter-spacing: 0.18em; color: var(--l9-dim); text-transform: uppercase; line-height: 1.8; }
+.l9-panel-line { font-size: 12.5px; line-height: 1.85; letter-spacing: 0.03em; }
+.l9-panel-open {
+  align-self: flex-start;
+  margin-top: 4px;
+  color: var(--c);
+  text-decoration: none;
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s ease;
+}
+.l9-panel-open:hover { border-color: var(--c); }
+
+.l9-titleblock {
+  margin-top: auto;
+  border: 1px solid var(--l9-faint);
+  padding: 12px 14px;
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  color: var(--l9-dim);
+  line-height: 2.1;
   text-transform: uppercase;
 }
 
-/* ── exhibits ────────────────────────────────────────── */
-.l9-exhibit {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 420px) minmax(0, 340px);
-  justify-content: center;
-  align-items: center;
-  gap: clamp(28px, 5vw, 80px);
-  padding: 11vh 26px;
-  opacity: 0;
-  transform: translateY(34px);
-  transition: opacity 1.4s ease, transform 1.4s cubic-bezier(0.19, 1, 0.22, 1);
+/* ── exits ───────────────────────────────────────────── */
+.l9-exits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 26px;
+  padding: 14px 4px 18px;
+  border-top: 1px solid var(--l9-faint);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
 }
-.l9-exhibit.is-seen { opacity: 1; transform: none; }
-.l9-exhibit.is-right { grid-template-areas: "label frame"; }
-.l9-exhibit.is-right .l9-frame-link { grid-area: frame; }
-.l9-exhibit.is-right .l9-label { grid-area: label; text-align: right; }
-@media (max-width: 760px) {
-  .l9-exhibit,
-  .l9-exhibit.is-right {
-    grid-template-columns: minmax(0, 420px);
-    grid-template-areas: none;
-  }
-  .l9-exhibit.is-right .l9-frame-link,
-  .l9-exhibit.is-right .l9-label { grid-area: auto; text-align: left; }
-}
-
-.l9-frame-link { text-decoration: none; display: block; }
-.l9-frame {
-  /* spotlit on the wall */
-  position: relative;
-  padding: clamp(14px, 2vw, 22px);
-  background: linear-gradient(160deg, #262119, #15120e);
-  border: 1px solid #3d362a;
-  outline: 1px solid rgba(0, 0, 0, 0.6);
-  outline-offset: -3px;
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.55),
-    0 4px 14px rgba(0, 0, 0, 0.4);
-  transition: transform 0.9s cubic-bezier(0.19, 1, 0.22, 1);
-}
-.l9-frame::before {
-  /* the picture light above the frame */
-  content: "";
-  position: absolute;
-  inset: -46px -30px auto;
-  height: 110px;
-  background: radial-gradient(60% 100% at 50% 0%, rgba(255, 243, 214, 0.10), transparent 75%);
-  pointer-events: none;
-}
-.l9-frame-link:hover .l9-frame { transform: scale(1.012); }
-.l9-art { display: block; width: 100%; height: auto; }
-
-/* placards */
-.l9-label { font-size: 0.95rem; line-height: 1.7; }
-.l9-label-no {
-  font-size: 11px;
-  letter-spacing: 0.3em;
-  color: var(--l9-faint);
-  margin-bottom: 14px;
-}
-.l9-label-title { font-size: 1.25rem; font-weight: 400; }
-.l9-label-title em { font-style: italic; }
-.l9-label-medium { margin-top: 6px; color: var(--l9-dim); font-size: 0.88rem; }
-.l9-label-line { margin-top: 16px; color: var(--l9-bone); }
-.l9-label-credit { margin-top: 14px; color: var(--l9-faint); font-size: 0.82rem; line-height: 1.7; }
-.l9-label-link {
-  display: inline-block;
-  margin-top: 16px;
-  color: var(--l9-dim);
-  font-size: 0.85rem;
-  text-decoration: none;
-  border-bottom: 1px solid var(--l9-hair);
-  padding-bottom: 2px;
-  transition: color 0.4s ease, border-color 0.4s ease;
-}
-.l9-label-link:hover { color: var(--l9-bone); border-color: var(--l9-dim); }
-
-/* ── reading room ────────────────────────────────────── */
-.l9-reading {
-  position: relative;
-  z-index: 2;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 12vh 26px 8vh;
-  text-align: center;
-}
-.l9-reading-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 22px;
-  margin-top: 34px;
-}
-.l9-plaque {
-  border: 1px solid var(--l9-hair);
-  background: rgba(232, 226, 214, 0.025);
-  padding: 30px 28px;
-  text-decoration: none;
-  color: inherit;
-  text-align: left;
-  transition: background 0.5s ease, border-color 0.5s ease;
-}
-.l9-plaque:hover { background: rgba(232, 226, 214, 0.05); border-color: rgba(232, 226, 214, 0.3); }
-.l9-plaque-quote { font-size: 1.18rem; line-height: 1.55; font-style: italic; }
-.l9-plaque-credit { margin-top: 16px; font-size: 0.82rem; color: var(--l9-faint); }
-
-.l9-conservation {
-  margin: 40px auto 0;
-  max-width: 56ch;
-  border-top: 1px solid var(--l9-hair);
-  padding-top: 24px;
-  font-size: 0.88rem;
-  line-height: 1.8;
-  color: var(--l9-dim);
-}
-.l9-conservation-head {
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  color: var(--l9-faint);
-  margin-bottom: 10px;
-}
-
-/* ── exit ────────────────────────────────────────────── */
-.l9-exit {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  padding: 6vh 26px 12vh;
-}
-.l9-exit-link {
-  font-size: 12px;
-  letter-spacing: 0.34em;
-  color: var(--l9-bone);
-  text-decoration: none;
-  border: 1px solid var(--l9-hair);
-  padding: 14px 26px;
-  transition: background 0.5s ease, color 0.5s ease;
-}
-.l9-exit-link:hover { background: var(--l9-bone); color: var(--l9-wall); }
-.l9-exit-note { margin-top: 26px; font-size: 0.8rem; font-style: italic; color: var(--l9-faint); }
-
-@media (prefers-reduced-motion: reduce) {
-  .l9-exhibit { transition: none; }
-  .l9-frame, .l9-label-link, .l9-plaque, .l9-exit-link { transition: none; }
-}
+.l9-exits a { color: var(--l9-dim); text-decoration: none; transition: color 0.25s ease; }
+.l9-exits a:hover { color: var(--l9-ink); }
+.l9-exit-main { margin-left: auto; color: var(--l9-ink) !important; font-weight: 700; }
