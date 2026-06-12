@@ -45,9 +45,9 @@ export const LANDINGS: LandingDef[] = [
   },
   {
     no: "05",
-    href: "/landing5",
-    name: "Night shift",
-    line: "autonomous imagination, harnessed while you sleep — the page knows what time it is.",
+    href: "/v2",
+    name: "The city",
+    line: "night shift, grown up and shipped as v2 — San Francisco keeps real time over a live fleet board.",
     mode: "aligned",
   },
   {

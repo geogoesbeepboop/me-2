@@ -29,6 +29,31 @@ explore layer reaches actual implementation depth.
 - Click-to-inspect: `SystemDeepDive inspect="<slug>"` resolves through
   `lib/inspect/index.ts` to per-project maps keyed by topology node id.
 
+## The ops layer (v2 — "the city")
+
+- `/v2` is the second face of the site: a drawn San Francisco that keeps
+  real city time (morning / day / evening / night), over a live fleet
+  board. `/v2/ops` is the working dashboard: fleet states, shift report
+  with readable diffs, the temporal ledger, steering. v1 (`/`) stays
+  canonical; content pages are shared between faces, never forked.
+- `lib/ops/` measures everything: sessions from `~/.claude/projects`
+  transcripts (resolved from each entry's `repo:` frontmatter, including
+  `.claude-worktrees` checkouts), git telemetry from the repos
+  themselves. The fleet roster = entries with `repo:` + the site's own
+  repo ("The Archive"). States are inferred from transcript activity and
+  must stay visibly labeled as inferred.
+- Live mode exists only on George's machine. The deployed site serves
+  `data/fleet-snapshot.json` — regenerate with `npm run ops:snapshot`,
+  review the diff like any content change, commit — labeled RECORDED
+  with its cut time. Prompts, patches and steering notes never enter the
+  snapshot; titles and measured numbers only.
+- Steering notes land in `~/.claude/fleet/steering/<repo basename>/`;
+  nothing reads them automatically — repos opt in with the SessionStart
+  hook shown in /v2/ops under PROTOCOL.
+- The scene (`components/city/SfScene.tsx`) is scenery and may hold muted
+  scenery color; the semantic-color doctrine still governs every DATA
+  surface (state dots, legends, diffstat bars).
+
 ## Editorial doctrine (the part that gets changes rejected)
 
 - **Real data only.** Every number, threshold, run and quote traces to a

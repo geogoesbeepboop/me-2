@@ -1,0 +1,313 @@
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import readline from "node:readline";
+import type { OpsSession, SessionState } from "./types";
+
+/**
+ * TRANSCRIPT SCANNER — turns Claude Code session files into session facts.
+ *
+ * Claude Code writes one JSONL per session under
+ * ~/.claude/projects/<cwd with "/" and "." flattened to "-">/.
+ * A repo's sessions therefore live in its own dir plus one dir per
+ * .claude-worktrees checkout. Every fact extracted here is read straight
+ * off those lines; states are *inferred* from activity and labeled as
+ * such in the UI.
+ */
+
+const CLAUDE_PROJECTS = path.join(os.homedir(), ".claude", "projects");
+
+/** "/Users/x/dev/dj-agent" → "-Users-x-dev-dj-agent" (Claude Code's encoding) */
+export function encodeCwd(repoPath: string): string {
+  return repoPath.replace(/[/.]/g, "-");
+}
+
+export function transcriptsAvailable(): boolean {
+  try {
+    return fs.existsSync(CLAUDE_PROJECTS);
+  } catch {
+    return false;
+  }
+}
+
+/** the repo's transcript dir + one dir per agent worktree under it */
+function transcriptDirsFor(repoPath: string): { dir: string; worktree?: string }[] {
+  const enc = encodeCwd(repoPath);
+  const out: { dir: string; worktree?: string }[] = [];
+  const main = path.join(CLAUDE_PROJECTS, enc);
+  if (fs.existsSync(main)) out.push({ dir: main });
+  const wtPrefix = `${enc}--claude-worktrees-`;
+  let entries: string[] = [];
+  try {
+    entries = fs.readdirSync(CLAUDE_PROJECTS);
+  } catch {
+    return out;
+  }
+  for (const e of entries) {
+    if (e.startsWith(wtPrefix)) {
+      out.push({
+        dir: path.join(CLAUDE_PROJECTS, e),
+        worktree: e.slice(wtPrefix.length),
+      });
+    }
+  }
+  return out;
+}
+
+const SESSION_FILE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/;
+
+/* ── single-pass line scan ────────────────────────────────
+   One readline pass per file. Marker lines (titles, pr-links) are
+   small — parse them. Giant content lines are only counted. A rolling
+   tail buffer feeds state inference. Results cache on (mtime, size),
+   so polling re-reads only the file that is actually moving. */
+
+interface ParsedFile {
+  startedAt?: string;
+  branch?: string;
+  firstPrompt?: string;
+  lastPrompt?: string;
+  aiTitle?: string;
+  customTitle?: string;
+  agentName?: string;
+  prUrl?: string;
+  prNumber?: number;
+  events: number;
+  /** last meaningful event ("user" | "assistant" | "system" | …) */
+  lastEvent?: string;
+  /** hook command, when the tail shows a stop-hook that blocked the turn */
+  blockedBy?: string;
+}
+
+const parseCache = new Map<string, { key: string; parsed: ParsedFile }>();
+
+const MARKERS = [
+  '"type":"ai-title"',
+  '"type":"custom-title"',
+  '"type":"agent-name"',
+  '"type":"pr-link"',
+  '"type":"last-prompt"',
+] as const;
+
+/** event types that count as "somebody did something" for tail analysis */
+const MEANINGFUL = new Set(["user", "assistant", "system", "attachment"]);
+
+function clip(s: string, n: number): string {
+  const t = s.replace(/\s+/g, " ").trim();
+  return t.length > n ? `${t.slice(0, n - 1)}…` : t;
+}
+
+/** slash-command transcripts wrap the readable part in tags — unwrap them;
+ *  harness boilerplate ("Caveat: the messages below…") is not a prompt */
+function promptText(s: string): string {
+  const cmd = s.match(/<command-message>([^<]*)<\/command-message>/);
+  if (cmd?.[1].trim()) return cmd[1].trim();
+  const name = s.match(/<command-name>([^<]*)<\/command-name>/);
+  if (name?.[1].trim()) return name[1].trim();
+  let t = s;
+  if (/^\s*Caveat: the messages below/i.test(t)) {
+    t = t.replace(/^\s*Caveat: the messages below[^]*?(?=\n\n|$)/i, "");
+  }
+  const stripped = t.replace(/<[^>]{1,80}>/g, " ").replace(/\s+/g, " ").trim();
+  return stripped || s;
+}
+
+async function parseFile(file: string, stat: fs.Stats): Promise<ParsedFile> {
+  const key = `${stat.mtimeMs}:${stat.size}`;
+  const hit = parseCache.get(file);
+  if (hit && hit.key === key) return hit.parsed;
+
+  const p: ParsedFile = { events: 0 };
+  const tail: { type: string; raw: string }[] = [];
+
+  const rl = readline.createInterface({
+    input: fs.createReadStream(file, { encoding: "utf8" }),
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {
+    if (!line) continue;
+    p.events += 1;
+
+    // cheap type sniff without parsing giant lines
+    const tm = line.match(/^\{"(?:parentUuid|type)"/) ? line.match(/"type":"([a-z-]+)"/) : null;
+    const type = tm?.[1];
+
+    if (type && MARKERS.some((m) => line.includes(m)) && line.length < 8192) {
+      try {
+        const j = JSON.parse(line);
+        if (j.type === "ai-title" && j.aiTitle) p.aiTitle = j.aiTitle;
+        if (j.type === "custom-title" && j.customTitle) p.customTitle = j.customTitle;
+        if (j.type === "agent-name" && j.agentName) p.agentName = j.agentName;
+        if (j.type === "last-prompt" && j.lastPrompt)
+          p.lastPrompt = clip(promptText(j.lastPrompt), 200);
+        if (j.type === "pr-link" && j.prUrl) {
+          p.prUrl = j.prUrl;
+          p.prNumber = j.prNumber;
+        }
+      } catch {
+        /* a marker substring inside a bigger line — ignore */
+      }
+    }
+
+    if (type === "user" && (!p.startedAt || !p.firstPrompt)) {
+      try {
+        const j = line.length < 65536 ? JSON.parse(line) : null;
+        if (j?.type === "user") {
+          p.startedAt ??= j.timestamp;
+          p.branch ??= j.gitBranch;
+          const c = j.message?.content;
+          if (!p.firstPrompt) {
+            if (typeof c === "string") p.firstPrompt = clip(promptText(c), 120);
+            else if (Array.isArray(c)) {
+              const t = c.find(
+                (x: { type?: string; text?: string }) => x?.type === "text" && x.text
+              );
+              // tool_result-only "user" lines are plumbing, not a prompt
+              if (t) p.firstPrompt = clip(promptText(t.text), 120);
+            }
+          }
+        }
+      } catch {
+        /* unparseable or oversized first prompt — keep scanning */
+      }
+    } else if (!p.startedAt && line.length < 8192) {
+      try {
+        const j = JSON.parse(line);
+        if (j.timestamp) p.startedAt = j.timestamp;
+        if (j.gitBranch) p.branch ??= j.gitBranch;
+      } catch {
+        /* not json — skip */
+      }
+    }
+
+    if (type && MEANINGFUL.has(type)) {
+      // "user" lines carrying tool_result payloads are machine traffic,
+      // not a human prompt — classify them with the assistant side
+      const kind =
+        type === "user" && line.includes('"tool_result"') ? "machine-user" : type;
+      tail.push({ type: kind, raw: line.length < 16384 ? line : "" });
+      if (tail.length > 8) tail.shift();
+    }
+  }
+
+  p.lastEvent = tail.at(-1)?.type;
+
+  // a stop-hook that prevented continuation at the very end = blocked turn
+  for (const t of tail.slice(-3)) {
+    if (t.type !== "system" || !t.raw.includes('"subtype":"stop_hook_summary"')) continue;
+    try {
+      const j = JSON.parse(t.raw);
+      const failed = (j.hookErrors?.length ?? 0) > 0 || j.preventedContinuation;
+      if (failed) {
+        const cmd: string | undefined = j.hookInfos?.[0]?.command;
+        p.blockedBy = cmd ? path.basename(cmd) : "stop hook";
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  parseCache.set(file, { key, parsed: p });
+  return p;
+}
+
+/* ── state inference (the legend explains this on the page) ── */
+
+function inferState(
+  parsed: ParsedFile,
+  lastActiveMs: number,
+  now: number
+): { state: SessionState; detail: string } {
+  const ageMin = (now - lastActiveMs) / 60_000;
+  if (ageMin < 2) return { state: "running", detail: "transcript moving now" };
+  if (parsed.blockedBy && ageMin < 24 * 60)
+    return { state: "blocked", detail: `stopped by ${parsed.blockedBy}` };
+  if (ageMin >= 24 * 60) {
+    const days = Math.floor(ageMin / (24 * 60));
+    return {
+      state: "parked",
+      detail: days <= 1 ? "no activity for a day" : `no activity for ${days} days`,
+    };
+  }
+  if (parsed.lastEvent === "user")
+    return { state: "waiting", detail: "interrupted mid-turn — the last word was the operator's" };
+  if (parsed.lastEvent === "machine-user")
+    return { state: "waiting", detail: "stopped mid-work — last event was a tool result" };
+  return { state: "waiting", detail: "turn finished — a human decides next" };
+}
+
+function countSubagents(dir: string, sessionId: string): number {
+  try {
+    const sub = path.join(dir, sessionId, "subagents");
+    return fs.readdirSync(sub).filter((f) => f.endsWith(".jsonl")).length;
+  } catch {
+    return 0;
+  }
+}
+
+/** all sessions for a repo (main checkout + agent worktrees), newest first */
+export async function scanSessions(repoPath: string): Promise<OpsSession[]> {
+  const now = Date.now();
+  const out: OpsSession[] = [];
+
+  for (const { dir, worktree } of transcriptDirsFor(repoPath)) {
+    let files: string[] = [];
+    try {
+      files = fs.readdirSync(dir).filter((f) => SESSION_FILE.test(f));
+    } catch {
+      continue;
+    }
+    for (const f of files) {
+      const file = path.join(dir, f);
+      let stat: fs.Stats;
+      try {
+        stat = fs.statSync(file);
+      } catch {
+        continue;
+      }
+      if (stat.size === 0) continue;
+      const parsed = await parseFile(file, stat);
+      // queue-only stubs (no conversation ever) aren't sessions
+      if (!parsed.startedAt && !parsed.firstPrompt) continue;
+
+      const id = f.replace(/\.jsonl$/, "");
+      const { state, detail } = inferState(parsed, stat.mtimeMs, now);
+      const titleSource = parsed.customTitle
+        ? ("custom" as const)
+        : parsed.aiTitle
+          ? ("ai" as const)
+          : parsed.agentName
+            ? ("agent" as const)
+            : parsed.firstPrompt
+              ? ("prompt" as const)
+              : ("none" as const);
+      out.push({
+        id,
+        title:
+          parsed.customTitle ??
+          parsed.aiTitle ??
+          parsed.agentName ??
+          parsed.firstPrompt ??
+          "untitled session",
+        titleSource,
+        agentName: parsed.agentName,
+        worktree,
+        branch: parsed.branch,
+        startedAt: parsed.startedAt ?? new Date(stat.mtimeMs).toISOString(),
+        lastActiveAt: new Date(stat.mtimeMs).toISOString(),
+        state,
+        stateDetail: detail,
+        events: parsed.events,
+        subagents: countSubagents(dir, id),
+        prUrl: parsed.prUrl,
+        prNumber: parsed.prNumber,
+        lastPrompt: parsed.lastPrompt ?? parsed.firstPrompt,
+        blockedBy: parsed.blockedBy,
+      });
+    }
+  }
+
+  out.sort((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt));
+  return out;
+}

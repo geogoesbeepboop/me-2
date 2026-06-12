@@ -30,6 +30,12 @@ export default function Footer() {
           >
             N°000 — the method →
           </a>
+          <a
+            href="/v2"
+            className="text-ash underline-offset-4 hover:underline"
+          >
+            the city — the fleet at work →
+          </a>
           <p className="text-dim">© 2026 George Andrade-Muñoz</p>
         </div>
       </div>
