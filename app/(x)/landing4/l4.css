@@ -1,0 +1,243 @@
+/* ════════════════════════════════════════════════════════
+   Nº4 — AKZIDENZ VOID
+   International Style on the void. One grotesk, one red,
+   visible grid, hard rules. Loads in one breath, then holds.
+   ════════════════════════════════════════════════════════ */
+
+.l4-root {
+  --l4-red: #ff2d12;
+  --l4-bone: #e9e7e0;
+  --l4-void: #0a0a0b;
+  --l4-dim: #82807a;
+  --l4-line: rgba(233, 231, 224, 0.12);
+  position: relative;
+  min-height: 100svh;
+  padding: 0 clamp(18px, 4vw, 64px) clamp(40px, 6vw, 80px);
+  background: var(--l4-void);
+  color: var(--l4-bone);
+  font-family: var(--font-display);
+  overflow-x: clip;
+}
+
+/* the working grid, left visible — the poster admits its skeleton */
+.l4-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(to right, var(--l4-line) 1px, transparent 1px);
+  background-size: calc(100% / 12) 100%;
+  mask-image: linear-gradient(to bottom, black 0%, black 78%, transparent 100%);
+  opacity: 0.5;
+}
+
+/* rotated gutter label */
+.l4-rot {
+  position: fixed;
+  left: 10px;
+  bottom: 96px;
+  transform: rotate(180deg);
+  writing-mode: vertical-rl;
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  color: var(--l4-dim);
+  text-transform: uppercase;
+}
+@media (max-width: 880px) {
+  .l4-rot { display: none; }
+}
+
+/* ── meta row ────────────────────────────────────────── */
+.l4-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 34px;
+  padding: 22px 0 14px;
+  border-bottom: 1px solid var(--l4-bone);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.l4-meta-right { margin-left: auto; color: var(--l4-dim); }
+
+/* ── hero ────────────────────────────────────────────── */
+.l4-hero {
+  position: relative;
+  padding: clamp(48px, 9vh, 110px) 0 clamp(36px, 6vh, 72px);
+}
+.l4-hero h1 {
+  font-size: clamp(3.2rem, 12.5vw, 12.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 900;
+  font-stretch: 125%;
+}
+.l4-line { display: block; overflow: hidden; }
+.l4-line > span { display: inline-block; }
+.l4-ast {
+  color: var(--l4-red);
+  font-size: 0.45em;
+  vertical-align: 0.7em;
+  letter-spacing: 0;
+}
+
+/* the red unit — one column wide, classic */
+.l4-redsquare {
+  position: absolute;
+  top: clamp(28px, 5vh, 56px);
+  right: calc(100% / 12 * 2);
+  width: calc(100% / 12 - 8px);
+  aspect-ratio: 1;
+  background: var(--l4-red);
+}
+@media (max-width: 880px) {
+  .l4-redsquare { right: 0; width: calc(100% / 6); }
+}
+
+/* ── rules ───────────────────────────────────────────── */
+.l4-rule-heavy {
+  height: clamp(10px, 1.4vw, 18px);
+  background: var(--l4-red);
+  transform-origin: left center;
+}
+
+/* ── the index ───────────────────────────────────────── */
+.l4-index {
+  margin-top: clamp(28px, 5vh, 56px);
+}
+.l4-row {
+  display: grid;
+  grid-template-columns: clamp(64px, 8vw, 120px) minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 0.5fr);
+  gap: 18px;
+  align-items: baseline;
+  padding: clamp(10px, 1.6vh, 18px) 0;
+  border-bottom: 1px solid var(--l4-line);
+  color: var(--l4-bone);
+  text-decoration: none;
+  /* decisive: no easing on hover — the poster doesn't hesitate */
+  transition: none;
+}
+.l4-row:hover {
+  background: var(--l4-bone);
+  color: var(--l4-void);
+}
+.l4-row-no {
+  font-size: clamp(0.8rem, 1.4vw, 1.05rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--l4-dim);
+}
+.l4-row:hover .l4-row-no { color: var(--l4-red); }
+.l4-row-title {
+  font-size: clamp(1.5rem, 4.4vw, 3.6rem);
+  line-height: 1;
+  font-weight: 900;
+  font-stretch: 110%;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.l4-row-meta {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--l4-dim);
+  font-weight: 700;
+}
+.l4-row:hover .l4-row-meta { color: var(--l4-void); }
+.l4-row-status { text-align: right; }
+@media (max-width: 720px) {
+  .l4-row { grid-template-columns: 56px minmax(0, 1fr) auto; }
+  .l4-row-meta:not(.l4-row-status) { display: none; }
+}
+
+/* ── facts ───────────────────────────────────────────── */
+.l4-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 40px);
+  margin-top: clamp(48px, 8vh, 96px);
+  padding-top: 18px;
+  border-top: 1px solid var(--l4-bone);
+}
+@media (max-width: 880px) {
+  .l4-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.l4-facts h2 {
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--l4-red);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.l4-facts p {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--l4-bone);
+}
+.l4-inline {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--l4-dim);
+  text-underline-offset: 4px;
+}
+.l4-inline:hover { text-decoration-color: var(--l4-red); }
+
+/* ── foot ────────────────────────────────────────────── */
+.l4-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 16px 40px;
+  margin-top: clamp(40px, 7vh, 80px);
+}
+.l4-footnote {
+  max-width: 420px;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--l4-dim);
+}
+.l4-exits {
+  margin-left: auto;
+  display: flex;
+  gap: 26px;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.l4-exits a { color: var(--l4-bone); text-decoration: none; }
+.l4-exits a:hover { color: var(--l4-red); }
+
+/* ── the one breath ──────────────────────────────────── */
+.l4-rise {
+  animation: l4-rise 0.7s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes l4-rise {
+  from { opacity: 0; transform: translateY(0.6em); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.l4-draw {
+  animation: l4-draw 0.8s cubic-bezier(0.83, 0, 0.17, 1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes l4-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.l4-drop {
+  animation: l4-drop 0.55s cubic-bezier(0.83, 0, 0.17, 1) both;
+  animation-delay: 0.42s;
+}
+@keyframes l4-drop {
+  from { opacity: 0; transform: translateY(-40%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l4-rise, .l4-draw, .l4-drop { animation: none; }
+}

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
-import Header from "@/components/site/Header";
-import Footer from "@/components/site/Footer";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -34,17 +32,7 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${jetbrains.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-void text-bone">
-        <div className="film-grain" aria-hidden />
-        <a href="#content" className="skip-link">
-          Skip to content
-        </a>
-        <Header />
-        <main id="content" className="flex-1">
-          {children}
-        </main>
-        <Footer />
-      </body>
+      <body className="min-h-full bg-void text-bone">{children}</body>
     </html>
   );
 }

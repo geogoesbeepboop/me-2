@@ -1,0 +1,148 @@
+/* ════════════════════════════════════════════════════════
+   Nº7 — RAW INDEX
+   Web brutalism. Arial Black + Times. Hyperlink blue.
+   1px borders. A marquee. Nothing eases, ever.
+   ════════════════════════════════════════════════════════ */
+
+.l7-root {
+  min-height: 100svh;
+  background: #ffffff;
+  color: #000000;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 17px;
+  line-height: 1.45;
+  cursor: crosshair;
+}
+.l7-root ::selection { background: #ffe800; color: #000; }
+
+.l7-page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 18px 60px;
+}
+
+/* the invert easter egg — a checkbox, because JS would be design */
+.l7-invert-box { position: fixed; opacity: 0; pointer-events: none; }
+.l7-root:has(.l7-invert-box:checked) { filter: invert(1); }
+.l7-invert-label {
+  color: #0000ee;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── header ──────────────────────────────────────────── */
+.l7-name {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(3.4rem, 13vw, 9.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  margin: 10px 0 18px;
+}
+.l7-sub {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  border-top: 4px solid #000;
+  border-bottom: 4px solid #000;
+  padding: 8px 0;
+}
+
+/* ── marquee ─────────────────────────────────────────── */
+.l7-marquee {
+  margin: 14px -18px 0;
+  background: #000;
+  color: #ffe800;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: "Arial Black", Arial, sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  padding: 7px 0;
+}
+.l7-tape { display: inline-flex; animation: l7-scroll 28s linear infinite; }
+.l7-tape:hover { animation-play-state: paused; }
+.l7-tape span { padding-right: 2em; }
+@keyframes l7-scroll {
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l7-tape { animation: none; }
+}
+
+/* ── meta line ───────────────────────────────────────── */
+.l7-meta {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12.5px;
+  margin: 16px 0 8px;
+}
+
+/* ── the list ────────────────────────────────────────── */
+.l7-list {
+  list-style: none;
+  border-top: 1px solid #000;
+}
+.l7-list li {
+  padding: 9px 4px;
+  border-bottom: 1px solid #000;
+}
+.l7-list li:hover { background: #ffe800; }
+.l7-no {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  margin-right: 10px;
+}
+.l7-link { color: #0000ee; }
+.l7-link:visited { color: #551a8b; }
+.l7-list em { color: #444; }
+.l7-root:has(.l7-invert-box:checked) .l7-list li:hover { background: #ffe800; }
+
+/* ── headings ────────────────────────────────────────── */
+.l7-h2 {
+  font-family: "Arial Black", Arial, sans-serif;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin: 42px 0 12px;
+  background: #000;
+  color: #fff;
+  padding: 4px 10px;
+  display: inline-block;
+}
+
+/* ── table ───────────────────────────────────────────── */
+.l7-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.l7-table th, .l7-table td {
+  border: 1px solid #000;
+  padding: 6px 10px;
+  text-align: left;
+}
+.l7-table th {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: #eee;
+}
+.l7-table tr:hover td { background: #ffe800; }
+.l7-num { font-family: "Courier New", Courier, monospace; font-weight: 700; }
+
+/* ── prose ───────────────────────────────────────────── */
+.l7-prose { max-width: 640px; }
+.l7-prose mark { background: #ffe800; font-weight: 700; }
+.l7-gorow { font-size: 19px; }
+
+/* ── footer ──────────────────────────────────────────── */
+.l7-foot {
+  margin-top: 56px;
+  border-top: 4px solid #000;
+  padding-top: 10px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
