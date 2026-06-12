@@ -2,6 +2,7 @@ import Link from "next/link";
 import Hero from "@/components/site/Hero";
 import ArchiveIndex from "@/components/archive/ArchiveIndex";
 import IndexRow from "@/components/archive/IndexRow";
+import HueLegend from "@/components/site/HueLegend";
 import LocalClock from "@/components/site/LocalClock";
 import SignalTicker from "@/components/site/SignalTicker";
 import MaskReveal from "@/components/motion/MaskReveal";
@@ -72,11 +73,7 @@ export default function Home() {
             </p>
             {/* the color doctrine, made legible */}
             <p className="mt-3 text-dim">
-              <span className="text-lab">●</span> live ·{" "}
-              <span className="text-gold">●</span> money ·{" "}
-              <span className="text-cyan">●</span> markets ·{" "}
-              <span className="text-violet">●</span> audio ·{" "}
-              <span className="text-post">●</span> writing
+              <HueLegend />
             </p>
           </div>
         </div>

@@ -15,9 +15,10 @@ import Link from "next/link";
  * "/", /projects and /writing — it IS the navigation.
  *
  * The wdth axis carries exactly one pointer meaning on this site:
- * index titles WIDEN on touch (here). The hero motto only breathes on
- * its own clock (AdaptiveHeadline) — a pointer-driven squeeze was
- * tried and cut; it read as lag. Don't add pointer meanings.
+ * titles WIDEN on touch (here, and in landing2's mega index and
+ * method band). Kinetic hero type was tried twice and cut —
+ * pointer-following read as lag, idle breathing read as floating.
+ * Display type holds still; only touch moves it.
  * ────────────────────────────────────────────────────────────────────
  */
 export interface IndexRowProps {
