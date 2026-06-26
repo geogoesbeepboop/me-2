@@ -18,6 +18,8 @@
  * handled in the stylesheet.
  */
 
+import type { SfCondition } from "@/lib/ops/weather";
+
 export type SceneName = "night" | "morning" | "day" | "evening";
 
 /* deterministic PRNG — same city every render, server and client */
@@ -120,9 +122,15 @@ const SHIP_BOXES = [
   { x: 18, y: -6, w: 20 }, { x: 46, y: -6, w: 24 },
 ];
 
-export default function SfScene({ scene }: { scene: SceneName }) {
+export default function SfScene({
+  scene,
+  condition = "clear",
+}: {
+  scene: SceneName;
+  condition?: SfCondition;
+}) {
   return (
-    <div className="sf-scene" data-scene={scene} aria-hidden>
+    <div className="sf-scene" data-scene={scene} data-weather={condition} aria-hidden>
       {/* upper sky — stars, moon, satellite — bleeds the whole stage */}
       <svg className="sf-sky-svg">
         <defs>
@@ -130,7 +138,17 @@ export default function SfScene({ scene }: { scene: SceneName }) {
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             <circle className="sf-moon-bite" cx="87.2%" cy="14.6%" r="19" fill="black" />
           </mask>
+          <filter id="sf-cloudblur" x="-30%" y="-60%" width="160%" height="260%">
+            <feGaussianBlur stdDeviation="13" />
+          </filter>
         </defs>
+        {/* real-weather cloud bank — drifts in when SF is overcast or wet */}
+        <g className="sf-clouds" filter="url(#sf-cloudblur)">
+          <ellipse cx="18%" cy="20%" rx="170" ry="26" />
+          <ellipse cx="52%" cy="13%" rx="210" ry="32" />
+          <ellipse cx="83%" cy="24%" rx="150" ry="24" />
+          <ellipse cx="36%" cy="30%" rx="140" ry="20" />
+        </g>
         <g className="sf-stars">
           {STARS.map((s) => (
             <circle
@@ -590,11 +608,16 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           ))}
         </g>
 
-        {/* ── fog — Karl, drawn three times ── */}
+        {/* ── fog — Karl, drawn three times, plus the marine band that
+            rolls across the whole front when SF is really socked in ── */}
         <g className="sf-fog" filter="url(#sf-fog)">
           <ellipse className="sf-fog-gate" cx="240" cy="330" rx="240" ry="34" />
           <ellipse className="sf-fog-low" cx="520" cy="372" rx="290" ry="22" />
           <ellipse className="sf-fog-city" cx="900" cy="300" rx="300" ry="30" />
+        </g>
+        <g className="sf-marine" filter="url(#sf-fog)">
+          <ellipse cx="500" cy="356" rx="1100" ry="46" />
+          <ellipse cx="980" cy="338" rx="900" ry="38" />
         </g>
 
         {/* ── foreground: the cable-car grade ── */}
@@ -630,6 +653,9 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           <circle cx="158" cy="408" r="2.2" className="sf-lamp" />
         </g>
       </svg>
+
+      {/* real-weather rain — a cheap, convincing streak overlay */}
+      <div className="sf-rain" />
     </div>
   );
 }

@@ -29,14 +29,42 @@ explore layer reaches actual implementation depth.
 - Click-to-inspect: `SystemDeepDive inspect="<slug>"` resolves through
   `lib/inspect/index.ts` to per-project maps keyed by topology node id.
 
-## The ops layer (v2 — "the city")
+## The ops layer ("the city") — and one product
 
-- `/v2` is the second face of the site: a drawn San Francisco that keeps
-  real city time (morning / day / evening / night), over a live fleet
-  board. `/v2/ops` is the working dashboard: a status ribbon (what needs
-  you now), per-agent **dossier cards**, THE SHIFT LOG (one expandable
-  timeline of sessions, commits, PRs and archive writes), steering. v1
-  (`/`) stays canonical; content pages are shared, never forked.
+- **The city is the front door.** `/` (route group `app/(city)/`) is a
+  drawn San Francisco that keeps real city time (morning/day/evening/
+  night) AND real SF weather, over the live fleet board + the shift
+  digest. `/v2/ops` is the working dashboard: a status ribbon (what needs
+  you now), per-agent **dossier cards**, THE SHIFT LOG, steering. `/v2`
+  permanently redirects to `/`. The editorial archive (`app/(site)/`:
+  projects, writing, about, method) sits one click behind, **unwrecked** —
+  ArchiveIndex/IndexRow, dossier templates, inspect, archive numbering all
+  untouched; the reskin only FRAMES.
+- **One chrome, everywhere.** Every page wears the shared `CityBar`
+  (`components/city/`) — archive void/bone tokens (not indigo), numbered
+  nav, the real SF clock + weather + a scene-tint dot — and one
+  `CityFooter`. Editorial pages get it via `ContentShell`/`ContentChrome`
+  plus a slim horizon strip (a cropped `SfScene`) and a clamped scene
+  wash. The city/ops floors add the scene switch + live/recorded chip.
+  `app/city.css` (the old v2.css, now global) holds all `.v2-*`/`.sf-*`/
+  `.city-*` styles; `globals.css` editorial tokens stay untouched, the
+  namespaces are disjoint.
+- **Real weather.** `lib/ops/weather.ts` fetches SF conditions from
+  open-meteo (no key, cached 15m, degrades to clear) → fog/rain/cloud/
+  clear drive the scene via `data-weather`; the bar labels the live
+  reading. Fetched in the server shells, so editorial pages became ISR
+  (15m) — intended.
+- **The shift digest** (`lib/ops/digest.ts`, `scripts/ops-digest.ts`,
+  the landing's DigestPanel): "what got done while you slept" — the
+  overnight (20:00–06:00 PT) rollup, or the most-recent active shift when
+  the night was quiet, always labeled with the true window. `npm run
+  ops:digest` prints it for a cron/notification.
+- **Ops felt in the archive.** A project dossier whose `repo:` resolves
+  in the fleet gets one slim `AgentStrip` (`components/dossier/`) under
+  its breadcrumb: state + build/operate/verify summary from the **filed
+  report** (`recordedFleet()`, never live polling on a reading page),
+  labeled "report filed {stamp}", gated so un-instrumented entries show
+  nothing (never a fake zero).
 - `lib/ops/` measures everything: sessions from `~/.claude/projects`
   transcripts (resolved from each entry's `repo:` frontmatter, including
   `.claude-worktrees` checkouts), git telemetry from the repos

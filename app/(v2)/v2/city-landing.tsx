@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import SfScene, { type SceneName } from "@/components/city/SfScene";
-import { relTime } from "@/lib/ops/time";
+import { relTime, sfStamp } from "@/lib/ops/time";
 import type { FleetSnapshot } from "@/lib/ops/types";
+import type { SfWeather } from "@/lib/ops/weather";
 import {
-  FeedChip,
   Legend,
-  SceneSwitch,
   ShiftLog,
   agentWork,
   fmtActive,
@@ -17,6 +16,9 @@ import {
   windowWorkLine,
   type WriteRow,
 } from "./shared";
+import { shiftDigest, fmtUnits } from "@/lib/ops/digest";
+import CityBar from "@/components/city/CityBar";
+import CityFooter from "@/components/city/CityFooter";
 
 /* one voice per hour of the city — durable lines, no counts.
    "you" is whoever holds the watch; the chrome says "the operator". */
@@ -46,10 +48,12 @@ const HERO: Record<SceneName, { eyebrow: string; h1: [string, string]; sub: stri
 export default function CityLanding({
   initialFleet,
   writes,
+  weather,
   initialScene,
 }: {
   initialFleet: FleetSnapshot;
   writes: WriteRow[];
+  weather: SfWeather | null;
   initialScene: SceneName;
 }) {
   const { clock, liveScene } = useCityTime(initialScene);
@@ -60,19 +64,18 @@ export default function CityLanding({
 
   return (
     <div className="v2-root">
-      <header className="v2-bar">
-        <Link href="/" className="v2-brand">
-          ANDRADE-MUÑOZ — THE CITY
-        </Link>
-        <SceneSwitch scene={scene} override={override} onOverride={setOverride} />
-        <FeedChip fleet={fleet} />
-        <span className="v2-clock">
-          SAN FRANCISCO <b suppressHydrationWarning>{clock}</b>
-        </span>
-      </header>
+      <CityBar
+        clock={clock}
+        scene={scene}
+        weather={weather}
+        showScenes
+        override={override}
+        onOverride={setOverride}
+        feed={fleet}
+      />
 
-      <section className="v2-stage" aria-label="San Francisco, drawn — the data below is measured">
-        <SfScene scene={scene} />
+      <section id="content" className="v2-stage" aria-label="San Francisco, drawn — the data below is measured">
+        <SfScene scene={scene} condition={weather?.condition} />
         <div className="v2-hero">
           <p className="v2-eyebrow">SAN FRANCISCO · {hero.eyebrow}</p>
           <h1>
@@ -83,6 +86,8 @@ export default function CityLanding({
           <p className="v2-sub">{hero.sub}</p>
         </div>
       </section>
+
+      <DigestPanel fleet={fleet} writes={writes} />
 
       <div className="v2-landing-grid">
         <section className="v2-panel" aria-label="The fleet">
@@ -131,20 +136,94 @@ export default function CityLanding({
         </section>
       </div>
 
-      <footer className="v2-foot">
+      <div className="v2-foot v2-foot-cta-band">
         <Link href="/v2/ops" className="v2-foot-cta">
           WALK INTO THE OPS ROOM →
         </Link>
-        <nav className="v2-exits" aria-label="Sections">
-          <Link href="/">THE ARCHIVE</Link>
-          <Link href="/projects">PROJECTS</Link>
-          <Link href="/writing">WRITING</Link>
-          <Link href="/method">METHOD</Link>
-          <Link href="/about">ABOUT</Link>
-        </nav>
-      </footer>
+        <span className="v2-foot-cta-note">
+          the working dashboard — fleet, shift log, steering
+        </span>
+      </div>
+
+      <CityFooter />
     </div>
   );
+}
+
+/* ── the shift digest — "what got done while you slept" ──────────── */
+
+const DIGEST_HEADING: Record<string, string> = {
+  "last night": "WHILE YOU SLEPT",
+  "tonight so far": "TONIGHT'S WATCH",
+  "overnight so far": "THE NIGHT SO FAR",
+  "the last shift": "THE LATEST SHIFT",
+};
+
+function DigestPanel({ fleet, writes }: { fleet: FleetSnapshot; writes: WriteRow[] }) {
+  // the report is cut from the same instant the snapshot was — stable
+  // across server and client, so no hydration drift on the window
+  const ref = Date.parse(fleet.generatedAt) || 0;
+  const d = useMemo(() => shiftDigest(fleet, writes, ref), [fleet, writes, ref]);
+  const heading = DIGEST_HEADING[d.window.label] ?? "THE SHIFT REPORT";
+  const range = `${sfStamp(new Date(d.window.start).toISOString())} → ${
+    d.window.inProgress ? "now" : sfStamp(new Date(d.window.end).toISOString())
+  }`;
+
+  return (
+    <section className="v2-panel v2-digest" aria-label="Shift report">
+      <div className="v2-panel-head">
+        <h2>{heading}</h2>
+        <span className="v2-panel-sub" suppressHydrationWarning>
+          {d.window.label} · {range}
+        </span>
+      </div>
+      {d.quiet ? (
+        <p className="v2-digest-lede">
+          a quiet shift — the fleet last stirred{" "}
+          <span suppressHydrationWarning>
+            {d.lastActiveAt ? relTime(d.lastActiveAt, ref || undefined) : "—"}
+          </span>
+          .
+        </p>
+      ) : (
+        <>
+          <p className="v2-digest-lede">{digestLede(d)}</p>
+          <div className="v2-digest-grid">
+            {d.agents.map((a) => (
+              <div
+                key={a.slug}
+                className="v2-digest-agent"
+                style={{ "--c": a.accent } as React.CSSProperties}
+              >
+                <span className="v2-digest-tick" aria-hidden />
+                <span className="v2-digest-name">{a.title}</span>
+                <span className="v2-digest-did">{digestAgentLine(a)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function digestLede(d: ReturnType<typeof shiftDigest>): string {
+  const t = d.totals;
+  const parts: string[] = [`${t.agents} ${t.agents === 1 ? "agent" : "agents"} on the watch`];
+  if (t.operateRuns > 0) parts.push(fmtUnits(t.operateUnits, 3));
+  if (t.edits > 0) parts.push(`${t.edits} edits`);
+  if (t.commits > 0) parts.push(`${t.commits} ${t.commits === 1 ? "commit" : "commits"} landed`);
+  if (t.prs > 0) parts.push(`${t.prs} ${t.prs === 1 ? "PR" : "PRs"} opened`);
+  if (t.entries > 0) parts.push(`${t.entries} archive ${t.entries === 1 ? "write" : "writes"}`);
+  return parts.join(" · ");
+}
+
+function digestAgentLine(a: ReturnType<typeof shiftDigest>["agents"][number]): string {
+  const parts: string[] = [];
+  if (a.operateRuns > 0) parts.push(fmtUnits(a.operateUnits, 2));
+  if (a.edits > 0) parts.push(`${a.edits} edits`);
+  if (a.commits > 0) parts.push(`${a.commits} ${a.commits === 1 ? "commit" : "commits"}`);
+  return parts.join(" · ") || "active";
 }
 
 /** the whole fleet's output in one line — real sums of the rows above */

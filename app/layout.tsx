@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+// the city's chrome + scene styles are now site-wide — one product
+import "./city.css";
 
 const archivo = Archivo({
   subsets: ["latin"],

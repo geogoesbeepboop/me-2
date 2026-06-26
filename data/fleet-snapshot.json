@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-06-26T01:31:08.858Z",
+  "generatedAt": "2026-06-26T03:54:03.233Z",
   "windowHours": 24,
   "agents": [
     {
@@ -116,7 +116,7 @@
           "startedAt": "2026-06-11T00:29:30.967Z",
           "lastActiveAt": "2026-06-11T02:29:54.630Z",
           "state": "parked",
-          "stateDetail": "no activity for 14 days",
+          "stateDetail": "no activity for 15 days",
           "events": 613,
           "subagents": 0,
           "work": {
@@ -144,7 +144,7 @@
           "startedAt": "2026-06-10T20:59:35.777Z",
           "lastActiveAt": "2026-06-11T02:23:18.544Z",
           "state": "parked",
-          "stateDetail": "no activity for 14 days",
+          "stateDetail": "no activity for 15 days",
           "events": 424,
           "subagents": 0,
           "work": {
@@ -695,7 +695,7 @@
       "branch": "main",
       "dirty": 13,
       "state": "parked",
-      "stateDetail": "no activity for 17 days",
+      "stateDetail": "no activity for 18 days",
       "lastActiveAt": "2026-06-08T01:53:59.983Z",
       "sessions": [
         {
@@ -706,7 +706,7 @@
           "startedAt": "2026-06-04T21:10:34.689Z",
           "lastActiveAt": "2026-06-08T01:53:59.983Z",
           "state": "parked",
-          "stateDetail": "no activity for 17 days",
+          "stateDetail": "no activity for 18 days",
           "events": 73,
           "subagents": 0,
           "work": {
@@ -898,10 +898,10 @@
       "mandate": "The site you're reading — a living archive that measures its own fleet and files the report.",
       "metrics": [],
       "branch": "site/landing-umph",
-      "dirty": 12,
+      "dirty": 21,
       "state": "running",
       "stateDetail": "transcript moving now",
-      "lastActiveAt": "2026-06-26T01:31:08.018Z",
+      "lastActiveAt": "2026-06-26T03:54:02.027Z",
       "sessions": [
         {
           "id": "d658fa18-b010-4bba-acca-6d1e49e6b6a8",
@@ -909,22 +909,22 @@
           "titleSource": "prompt",
           "branch": "site/landing-umph",
           "startedAt": "2026-06-12T07:23:10.506Z",
-          "lastActiveAt": "2026-06-26T01:31:08.018Z",
+          "lastActiveAt": "2026-06-26T03:54:02.027Z",
           "state": "running",
           "stateDetail": "transcript moving now",
-          "events": 1237,
+          "events": 1689,
           "subagents": 2,
           "work": {
-            "toolCalls": 378,
-            "edits": 164,
-            "filesTouched": 26,
-            "commands": 49,
-            "reads": 30,
-            "testRuns": 4,
-            "operateRuns": 8,
-            "activeMinutes": 127,
+            "toolCalls": 501,
+            "edits": 209,
+            "filesTouched": 39,
+            "commands": 74,
+            "reads": 36,
+            "testRuns": 9,
+            "operateRuns": 9,
+            "activeMinutes": 178,
             "operateUnits": {
-              "report": 8
+              "report": 9
             }
           }
         },
@@ -1183,7 +1183,18 @@
           }
         }
       ],
-      "commits": []
+      "commits": [
+        {
+          "hash": "c9ebd0632d9bac5a61d3e1136d1dc4b789e1f50e",
+          "shortHash": "c9ebd06",
+          "subject": "The board shows what the agents do; the city gets its depth back",
+          "at": "2026-06-25T21:32:32-04:00",
+          "files": 12,
+          "ins": 1318,
+          "del": 431,
+          "refs": "HEAD -> site/landing-umph"
+        }
+      ]
     }
   ]
 }

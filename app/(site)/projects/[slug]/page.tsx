@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MaskReveal from "@/components/motion/MaskReveal";
+import AgentStrip from "@/components/dossier/AgentStrip";
 import Toc from "@/components/dossier/Toc";
 import CrossLinks from "@/components/dossier/CrossLinks";
 import ProjectBackdrop, { hasBackdrop } from "@/components/projects/ProjectBackdrop";
@@ -72,6 +73,7 @@ export default async function ProjectDossier({ params }: Props) {
             {" — "}
             <span className="text-(--accent)">{node.status}</span>
           </p>
+          <AgentStrip slug={node.slug} />
           <h1
             className={`mt-6 text-hero font-black uppercase ${
               bench ? "stretch-125" : "stretch-110"

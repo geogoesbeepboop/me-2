@@ -11,12 +11,11 @@ import {
   type FleetSnapshot,
   type OpsSession,
 } from "@/lib/ops/types";
+import type { SfWeather } from "@/lib/ops/weather";
 import {
   CopyButton,
-  FeedChip,
   LaborStrip,
   Legend,
-  SceneSwitch,
   ShiftLog,
   WindowPicker,
   agentWork,
@@ -29,6 +28,8 @@ import {
   useFleet,
   type WriteRow,
 } from "../shared";
+import CityBar from "@/components/city/CityBar";
+import CityFooter from "@/components/city/CityFooter";
 
 /* ── the status ribbon — "what needs me?" in one second ──────── */
 
@@ -259,11 +260,13 @@ function AgentCard({ a, live }: { a: AgentOps; live: boolean }) {
 export default function OpsRoom({
   initialFleet,
   writes,
+  weather,
   hookSnippet,
   initialScene,
 }: {
   initialFleet: FleetSnapshot;
   writes: WriteRow[];
+  weather: SfWeather | null;
   hookSnippet: string;
   initialScene: SceneName;
 }) {
@@ -280,20 +283,18 @@ export default function OpsRoom({
 
   return (
     <div className="v2-root">
-      <header className="v2-bar">
-        <Link href="/v2" className="v2-brand">
-          ← THE CITY
-        </Link>
-        <span>OPS ROOM</span>
-        <SceneSwitch scene={scene} override={override} onOverride={setOverride} />
-        <FeedChip fleet={fleet} />
-        <span className="v2-clock">
-          SAN FRANCISCO <b suppressHydrationWarning>{clock}</b>
-        </span>
-      </header>
+      <CityBar
+        clock={clock}
+        scene={scene}
+        weather={weather}
+        showScenes
+        override={override}
+        onOverride={setOverride}
+        feed={fleet}
+      />
 
       <div className="v2-room-strip" aria-hidden>
-        <SfScene scene={scene} />
+        <SfScene scene={scene} condition={weather?.condition} />
       </div>
 
       <main className="v2-room">
@@ -405,17 +406,14 @@ export default function OpsRoom({
         </section>
       </main>
 
-      <footer className="v2-foot">
-        <Link href="/v2" className="v2-foot-cta">
+      <div className="v2-foot v2-foot-cta-band">
+        <Link href="/" className="v2-foot-cta">
           ← BACK TO THE CITY
         </Link>
-        <nav className="v2-exits" aria-label="Sections">
-          <Link href="/">THE ARCHIVE</Link>
-          <Link href="/projects">PROJECTS</Link>
-          <Link href="/writing">WRITING</Link>
-          <Link href="/method">METHOD</Link>
-        </nav>
-      </footer>
+        <span className="v2-foot-cta-note">the front door — the skyline over the live board</span>
+      </div>
+
+      <CityFooter />
     </div>
   );
 }

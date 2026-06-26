@@ -2,11 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // the fleet's recorded snapshot must ship with the deployed functions —
-  // /v2 reads it at request time when ~/.claude isn't there to measure
+  // the homepage and the ops room read it when ~/.claude isn't there
   outputFileTracingIncludes: {
-    "/v2": ["./data/**"],
+    "/": ["./data/**"],
     "/v2/ops": ["./data/**"],
     "/api/ops": ["./data/**"],
+    // dossiers read the filed report for their agent strip (revalidates 15m)
+    "/projects/[slug]": ["./data/**"],
   },
   async redirects() {
     return [
@@ -15,8 +17,9 @@ const nextConfig: NextConfig = {
       { source: "/work/:slug", destination: "/projects/:slug", permanent: true },
       { source: "/lab", destination: "/projects", permanent: true },
       { source: "/lab/:slug", destination: "/projects/:slug", permanent: true },
-      // landing Nº5 graduated into v2 — the city (2026-06)
-      { source: "/landing5", destination: "/v2", permanent: false },
+      // the city graduated to the front door (2026-06): /v2 → / (ops stays)
+      { source: "/v2", destination: "/", permanent: true },
+      { source: "/landing5", destination: "/", permanent: false },
     ];
   },
 };
