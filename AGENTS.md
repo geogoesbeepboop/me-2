@@ -33,19 +33,33 @@ explore layer reaches actual implementation depth.
 
 - `/v2` is the second face of the site: a drawn San Francisco that keeps
   real city time (morning / day / evening / night), over a live fleet
-  board. `/v2/ops` is the working dashboard: fleet states with per-window
-  work summaries, THE SHIFT LOG (one expandable timeline of sessions,
-  commits, PRs and archive writes), steering. v1 (`/`) stays canonical;
-  content pages are shared between faces, never forked.
+  board. `/v2/ops` is the working dashboard: a status ribbon (what needs
+  you now), per-agent **dossier cards**, THE SHIFT LOG (one expandable
+  timeline of sessions, commits, PRs and archive writes), steering. v1
+  (`/`) stays canonical; content pages are shared, never forked.
 - `lib/ops/` measures everything: sessions from `~/.claude/projects`
   transcripts (resolved from each entry's `repo:` frontmatter, including
   `.claude-worktrees` checkouts), git telemetry from the repos
   themselves. The fleet roster = entries with `repo:` + the site's own
-  repo ("The Archive"). Transcripts are mined two ways: state (inferred
-  from activity, visibly labeled) and **work facts** — tool calls, edits,
-  files touched, commands, test/check runs, active minutes — so the board
-  shows what the agent *did*, not just what landed in git. Active time is
-  inferred (event gaps capped at 5m) and labeled.
+  repo ("The Archive").
+- **The labor split is the spine.** Every session's tool calls are
+  classified three ways and shown as three lanes: **BUILD** (edits to the
+  agent's source — dev work *on* it, neutral), **OPERATE** (the agent
+  running its *own* job — invocations of its entrypoints, the agent's
+  accent), **VERIFY** (test/check runs, cyan). The operation surface that
+  tells operate from build lives in `lib/ops/profiles.ts` — a committed,
+  reviewed registry keyed by slug: each agent's `mandate`, `operate[]`
+  tokens (a substring + a unit noun per run), `verify[]` tokens, and real
+  headline `metrics[]` (sourced from the repo with citations in the
+  commit that adds them; gate thresholds flagged `gate`, money `money`).
+  **Honesty, enforced:** these agents persist no run output to disk
+  in-checkout, so OPERATE counts are INVOCATIONS — copy says "23 ingests"
+  / "ran its set pipeline", never "made 23 sets", and cards with operate
+  activity carry "runs counted from transcripts — no output recorded on
+  disk". `noGitHistory` agents (jim, procurement — no commits) size BUILD
+  on transcript edits, never git. Fleet cards show the **whole record**
+  (a dossier); the window picker governs only the shift log. Active time
+  is inferred (event gaps capped at 5m) and labeled, as are states.
 - Live mode exists only on George's machine. The deployed site serves the
   last **filed report** (`data/fleet-snapshot.json`), labeled with its cut
   time. Filing a report is the deploy-update path:

@@ -245,6 +245,10 @@ export interface WindowWork {
   edits: number;
   commands: number;
   testRuns: number;
+  /** the agent's own runs (invocations of its entrypoints) */
+  operateRuns: number;
+  /** those runs by unit, merged across the window's sessions */
+  operateUnits: Record<string, number>;
   commits: number;
   ins: number;
   del: number;
@@ -255,26 +259,139 @@ export interface WindowWork {
 export function windowWork(a: AgentOps, windowHours: number, generatedAt: string): WindowWork {
   const cut = (Date.parse(generatedAt) || 0) - windowHours * 3600_000;
   const ss = a.sessions.filter((s) => (Date.parse(s.lastActiveAt) || 0) >= cut);
+  const units: Record<string, number> = {};
+  for (const s of ss) {
+    for (const [u, c] of Object.entries(s.work?.operateUnits ?? {})) {
+      units[u] = (units[u] ?? 0) + c;
+    }
+  }
   return {
     sessions: ss.length,
     activeMinutes: ss.reduce((t, s) => t + (s.work?.activeMinutes ?? 0), 0),
     edits: ss.reduce((t, s) => t + (s.work?.edits ?? 0), 0),
     commands: ss.reduce((t, s) => t + (s.work?.commands ?? 0), 0),
     testRuns: ss.reduce((t, s) => t + (s.work?.testRuns ?? 0), 0),
+    operateRuns: ss.reduce((t, s) => t + (s.work?.operateRuns ?? 0), 0),
+    operateUnits: units,
     commits: a.commits.length,
     ins: a.commits.reduce((t, c) => t + c.ins, 0),
     del: a.commits.reduce((t, c) => t + c.del, 0),
   };
 }
 
+/** the whole record for one agent — the fleet card is a dossier, not a
+ *  24h slice, so an agent idle for days still shows what it has done */
+export function agentWork(a: AgentOps): WindowWork {
+  return windowWork(a, Number.POSITIVE_INFINITY, "1970-01-01T00:00:00.000Z");
+}
+
+/** "23 ingests · 4 judges · 2 sets" — the operate runs, biggest unit first.
+ *  These are INVOCATIONS, never persisted-output counts. */
+export function operateSummary(units: Record<string, number>, max = 3): string {
+  const parts = Object.entries(units)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([u, c]) => n(c, u));
+  return parts.join(" · ");
+}
+
+/** the landing's one fleet line — operate-forward, then the build/verify
+ *  totals; a quiet window says so honestly */
 export function windowWorkLine(w: WindowWork): string {
+  if (w.sessions === 0 && w.operateRuns === 0) return "no measured work in this window";
   const parts: string[] = [];
-  if (w.sessions > 0) parts.push(n(w.sessions, "session"));
-  if (w.activeMinutes >= 1) parts.push(`${fmtActive(w.activeMinutes)} active`);
-  if (w.edits > 0) parts.push(n(w.edits, "edit"));
-  if (w.commands > 0) parts.push(n(w.commands, "command"));
-  if (w.commits > 0) parts.push(`${n(w.commits, "commit")} +${w.ins} −${w.del}`);
-  return parts.length > 0 ? parts.join(" · ") : "no measured work in this window";
+  if (w.operateRuns > 0) parts.push(operateSummary(w.operateUnits, 2));
+  if (w.edits > 0) parts.push(`${n(w.edits, "edit")} building`);
+  else if (w.sessions > 0) parts.push(n(w.sessions, "session"));
+  if (w.testRuns > 0) parts.push(n(w.testRuns, "check"));
+  return parts.length > 0 ? parts.join(" · ") : "a quiet window — nothing measured";
+}
+
+/* ── the labor strip — BUILD / OPERATE / VERIFY as three lanes ───
+   The spine of the redesign: build (neutral) is dev work TO the agent,
+   operate (accent) is the agent running its OWN job, verify (cyan) is
+   it checking itself. Bars scale to the card's own busiest lane so a
+   quiet agent isn't a row of slivers; the count carries exact truth. */
+
+export interface Lanes {
+  build: number;
+  operate: number;
+  verify: number;
+  operateUnits: Record<string, number>;
+}
+
+export function laneData(w: WindowWork): Lanes {
+  return {
+    build: w.edits,
+    operate: w.operateRuns,
+    verify: w.testRuns,
+    operateUnits: w.operateUnits,
+  };
+}
+
+export function LaborStrip({ lanes }: { lanes: Lanes }) {
+  // sqrt scaling: edits always dwarf runs, so a linear bar would bury the
+  // operate lane — sqrt keeps the low-frequency agent-labor lane visible
+  // while build still reads longest. The count carries the exact truth.
+  const max = Math.sqrt(Math.max(lanes.build, lanes.operate, lanes.verify, 1));
+  const pct = (v: number) => (v === 0 ? 0 : Math.max(8, Math.round((Math.sqrt(v) / max) * 100)));
+  const rows: { key: string; label: string; v: number; count: string }[] = [
+    { key: "build", label: "BUILD", v: lanes.build, count: lanes.build > 0 ? n(lanes.build, "edit") : "—" },
+    {
+      key: "operate",
+      label: "OPERATE",
+      v: lanes.operate,
+      count:
+        lanes.operate > 0
+          ? operateSummary(lanes.operateUnits, 2) || n(lanes.operate, "run")
+          : "—",
+    },
+    { key: "verify", label: "VERIFY", v: lanes.verify, count: lanes.verify > 0 ? n(lanes.verify, "check") : "—" },
+  ];
+  return (
+    <div className="v2-lanes" aria-label="Build, operate and verify work">
+      {rows.map((r) => (
+        <div key={r.key} className="v2-lane" data-lane={r.key} data-empty={r.v === 0}>
+          <span className="v2-lane-label">{r.label}</span>
+          <span className="v2-lane-track">
+            <span className="v2-lane-fill" style={{ width: `${pct(r.v)}%` }} />
+          </span>
+          <span className="v2-lane-count">{r.count}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── the status ribbon — answer "what needs me?" in one second ──── */
+
+const STATE_ORDER: AgentOps["state"][] = ["blocked", "waiting", "running", "parked", "dark"];
+
+/** count of agents in each state, in doctrine order */
+export function fleetTally(fleet: FleetSnapshot): { state: AgentOps["state"]; count: number }[] {
+  return STATE_ORDER.map((state) => ({
+    state,
+    count: fleet.agents.filter((a) => a.state === state).length,
+  }));
+}
+
+/** agents sorted so the ones that need attention lead */
+export function sortByAttention(agents: AgentOps[]): AgentOps[] {
+  const rank = (s: AgentOps["state"]) => STATE_ORDER.indexOf(s);
+  return [...agents].sort((a, b) => rank(a.state) - rank(b.state));
+}
+
+/** the agent that has done the most measured labor on record — or null */
+export function busiest(fleet: FleetSnapshot): { title: string; accent: string } | null {
+  let best: { title: string; accent: string; score: number } | null = null;
+  for (const a of fleet.agents) {
+    const w = agentWork(a);
+    const score = w.edits + w.operateRuns + w.testRuns;
+    if (score > 0 && (!best || score > best.score)) {
+      best = { title: a.title, accent: a.accent, score };
+    }
+  }
+  return best ? { title: best.title, accent: best.accent } : null;
 }
 
 /* ── the shift log — one timeline, every kind of event ───── */
@@ -298,6 +415,8 @@ export interface ShiftEvent {
   agent: string;
   slug: string;
   kind: "commit" | "session" | "pr" | "entry";
+  /** which labor band a session leant into — drives the row glyph */
+  band?: "operate" | "build" | "verify";
   line: string;
   commit?: OpsCommit;
   session?: OpsSession;
@@ -307,12 +426,31 @@ export interface ShiftEvent {
   prNumber?: number;
 }
 
-const KIND_WORD: Record<ShiftEvent["kind"], string> = {
-  commit: "commit",
-  session: "session",
-  pr: "pull request",
-  entry: "archive write",
-};
+/** a session's dominant labor band — operate beats verify beats build */
+function sessionBand(s: OpsSession): "operate" | "build" | "verify" {
+  const w = s.work;
+  if (!w) return "build";
+  if (w.operateRuns > 0 && w.operateRuns >= w.edits && w.operateRuns >= w.testRuns) return "operate";
+  if (w.testRuns > w.edits && w.testRuns >= w.operateRuns) return "verify";
+  return "build";
+}
+
+/** the row glyph encodes the KIND (and a session's band) as a shape, so a
+ *  column of rows reads as a column of marks, not a wall of words */
+export function shiftGlyph(e: ShiftEvent): { mark: string; cls: string; title: string } {
+  if (e.kind === "commit") return { mark: "▫", cls: "g-build", title: "commit" };
+  if (e.kind === "pr") return { mark: "⇡", cls: "g-build", title: "pull request" };
+  if (e.kind === "entry") return { mark: "✎", cls: "g-build", title: "archive write" };
+  // session — shaped by the band it leant into
+  if (e.band === "operate") return { mark: "▸", cls: "g-operate", title: "session — the agent ran its job" };
+  if (e.band === "verify") return { mark: "✓", cls: "g-verify", title: "session — checks ran" };
+  return { mark: "▫", cls: "g-build", title: "session — building" };
+}
+
+/** the closed-row line: a name or a neutral handle, never the prompt */
+function sessionHandle(s: OpsSession): string {
+  return sessionName(s) ?? `session ·${s.id.slice(0, 4)}`;
+}
 
 export function buildShiftLog(
   fleet: FleetSnapshot,
@@ -342,7 +480,8 @@ export function buildShiftLog(
         agent: a.title,
         slug: a.slug,
         kind: "session",
-        line: sessionLine(s),
+        band: sessionBand(s),
+        line: sessionHandle(s),
         session: s,
         repoPath: a.repoPath,
       });
@@ -494,8 +633,14 @@ function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
         {w && (
           <Fact label="active" value={`${fmtActive(w.activeMinutes)} (gaps over 5m don't count)`} />
         )}
+        {w && w.operateRuns > 0 && (
+          <Fact
+            label="agent ran"
+            value={operateSummary(w.operateUnits ?? {}, 5) || n(w.operateRuns, "run")}
+          />
+        )}
+        {w && w.edits > 0 && <Fact label="edits (build)" value={w.edits} />}
         {w && w.filesTouched > 0 && <Fact label="files touched" value={w.filesTouched} />}
-        {w && w.edits > 0 && <Fact label="edits" value={w.edits} />}
         {w && w.commands > 0 && <Fact label="commands" value={w.commands} />}
         {w && w.reads > 0 && <Fact label="reads" value={w.reads} />}
         {w && w.testRuns > 0 && <Fact label="test/check runs" value={w.testRuns} />}
@@ -565,15 +710,25 @@ export function ShiftRow({
   open: boolean;
   onToggle: () => void;
 }) {
+  const g = shiftGlyph(e);
   return (
     <div className="v2-shift" data-open={open} style={{ "--c": e.accent } as React.CSSProperties}>
-      <button className="v2-shift-row" aria-expanded={open} onClick={onToggle}>
+      <button
+        className="v2-shift-row"
+        aria-expanded={open}
+        aria-label={`${e.agent} — ${g.title}: ${e.line}`}
+        onClick={onToggle}
+      >
         <span className="v2-shift-time" suppressHydrationWarning>
           {e.dateOnly ? dayStamp(e.at) : sfStamp(e.at)}
         </span>
         <span className="v2-shift-agent">{e.agent}</span>
-        <span className="v2-shift-line">{e.line}</span>
-        <span className="v2-shift-kind">{KIND_WORD[e.kind]}</span>
+        <span className="v2-shift-line">
+          <i className={`v2-shift-glyph ${g.cls}`} title={g.title} aria-hidden>
+            {g.mark}
+          </i>
+          {e.line}
+        </span>
         <span className="v2-shift-caret" aria-hidden>
           {open ? "−" : "+"}
         </span>

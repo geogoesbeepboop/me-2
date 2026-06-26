@@ -10,11 +10,10 @@ import {
   Legend,
   SceneSwitch,
   ShiftLog,
+  agentWork,
   fmtActive,
-  sessionName,
   useCityTime,
   useFleet,
-  windowWork,
   windowWorkLine,
   type WriteRow,
 } from "./shared";
@@ -56,7 +55,7 @@ export default function CityLanding({
   const { clock, liveScene } = useCityTime(initialScene);
   const [override, setOverride] = useState<SceneName | null>(null);
   const scene = override ?? liveScene;
-  const { fleet, windowHours, live } = useFleet(initialFleet);
+  const { fleet, live } = useFleet(initialFleet);
   const hero = HERO[scene];
 
   return (
@@ -89,37 +88,26 @@ export default function CityLanding({
         <section className="v2-panel" aria-label="The fleet">
           <div className="v2-panel-head">
             <h2>THE FLEET</h2>
-            <span className="v2-panel-sub">the last {windowHours}h, per agent</span>
+            <span className="v2-panel-sub">what each agent has done</span>
           </div>
-          {fleet.agents.map((a) => {
-            const cut = (Date.parse(fleet.generatedAt) || 0) - windowHours * 3600_000;
-            const current =
-              a.sessions[0] && (Date.parse(a.sessions[0].lastActiveAt) || 0) >= cut
-                ? a.sessions[0]
-                : undefined;
-            const named = current ? sessionName(current) : null;
-            const ww = windowWork(a, windowHours, fleet.generatedAt);
-            return (
-              <Link
-                key={a.slug}
-                href={`/v2/ops#${a.slug}`}
-                className="v2-row"
-                style={{ "--c": a.accent } as React.CSSProperties}
-              >
-                <span className="v2-dot" data-state={a.state} aria-hidden />
-                <span className="v2-row-title">{a.title}</span>
-                <span className="v2-row-doing">
-                  {a.state === "dark"
-                    ? "no sessions on record"
-                    : named ?? windowWorkLine(ww)}
-                </span>
-                <span className="v2-row-time" suppressHydrationWarning>
-                  {a.lastActiveAt ? relTime(a.lastActiveAt) : "—"}
-                </span>
-              </Link>
-            );
-          })}
-          <FleetTotals fleet={fleet} windowHours={windowHours} />
+          {fleet.agents.map((a) => (
+            <Link
+              key={a.slug}
+              href={`/v2/ops#${a.slug}`}
+              className="v2-row"
+              style={{ "--c": a.accent } as React.CSSProperties}
+            >
+              <span className="v2-dot" data-state={a.state} aria-hidden />
+              <span className="v2-row-title">{a.title}</span>
+              <span className="v2-row-doing">
+                {a.state === "dark" ? "no sessions on record" : windowWorkLine(agentWork(a))}
+              </span>
+              <span className="v2-row-time" suppressHydrationWarning>
+                {a.lastActiveAt ? relTime(a.lastActiveAt) : "—"}
+              </span>
+            </Link>
+          ))}
+          <FleetTotals fleet={fleet} />
           <div className="v2-panel-foot">
             <Legend />
             <p className="v2-note">
@@ -160,24 +148,24 @@ export default function CityLanding({
 }
 
 /** the whole fleet's output in one line — real sums of the rows above */
-function FleetTotals({ fleet, windowHours }: { fleet: FleetSnapshot; windowHours: number }) {
+function FleetTotals({ fleet }: { fleet: FleetSnapshot }) {
   const totals = fleet.agents.reduce(
     (t, a) => {
-      const w = windowWork(a, windowHours, fleet.generatedAt);
+      const w = agentWork(a);
       t.activeMinutes += w.activeMinutes;
       t.edits += w.edits;
-      t.commands += w.commands;
-      t.commits += w.commits;
+      t.operateRuns += w.operateRuns;
+      t.testRuns += w.testRuns;
       t.sessions += w.sessions;
       return t;
     },
-    { sessions: 0, activeMinutes: 0, edits: 0, commands: 0, commits: 0 }
+    { sessions: 0, activeMinutes: 0, edits: 0, operateRuns: 0, testRuns: 0 }
   );
-  if (totals.sessions === 0 && totals.commits === 0) return null;
+  if (totals.sessions === 0) return null;
   return (
     <p className="v2-totals">
       across the fleet: {totals.sessions} sessions · {fmtActive(totals.activeMinutes)} active ·{" "}
-      {totals.edits} edits · {totals.commands} commands · {totals.commits} commits
+      {totals.edits} edits building · {totals.operateRuns} agent runs · {totals.testRuns} checks
     </p>
   );
 }

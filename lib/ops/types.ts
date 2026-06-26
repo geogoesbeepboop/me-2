@@ -12,11 +12,13 @@ export type SessionState = "running" | "waiting" | "blocked" | "parked";
 export type AgentState = SessionState | "dark";
 
 /** what the agent itself did in a session — counted straight off the
- *  transcript's tool calls, not from git. All numbers, snapshot-safe. */
+ *  transcript's tool calls, not from git. All numbers, snapshot-safe.
+ *  The three labor lanes the board shows: BUILD = edits, OPERATE =
+ *  operateRuns, VERIFY = testRuns. */
 export interface SessionWork {
   /** total tool_use blocks in assistant turns */
   toolCalls: number;
-  /** Edit / Write / NotebookEdit calls */
+  /** Edit / Write / NotebookEdit calls — the BUILD lane */
   edits: number;
   /** distinct files named by those edit calls */
   filesTouched: number;
@@ -24,8 +26,14 @@ export interface SessionWork {
   commands: number;
   /** Read / Grep / Glob calls */
   reads: number;
-  /** commands matching test/check patterns — inferred, label it */
+  /** commands matching test/check patterns — the VERIFY lane (inferred) */
   testRuns: number;
+  /** invocations of the agent's OWN entrypoints — the OPERATE lane. These
+   *  are runs of the agent's job, counted from the transcript, never
+   *  persisted-output counts. */
+  operateRuns: number;
+  /** those runs broken out by operation unit, e.g. { "set": 3, "ingest": 1 } */
+  operateUnits?: Record<string, number>;
   /** minutes with the transcript moving (gaps capped at 5m) — inferred */
   activeMinutes: number;
 }
@@ -81,12 +89,29 @@ export interface SteeringNote {
   body: string;
 }
 
+/** a real headline fact about an agent, sourced from its repo (lib/ops/profiles) */
+export interface AgentMetric {
+  k: string;
+  v: string;
+  gate?: boolean;
+  money?: boolean;
+  absent?: string;
+}
+
 export interface AgentOps {
   slug: string;
   title: string;
   accent: string;
   domain?: string;
   href: string;
+  /** one plain line: what the agent does for its user */
+  mandate?: string;
+  /** real headline facts for the stat row (max 4) */
+  metrics?: AgentMetric[];
+  /** the agent leaves no run output on disk — operate counts are invocations */
+  outputUnpersisted?: boolean;
+  /** no commits in the repo — BUILD reads from transcript edits, not git */
+  noGitHistory?: boolean;
   /** absolute path of the source repo — live mode only; stripped from
    *  the committed record like every other path */
   repoPath?: string;

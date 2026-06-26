@@ -4,6 +4,7 @@ import { nodesOf, accentOf } from "../content";
 import { scanSessions, transcriptsAvailable } from "./sessions";
 import { recentCommits, repoStatus } from "./git";
 import { listSteering } from "./steer";
+import { AGENT_PROFILES, operateVerbs } from "./profiles";
 import type { AgentOps, AgentState, FleetSnapshot, OpsSession } from "./types";
 
 /**
@@ -72,14 +73,19 @@ async function measureAgent(
   windowHours: number,
   withSteering: boolean
 ): Promise<AgentOps> {
+  const profile = AGENT_PROFILES[entry.slug];
   const [sessions, status, commits] = await Promise.all([
-    scanSessions(entry.repoPath),
+    scanSessions(entry.repoPath, operateVerbs(entry.slug), profile?.verify ?? []),
     repoStatus(entry.repoPath),
     recentCommits(entry.repoPath, windowHours),
   ]);
   const { state, detail } = fleetState(sessions);
   return {
     ...entry,
+    mandate: profile?.mandate,
+    metrics: profile?.metrics,
+    outputUnpersisted: profile?.outputUnpersisted,
+    noGitHistory: profile?.noGitHistory,
     branch: status.branch,
     detached: status.detached,
     dirty: status.dirty,

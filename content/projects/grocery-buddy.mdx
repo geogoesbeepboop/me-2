@@ -166,7 +166,7 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
     { name: "predictor", rule: "days_left = (qty + incoming) / blended daily rate · flag when ≤ lead time + buffer — no model anywhere near it" },
     { name: "run guardrails", rule: "scheduled runs skip on a pending cart or a recent run — checked and written atomically, 60-min cooldown" },
     { name: "checkout staging", rule: "clear the cart first · stage by ASIN · idempotent on a per-run key — exactly-once at the money edge" },
-    { name: "money-live gate", rule: "flags on · predictor precision ≥ 0.70 · scraper green · cost ≤ $1.00/run · checkout_verified (hard stop, unbuilt on purpose)" },
+    { name: "money-live gate", rule: "flags on · predictor precision ≥ 0.70 · scraper green · cost ≤ $0.50/run · checkout_verified (hard stop, unbuilt on purpose)" },
     { name: "scraper health", rule: "synthetic probe asserts price + ASIN still extract from known staples; first regression pages a human" },
     { name: "cost ledger", rule: "every model call priced into llm_usage, summed per run; alert over $1.00" }
   ]}
@@ -181,7 +181,7 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
     "Nothing touches the pantry or a cart without explicit user say-so.",
     "Money paths are exactly-once: idempotency keys + clear-first staging.",
     "The repair LLM runs only on a total selector miss — the hot path stays deterministic.",
-    "Money-live opens only when: flags on · precision ≥ 0.70 · scraper green · cost ≤ $1/run · checkout verified."
+    "Money-live opens only when: flags on · precision ≥ 0.70 · scraper green · cost ≤ $0.50/run · checkout verified."
   ]}
 />
 

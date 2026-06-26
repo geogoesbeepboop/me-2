@@ -173,10 +173,59 @@ export default function SfScene({ scene }: { scene: SceneName }) {
             <stop offset="0%" stopColor="#fff6dd" stopOpacity="0.9" />
             <stop offset="100%" stopColor="#fff6dd" stopOpacity="0" />
           </linearGradient>
+          {/* the bay: bright at the horizon, deepening toward the foreground */}
+          <linearGradient id="sf-watergrad" gradientUnits="userSpaceOnUse" x1="0" y1="408" x2="0" y2="540">
+            <stop offset="0" stopColor="var(--sf-horizon)" />
+            <stop offset="0.16" stopColor="var(--sf-bay-lit)" />
+            <stop offset="1" stopColor="var(--sf-bay)" />
+          </linearGradient>
+          {/* atmospheric haze — transparent up high, the horizon's color low */}
+          <linearGradient id="sf-hazegrad" gradientUnits="userSpaceOnUse" x1="0" y1="286" x2="0" y2="412">
+            <stop offset="0" stopColor="var(--sf-haze)" stopOpacity="0" />
+            <stop offset="1" stopColor="var(--sf-haze)" stopOpacity="0.85" />
+          </linearGradient>
+          {/* the luminous seam where land meets water */}
+          <linearGradient id="sf-horizongrad" gradientUnits="userSpaceOnUse" x1="0" y1="404" x2="0" y2="420">
+            <stop offset="0" stopColor="var(--sf-horizon)" stopOpacity="0" />
+            <stop offset="0.4" stopColor="var(--sf-horizon)" stopOpacity="1" />
+            <stop offset="1" stopColor="var(--sf-horizon)" stopOpacity="0" />
+          </linearGradient>
+          {/* atmospheric-perspective fills: each depth plane lightens toward
+              its base, where the marine layer pools — colors set in CSS so
+              they cross-fade with the palette */}
+          <linearGradient id="sf-gFar2" gradientUnits="userSpaceOnUse" x1="0" y1="300" x2="0" y2="412">
+            <stop className="g-far2-t" offset="0" /><stop className="g-far2-b" offset="1" />
+          </linearGradient>
+          <linearGradient id="sf-gFar" gradientUnits="userSpaceOnUse" x1="0" y1="296" x2="0" y2="412">
+            <stop className="g-far-t" offset="0" /><stop className="g-far-b" offset="1" />
+          </linearGradient>
+          <linearGradient id="sf-gMid" gradientUnits="userSpaceOnUse" x1="0" y1="320" x2="0" y2="412">
+            <stop className="g-mid-t" offset="0" /><stop className="g-mid-b" offset="1" />
+          </linearGradient>
+          <linearGradient id="sf-gCity" gradientUnits="userSpaceOnUse" x1="0" y1="150" x2="0" y2="412">
+            <stop className="g-city-t" offset="0" /><stop className="g-city-b" offset="1" />
+          </linearGradient>
+          {/* the warm halo a lit city pushes into the night sky */}
+          <radialGradient id="sf-bloom" gradientUnits="userSpaceOnUse" cx="935" cy="330" r="360" gradientTransform="scale(1 0.5)">
+            <stop offset="0" stopColor="var(--sf-glow)" stopOpacity="0.55" />
+            <stop offset="1" stopColor="var(--sf-glow)" stopOpacity="0" />
+          </radialGradient>
+          {/* a tower's lit face fades from sky-catch at the crown to dark below */}
+          <linearGradient id="sf-faceLit" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="var(--sf-edge)" stopOpacity="0.9" />
+            <stop offset="1" stopColor="var(--sf-edge)" stopOpacity="0.05" />
+          </linearGradient>
+          {/* a glimmer column dissolving down into the water */}
+          <linearGradient id="sf-glimcol" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="var(--sf-win)" stopOpacity="0.9" />
+            <stop offset="1" stopColor="var(--sf-win)" stopOpacity="0" />
+          </linearGradient>
         </defs>
 
         {/* the city's own light against the night sky */}
         <rect x="-600" y="180" width="2640" height="230" fill="url(#sf-cityglow)" />
+        {/* the warm bloom downtown pushes into the sky — depth behind towers */}
+        <rect className="sf-bloom" x="560" y="120" width="760" height="300" fill="url(#sf-bloom)" />
 
         {/* sun — one element, repositioned per scene by CSS transform */}
         <g className="sf-sun-g">
@@ -270,6 +319,10 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           ))}
         </g>
 
+        {/* atmospheric haze — veils everything behind it (Marin, the Gate,
+            the far shore) so the near city reads forward of the distance */}
+        <rect className="sf-haze-veil" x="-600" y="286" width="2640" height="126" />
+
         {/* ── mid band: Twin Peaks, Sutro, the hills into downtown ── */}
         <path
           className="sf-mid"
@@ -344,12 +397,15 @@ export default function SfScene({ scene }: { scene: SceneName }) {
           <line x1="1099" y1="316" x2="1099" y2="298" className="sf-antenna" />
           <circle cx="821" cy="232" r="1.5" className="sf-beacon" />
           <circle cx="1099" cy="296" r="1.4" className="sf-beacon" />
-          {/* one face of each slab catches the light — depth on the flats */}
-          <rect x="838.5" y="254" width="2.5" height="156" className="sf-edge" />
-          <rect x="962.5" y="152" width="2.5" height="258" className="sf-edge" />
-          <rect x="999" y="212" width="2.5" height="198" className="sf-edge" />
-          <rect x="1033" y="242" width="2.5" height="168" className="sf-edge" />
-          <rect x="785.5" y="294" width="2" height="116" className="sf-edge" />
+          {/* lit faces catch the sky on the east edge; the two headline
+              slabs also carry a shaded west face → each reads as a volume */}
+          <rect x="800" y="254" width="7" height="156" className="sf-shade" />
+          <rect x="834" y="254" width="8" height="156" className="sf-edge" />
+          <rect x="930" y="162" width="8" height="248" className="sf-shade" />
+          <rect x="958" y="152" width="8" height="258" className="sf-edge" />
+          <rect x="999" y="212" width="3" height="198" className="sf-edge" />
+          <rect x="1030" y="242" width="6" height="168" className="sf-edge" />
+          <rect x="785.5" y="294" width="2.5" height="116" className="sf-edge" />
           {/* lit windows — opacity is the scene's call */}
           <g className="sf-windows">
             {WINDOWS.filter((w) => !w.late).map((w, i) => (
@@ -456,7 +512,9 @@ export default function SfScene({ scene }: { scene: SceneName }) {
         </g>
 
         {/* ── the bay — wider than any screen ── */}
-        <rect className="sf-bay" x="-600" y="410" width="2640" height="110" />
+        <rect className="sf-bay" x="-600" y="410" width="2640" height="130" />
+        {/* the luminous seam where the city's feet meet the water */}
+        <rect className="sf-horizon-line" x="-600" y="404" width="2640" height="16" />
         <g className="sf-refl">
           <path d="M60 424 h26 M130 432 h34 M236 420 h22 M320 438 h30 M450 446 h26 M520 426 h24 M700 434 h28 M880 422 h32 M940 444 h24 M1010 430 h22 M1150 424 h30 M1240 442 h20 M1290 436 h26 M1380 422 h22" />
         </g>

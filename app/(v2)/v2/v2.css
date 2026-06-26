@@ -36,8 +36,9 @@
   .sf-svg { width: 215%; transform: translateX(-56%); }
 }
 
-/* every painted element eases between palettes */
+/* every painted element eases between palettes — gradient stops too */
 .sf-svg * { transition: fill 1.6s ease, stroke 1.6s ease, opacity 1.6s ease; }
+.sf-svg stop { transition: stop-color 1.6s ease; }
 
 /* default (night) palette — the city glows, the buildings cut black */
 .sf-scene {
@@ -51,7 +52,12 @@
   --sf-city: #0a0f20;
   --sf-front: #04070f;
   --sf-gg: #74362a;
-  --sf-bay: #060a16;
+  --sf-bay: #05080f;
+  --sf-bay-lit: #16213f;
+  --sf-horizon: #2b3a64;
+  --sf-haze: #1b2848;
+  --haze-o: 0.16;
+  --bloom-o: 0.5;
   --sf-isle: #101730;
   --sf-refl: rgba(160, 186, 240, 0.28);
   --sf-win: #ffd9a0;
@@ -88,7 +94,12 @@
   --sf-city: #1d2440;
   --sf-front: #11162b;
   --sf-gg: #8f3d2c;
-  --sf-bay: #1c2542;
+  --sf-bay: #1a2342;
+  --sf-bay-lit: #4a4866;
+  --sf-horizon: #e8a06e;
+  --sf-haze: #b9818a;
+  --haze-o: 0.42;
+  --bloom-o: 0.22;
   --sf-isle: #232c4c;
   --sf-refl: rgba(255, 188, 138, 0.22);
   --sf-edge: #ffb87e;
@@ -115,13 +126,18 @@
   --sky-b: #8fa9c4;
   --sky-c: #c9d6e3;
   --sf-glow: #c9d6e3;
-  --sf-far2: #71839f;
+  --sf-far2: #8092ab;
   --sf-far: #5a6c8c;
   --sf-mid: #49597a;
   --sf-city: #3a4a68;
   --sf-front: #222b44;
   --sf-gg: #bb5038;
-  --sf-bay: #3e5476;
+  --sf-bay: #3a5074;
+  --sf-bay-lit: #93b1cb;
+  --sf-horizon: #d6e6ef;
+  --sf-haze: #b6c9da;
+  --haze-o: 0.6;
+  --bloom-o: 0;
   --sf-isle: #4b5d7e;
   --sf-refl: rgba(255, 255, 255, 0.3);
   --sf-edge: #f6f2e2;
@@ -149,13 +165,18 @@
   --sky-b: #82485a;
   --sky-c: #e8854f;
   --sf-glow: #b06a48;
-  --sf-far2: #2b2444;
+  --sf-far2: #3a2c50;
   --sf-far: #332b50;
   --sf-mid: #271f40;
   --sf-city: #1d1834;
   --sf-front: #100d22;
   --sf-gg: #6e2f22;
-  --sf-bay: #221c39;
+  --sf-bay: #1d1832;
+  --sf-bay-lit: #6b3f51;
+  --sf-horizon: #f0904a;
+  --sf-haze: #c1693f;
+  --haze-o: 0.38;
+  --bloom-o: 0.32;
   --sf-isle: #2a2245;
   --sf-refl: rgba(255, 152, 92, 0.22);
   --sf-edge: #ff8f42;
@@ -178,16 +199,34 @@
   --gull-o: 0.3;
 }
 
-/* fills, band by band */
-.sf-far2 { fill: var(--sf-far2); }
-.sf-far { fill: var(--sf-far); }
-.sf-mid { fill: var(--sf-mid); }
-.sf-city rect, .sf-city path { fill: var(--sf-city); }
+/* fills, band by band — distant planes carry atmospheric-perspective
+   gradients (lighter toward their base where the marine layer pools) */
+.sf-far2 { fill: url(#sf-gFar2); }
+.sf-far { fill: url(#sf-gFar); }
+.sf-mid { fill: url(#sf-gMid); }
+.sf-city rect, .sf-city path { fill: url(#sf-gCity); }
+/* the gradient stops — top mixes the band toward the horizon haze */
+.g-far2-t { stop-color: color-mix(in srgb, var(--sf-far2) 42%, var(--sf-haze)); }
+.g-far2-b { stop-color: var(--sf-far2); }
+.g-far-t { stop-color: color-mix(in srgb, var(--sf-far) 54%, var(--sf-haze)); }
+.g-far-b { stop-color: var(--sf-far); }
+.g-mid-t { stop-color: color-mix(in srgb, var(--sf-mid) 74%, var(--sf-haze)); }
+.g-mid-b { stop-color: var(--sf-mid); }
+.g-city-t { stop-color: color-mix(in srgb, var(--sf-city) 80%, var(--sf-haze)); }
+.g-city-b { stop-color: var(--sf-city); }
+/* the city-light bloom in the sky — strongest at night, gone by day */
+.sf-bloom { opacity: var(--bloom-o); }
 .sf-front > path, .sf-front-houses rect, .sf-front-houses path { fill: var(--sf-front); }
 .sf-ladies rect, .sf-ladies path { fill: var(--sf-mid); }
 .sf-hillhouses rect, .sf-hillhouses path { fill: var(--sf-city); }
-.sf-bay { fill: var(--sf-bay); }
+/* water is a depth gradient now — bright at the horizon, deep in front */
+.sf-bay { fill: url(#sf-watergrad); }
 .sf-trees path { fill: var(--sf-far); }
+
+/* atmospheric haze — distant planes recede into the horizon's color */
+.sf-haze-veil { fill: url(#sf-hazegrad); opacity: var(--haze-o); }
+/* a thin luminous seam where the land meets the sea */
+.sf-horizon-line { fill: url(#sf-horizongrad); opacity: 0.55; }
 
 /* golden gate + bay bridge */
 .sf-gg rect, .sf-gg .sf-far { fill: var(--sf-gg); }
@@ -237,8 +276,10 @@
 .sf-palace path, .sf-palace rect { fill: var(--sf-mid); }
 .sf-antenna { stroke: var(--sf-city); stroke-width: 1.6; }
 
-/* tower faces catch the light on one edge — the flat-rect killer */
-.sf-edge { fill: var(--sf-edge); opacity: var(--edge-o); }
+/* tower faces catch the light — a lit face that fades crown-to-base,
+   and a shaded face on the dark side, so each slab reads as a volume */
+.sf-edge { fill: url(#sf-faceLit); opacity: var(--edge-o); }
+.sf-shade { fill: #03050c; opacity: 0.4; }
 
 /* lights of the city */
 .sf-windows rect { fill: var(--sf-win); }
@@ -299,7 +340,7 @@
 /* downtown pours light columns into the bay at night */
 .sf-glimmer { opacity: calc(var(--win-o) * 0.22); }
 .sf-glimmer rect {
-  fill: var(--sf-win);
+  fill: url(#sf-glimcol);
   animation: sf-shimmer 5.5s ease-in-out infinite;
   animation-delay: calc(var(--i) * -1.3s);
   /* anchor at the waterline so the column stretches down, in place */
@@ -732,7 +773,7 @@ a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
 }
 .v2-shift-row {
   display: grid;
-  grid-template-columns: 106px 112px minmax(0, 1fr) auto 14px;
+  grid-template-columns: 106px 112px minmax(0, 1fr) 14px;
   align-items: baseline;
   gap: 12px;
   width: 100%;
@@ -766,17 +807,10 @@ a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
   white-space: nowrap;
 }
 .v2-shift[data-open="true"] .v2-shift-line { white-space: normal; }
-.v2-shift-kind {
-  font-size: 9.5px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--v2-faint);
-}
 .v2-shift-caret { color: var(--v2-faint); font-size: 12px; }
 @media (max-width: 760px) {
   /* the agent column stays — it is the colored dot's only visible label */
   .v2-shift-row { grid-template-columns: 74px 86px minmax(0, 1fr) 14px; gap: 8px; }
-  .v2-shift-kind { display: none; }
 }
 
 /* what actually got done — the opened row */
@@ -893,25 +927,68 @@ a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
 .v2-window button:hover { color: var(--v2-ink); }
 .v2-window button[aria-pressed="true"] { color: #07090f; background: var(--v2-ink); }
 
-/* fleet cards — four project agents in a row, the archive (this site)
-   closes the section full-width: the floor reports on itself last */
+/* ── the status ribbon — the one-second read ── */
+.v2-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  padding: 12px 0 4px;
+}
+.v2-ribbon-tally { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
+.v2-tally {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--v2-faint);
+}
+.v2-tally b { color: var(--v2-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.v2-tally[data-zero="true"] { opacity: 0.4; }
+.v2-needs {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1px solid var(--v2-line);
+  border-radius: 999px;
+  padding: 4px 12px;
+  text-decoration: none;
+}
+.v2-needs[data-tone="blocked"] { color: var(--color-ember); border-color: rgba(255, 90, 31, 0.5); }
+.v2-needs[data-tone="waiting"] { color: var(--v2-ink); }
+.v2-needs[data-tone="clean"] { color: var(--color-lab); border-color: rgba(63, 224, 124, 0.35); }
+a.v2-needs[data-tone="blocked"]:hover { background: rgba(255, 90, 31, 0.1); }
+.v2-busiest {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--v2-faint);
+}
+.v2-busiest b { font-weight: 700; }
+
+/* fleet cards — a responsive grid of agent dossiers, attention first */
 .v2-fleet {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1px;
   background: var(--v2-line);
   border-top: 1px solid var(--v2-line);
 }
-.v2-card:last-child { grid-column: 1 / -1; }
-@media (max-width: 1340px) { .v2-fleet { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 720px) { .v2-fleet { grid-template-columns: 1fr; } }
 .v2-card {
   background: #080b13;
-  padding: 20px 22px 22px;
+  padding: 18px 20px 18px;
   border-top: 2px solid var(--c, var(--v2-faint));
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
-.v2-card-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.v2-card-head { display: flex; align-items: baseline; gap: 12px; }
 .v2-card-title {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -922,59 +999,156 @@ a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
   text-decoration: none;
 }
 .v2-card-title:hover { text-decoration: underline; text-underline-offset: 5px; }
-.v2-card-domain { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--v2-faint); text-transform: uppercase; }
 .v2-card-state {
   margin-left: auto;
   display: inline-flex;
-  gap: 8px;
+  gap: 7px;
   align-items: center;
+  flex: none;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--v2-dim);
 }
 
-/* the agent's own output — the card's one loud line */
-.v2-workline {
-  margin-top: 12px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--v2-ink);
-  font-variant-numeric: tabular-nums;
+/* ZONE 1 — the mandate: the one sentence, set in the grotesk to break
+   the mono wall */
+.v2-mandate {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--v2-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
+.v2-card-domain { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; color: var(--v2-faint); text-transform: uppercase; }
 
-.v2-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-top: 9px;
+/* ZONE 2 — the labor strip: three lanes, the eye reads down OPERATE */
+.v2-lanes { margin-top: 14px; display: flex; flex-direction: column; gap: 5px; }
+.v2-lane {
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--v2-faint);
+  letter-spacing: 0.04em;
 }
-.v2-card-meta b { color: var(--v2-dim); font-weight: 400; }
+.v2-lane-label { font-size: 8.5px; letter-spacing: 0.16em; color: var(--v2-faint); }
+.v2-lane-track { height: 6px; background: rgba(180, 196, 224, 0.06); border-radius: 2px; overflow: hidden; }
+.v2-lane-fill { display: block; height: 100%; border-radius: 2px; transition: width 0.5s var(--ease-cine); }
+.v2-lane[data-lane="build"] .v2-lane-fill { background: var(--v2-dim); }
+.v2-lane[data-lane="operate"] .v2-lane-fill { background: var(--c, var(--v2-ink)); }
+.v2-lane[data-lane="verify"] .v2-lane-fill { background: var(--color-cyan); }
+.v2-lane-count { color: var(--v2-ink); font-variant-numeric: tabular-nums; text-align: right; }
+.v2-lane[data-lane="operate"] .v2-lane-count { color: var(--c, var(--v2-ink)); }
+.v2-lane[data-empty="true"] .v2-lane-count { color: var(--v2-faint); }
 
+/* ZONE 3 — the stat row: big numbers, small labels, gates outlined */
+.v2-stats {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  border-top: 1px solid var(--v2-line);
+}
+.v2-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 10px 8px;
+  border-left: 1px solid var(--v2-line);
+}
+.v2-stat:first-child { border-left: none; padding-left: 0; }
+.v2-stat-v { font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--v2-ink); font-variant-numeric: tabular-nums; line-height: 1; }
+.v2-stat-k { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--v2-faint); }
+/* a gate threshold the model can't cross → accent outline (doctrine) */
+.v2-stat[data-gate="true"] { border-left: 2px solid var(--c, var(--v2-dim)); padding-left: 9px; }
+.v2-stat[data-gate="true"]:first-child { border-left: 2px solid var(--c, var(--v2-dim)); padding-left: 9px; }
+.v2-stat[data-money="true"] .v2-stat-v { color: var(--color-gold); }
+
+/* ZONE 4 — sessions: a dot, a name, a labor micro-bar, a time */
 .v2-sessions { margin-top: 14px; border-top: 1px solid var(--v2-line); }
 .v2-session {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  padding: 8px 0;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
   border-bottom: 1px solid var(--v2-line);
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--v2-dim);
 }
-.v2-session-title { color: var(--v2-ink); flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.v2-session-fact { font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--v2-faint); }
-.v2-session-fact a { color: var(--v2-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--v2-faint); }
-.v2-session-fact a:hover { text-decoration-color: var(--v2-ink); }
-.v2-session time { margin-left: auto; font-size: 10px; font-variant-numeric: tabular-nums; }
+.v2-session-name { color: var(--v2-ink); flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v2-session-bar { flex: 0 0 36px; height: 4px; background: rgba(180, 196, 224, 0.06); border-radius: 2px; overflow: hidden; }
+.v2-session-bar span { display: block; height: 100%; background: var(--v2-dim); border-radius: 2px; }
+.v2-session-pr { flex: none; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--v2-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--v2-faint); }
+.v2-session-pr:hover { text-decoration-color: var(--v2-ink); }
+.v2-session .v2-copy { flex: none; }
+.v2-session time { flex: none; font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ZONE 5 — the foot: one faint line + honesty footnote */
+.v2-card-foot {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--v2-faint);
+  font-variant-numeric: tabular-nums;
+}
+.v2-card-note {
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--v2-faint);
+  font-style: italic;
+}
+
+/* asleep/dark agents fold away so attention-needing ones lead */
+.v2-idle { border-top: 1px solid var(--v2-line); }
+.v2-idle > summary {
+  cursor: pointer;
+  padding: 12px 26px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--v2-dim);
+}
+.v2-idle > summary:hover { color: var(--v2-ink); }
+.v2-idle[open] > summary { color: var(--v2-ink); }
+
+/* the labor legend at the panel foot — one swatch each */
+.v2-lane-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--v2-dim);
+}
+.v2-lane-legend span { display: inline-flex; gap: 7px; align-items: center; }
+.v2-swatch { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+.v2-swatch[data-lane="build"] { background: var(--v2-dim); }
+/* operate fills with each agent's OWN accent on its card — the legend
+   swatch stays accent-agnostic (ink) rather than claim one reserved hue */
+.v2-swatch[data-lane="operate"] { background: var(--v2-ink); }
+.v2-swatch[data-lane="verify"] { background: var(--color-cyan); }
+.v2-gate-swatch { width: 9px; height: 9px; border-left: 2px solid var(--v2-ink); display: inline-block; }
+
+/* the shift log's band glyphs */
+.v2-shift-glyph { font-style: normal; margin-right: 8px; font-size: 10px; }
+.v2-shift-glyph.g-operate { color: var(--c, var(--v2-ink)); }
+.v2-shift-glyph.g-verify { color: var(--color-cyan); }
+.v2-shift-glyph.g-build { color: var(--v2-faint); }
 
 .v2-copy {
   font-family: var(--font-mono);

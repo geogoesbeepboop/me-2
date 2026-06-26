@@ -4,43 +4,115 @@ import { useState } from "react";
 import Link from "next/link";
 import SfScene, { type SceneName } from "@/components/city/SfScene";
 import { relTime } from "@/lib/ops/time";
-import { STATE_WORDS, type AgentOps, type FleetSnapshot, type OpsSession } from "@/lib/ops/types";
+import {
+  STATE_WORDS,
+  type AgentMetric,
+  type AgentOps,
+  type FleetSnapshot,
+  type OpsSession,
+} from "@/lib/ops/types";
 import {
   CopyButton,
   FeedChip,
+  LaborStrip,
   Legend,
   SceneSwitch,
   ShiftLog,
   WindowPicker,
-  sessionLine,
+  agentWork,
+  busiest,
+  fleetTally,
+  laneData,
   sessionName,
+  sortByAttention,
   useCityTime,
   useFleet,
-  windowWork,
-  windowWorkLine,
   type WriteRow,
 } from "../shared";
 
-/* ── one session, one line — the prompt is never the line ── */
+/* ── the status ribbon — "what needs me?" in one second ──────── */
 
-function SessionRow({ s, agent, live }: { s: OpsSession; agent: AgentOps; live: boolean }) {
+function StatusRibbon({ fleet }: { fleet: FleetSnapshot }) {
+  const tally = fleetTally(fleet);
+  const blocked = fleet.agents.filter((a) => a.state === "blocked");
+  const waiting = fleet.agents.filter((a) => a.state === "waiting");
+  const busy = busiest(fleet);
+
+  return (
+    <div className="v2-ribbon">
+      <div className="v2-ribbon-tally" aria-label="Fleet by state">
+        {tally.map((t) => (
+          <span key={t.state} className="v2-tally" data-zero={t.count === 0}>
+            <i className="v2-dot" data-state={t.state} aria-hidden />
+            <b>{t.count}</b> {STATE_WORDS[t.state]}
+          </span>
+        ))}
+      </div>
+      {blocked.length > 0 ? (
+        <a className="v2-needs" data-tone="blocked" href={`#${blocked[0].slug}`}>
+          {blocked.length} blocked — needs you
+        </a>
+      ) : waiting.length > 0 ? (
+        <span className="v2-needs" data-tone="waiting">
+          {waiting.length} waiting on a human
+        </span>
+      ) : (
+        <span className="v2-needs" data-tone="clean">
+          fleet running clean
+        </span>
+      )}
+      {busy && (
+        <span className="v2-busiest">
+          busiest · <b style={{ color: busy.accent }}>{busy.title}</b>
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ── stat row — real headline facts, gates outlined, money in gold ─ */
+
+function StatRow({ metrics, accent }: { metrics: AgentMetric[]; accent: string }) {
+  if (!metrics || metrics.length === 0) return null;
+  return (
+    <div className="v2-stats" style={{ "--c": accent } as React.CSSProperties}>
+      {metrics.map((m) => (
+        <div key={m.k} className="v2-stat" data-gate={!!m.gate} data-money={!!m.money}>
+          <span className="v2-stat-v">{m.absent ? "—" : m.v}</span>
+          <span className="v2-stat-k">{m.absent ?? m.k}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── one session row — a dot, a name/handle, a labor micro-bar ──── */
+
+function SessionRow({
+  s,
+  agent,
+  live,
+  maxActive,
+}: {
+  s: OpsSession;
+  agent: AgentOps;
+  live: boolean;
+  maxActive: number;
+}) {
   const name = sessionName(s);
+  const active = s.work?.activeMinutes ?? 0;
+  const w = Math.round((active / Math.max(1, maxActive)) * 100);
   return (
     <li className="v2-session" title={s.stateDetail}>
       <span className="v2-dot" data-state={s.state} aria-hidden />
-      <span className="v2-session-title">{name ?? sessionLine(s)}</span>
-      {name && <span className="v2-session-fact">{sessionLine(s)}</span>}
-      {s.worktree && (
-        <span className="v2-session-fact" title={s.worktree}>
-          {s.worktree.replace(/-[0-9a-f]{6}$/, "")}
-        </span>
-      )}
+      <span className="v2-session-name">{name ?? `session ·${s.id.slice(0, 4)}`}</span>
+      <span className="v2-session-bar" aria-hidden>
+        <span style={{ width: `${active === 0 ? 0 : Math.max(4, w)}%` }} />
+      </span>
       {s.prUrl && (
-        <span className="v2-session-fact">
-          <a href={s.prUrl} target="_blank" rel="noreferrer">
-            PR #{s.prNumber}
-          </a>
-        </span>
+        <a className="v2-session-pr" href={s.prUrl} target="_blank" rel="noreferrer">
+          PR #{s.prNumber}
+        </a>
       )}
       {live && agent.repoPath && (
         <CopyButton text={`cd ${agent.repoPath} && claude --resume ${s.id}`} label="resume" />
@@ -50,7 +122,7 @@ function SessionRow({ s, agent, live }: { s: OpsSession; agent: AgentOps; live: 
   );
 }
 
-/* ── steering ────────────────────────────────────────────── */
+/* ── steering — a collapsed inbox for the next session ───────────── */
 
 function Steering({ agent }: { agent: AgentOps }) {
   const [note, setNote] = useState("");
@@ -100,10 +172,10 @@ function Steering({ agent }: { agent: AgentOps }) {
       </div>
       {agent.steering && agent.steering.length > 0 && (
         <ul className="v2-pending">
-          {agent.steering.map((n) => (
-            <li key={n.id}>
-              <span suppressHydrationWarning>{relTime(n.at)}</span> —{" "}
-              {n.body.split("\n").slice(2).join(" ").slice(0, 160)}
+          {agent.steering.map((nt) => (
+            <li key={nt.id}>
+              <span suppressHydrationWarning>{relTime(nt.at)}</span> —{" "}
+              {nt.body.split("\n").slice(2).join(" ").slice(0, 160)}
             </li>
           ))}
         </ul>
@@ -112,72 +184,77 @@ function Steering({ agent }: { agent: AgentOps }) {
   );
 }
 
-/* ── one agent's card ────────────────────────────────────── */
+/* ── one agent card — five fixed zones, scannable by shape ───────── */
 
-function AgentCard({
-  a,
-  live,
-  windowHours,
-  generatedAt,
-}: {
-  a: AgentOps;
-  live: boolean;
-  windowHours: number;
-  generatedAt: string;
-}) {
-  const ww = windowWork(a, windowHours, generatedAt);
+function AgentCard({ a, live }: { a: AgentOps; live: boolean }) {
+  const ww = agentWork(a);
+  const lanes = laneData(ww);
+  const shown = a.sessions.slice(0, 4);
+  const maxActive = Math.max(1, ...a.sessions.map((s) => s.work?.activeMinutes ?? 0));
+  const showFootnote = a.outputUnpersisted && ww.operateRuns > 0;
+
   return (
     <article id={a.slug} className="v2-card" style={{ "--c": a.accent } as React.CSSProperties}>
+      {/* ZONE 1 — identity */}
       <div className="v2-card-head">
         <Link href={a.href} className="v2-card-title">
           {a.title}
         </Link>
-        {a.domain && <span className="v2-card-domain">{a.domain}</span>}
         <span className="v2-card-state">
           <span className="v2-dot" data-state={a.state} aria-hidden />
           {STATE_WORDS[a.state]}
         </span>
       </div>
+      {a.mandate && (
+        <p className="v2-mandate">
+          {a.mandate}
+          {a.domain && <span className="v2-card-domain"> · {a.domain}</span>}
+        </p>
+      )}
 
-      {/* the agent's own output this window — the card's headline fact */}
-      <p className="v2-workline">{windowWorkLine(ww)}</p>
+      {/* ZONE 2 — the labor strip */}
+      <LaborStrip lanes={lanes} />
 
-      <div className="v2-card-meta">
-        {a.branch && (
-          <span>
-            branch <b>{a.branch}</b>
-          </span>
-        )}
-        <span>
-          uncommitted <b>{a.dirty}</b>
-        </span>
-        <span>
-          last activity{" "}
-          <b suppressHydrationWarning>{a.lastActiveAt ? relTime(a.lastActiveAt) : "—"}</b>
-        </span>
-      </div>
+      {/* ZONE 3 — real headline facts */}
+      {a.metrics && <StatRow metrics={a.metrics} accent={a.accent} />}
 
-      <ul className="v2-sessions">
-        {a.sessions.slice(0, 4).map((s) => (
-          <SessionRow key={s.id} s={s} agent={a} live={live} />
-        ))}
-      </ul>
+      {/* ZONE 4 — sessions, as marks not sentences */}
+      {shown.length > 0 ? (
+        <ul className="v2-sessions">
+          {shown.map((s) => (
+            <SessionRow key={s.id} s={s} agent={a} live={live} maxActive={maxActive} />
+          ))}
+        </ul>
+      ) : (
+        <p className="v2-card-foot">no sessions on record</p>
+      )}
       {a.sessions.length > 4 && (
         <details className="v2-steer">
           <summary>{a.sessions.length - 4} more sessions</summary>
           <ul className="v2-sessions">
             {a.sessions.slice(4).map((s) => (
-              <SessionRow key={s.id} s={s} agent={a} live={live} />
+              <SessionRow key={s.id} s={s} agent={a} live={live} maxActive={maxActive} />
             ))}
           </ul>
         </details>
+      )}
+
+      {/* ZONE 5 — foot */}
+      <p className="v2-card-foot">
+        {a.branch ? `${a.branch} · ` : ""}
+        {a.noGitHistory ? "no commits to mine · " : ""}
+        {a.dirty} uncommitted ·{" "}
+        <span suppressHydrationWarning>{a.lastActiveAt ? relTime(a.lastActiveAt) : "—"}</span>
+      </p>
+      {showFootnote && (
+        <p className="v2-card-note">runs counted from transcripts — no output recorded on disk</p>
       )}
       {live && <Steering agent={a} />}
     </article>
   );
 }
 
-/* ── the room ────────────────────────────────────────────── */
+/* ── the room ────────────────────────────────────────────────────── */
 
 export default function OpsRoom({
   initialFleet,
@@ -194,6 +271,12 @@ export default function OpsRoom({
   const [override, setOverride] = useState<SceneName | null>(null);
   const scene = override ?? liveScene;
   const { fleet, windowHours, pick, live } = useFleet(initialFleet);
+
+  const ordered = sortByAttention(fleet.agents);
+  // every agent with a history stays visible — its dossier is the showcase;
+  // only truly dark agents (no sessions ever) fold away
+  const shown = ordered.filter((a) => a.state !== "dark");
+  const dark = ordered.filter((a) => a.state === "dark");
 
   return (
     <div className="v2-root">
@@ -219,29 +302,40 @@ export default function OpsRoom({
           <div className="v2-panel" id="fleet">
             <div className="v2-panel-head">
               <h2 id="fleet-h">THE FLEET</h2>
-              <WindowPicker windowHours={windowHours} pick={pick} live={live} />
-              <span className="v2-panel-sub">
-                what each agent did, measured from its transcripts and its repo
-              </span>
+              <span className="v2-panel-sub">each agent&apos;s labor, on the whole record</span>
             </div>
+            <StatusRibbon fleet={fleet} />
+            <p className="v2-note">
+              build = work on the agent · operate = the agent running its own job · verify = its
+              checks — measured from transcripts and the repo
+            </p>
           </div>
           <div className="v2-fleet">
-            {fleet.agents.map((a) => (
-              <AgentCard
-                key={a.slug}
-                a={a}
-                live={live}
-                windowHours={windowHours}
-                generatedAt={fleet.generatedAt}
-              />
+            {shown.map((a) => (
+              <AgentCard key={a.slug} a={a} live={live} />
             ))}
           </div>
+          {dark.length > 0 && (
+            <details className="v2-idle">
+              <summary>
+                {dark.length} dark — {dark.map((a) => a.title).join(", ")}
+              </summary>
+              <div className="v2-fleet">
+                {dark.map((a) => (
+                  <AgentCard key={a.slug} a={a} live={live} />
+                ))}
+              </div>
+            </details>
+          )}
           <div className="v2-panel v2-panel-foot-strip">
             <Legend />
-            <p className="v2-note">
-              states inferred from transcript activity · active time counts gaps under 5m — the
-              protocol below says how
-            </p>
+            <span className="v2-lane-legend" aria-label="Labor legend">
+              <span><i className="v2-swatch" data-lane="build" /> build</span>
+              <span><i className="v2-swatch" data-lane="operate" /> operate · each agent&apos;s accent</span>
+              <span><i className="v2-swatch" data-lane="verify" /> verify</span>
+              <span><i className="v2-gate-swatch" /> a cap the model can&apos;t cross</span>
+            </span>
+            <p className="v2-note">states inferred from transcript activity — the protocol says how</p>
           </div>
         </section>
 
@@ -249,9 +343,9 @@ export default function OpsRoom({
         <section className="v2-panel" id="shift" aria-labelledby="shift-h">
           <div className="v2-panel-head">
             <h2 id="shift-h">THE SHIFT LOG</h2>
+            <WindowPicker windowHours={windowHours} pick={pick} live={live} />
             <span className="v2-panel-sub">
-              sessions, commits, pull requests and archive writes in the last {windowHours}h — every
-              row opens{live ? ", commits read as patches" : ""}
+              everything, everyone, one clock — last {windowHours}h{live ? ", commits open as patches" : ""}
             </span>
           </div>
           <ShiftLog
@@ -263,7 +357,7 @@ export default function OpsRoom({
             cutoffMs={(Date.parse(fleet.generatedAt) || 0) - windowHours * 3600_000}
           />
           <div className="v2-panel-foot">
-            <p className="v2-note">one clock for everything — san francisco time</p>
+            <p className="v2-note">▸ the agent ran · ▫ built · ✓ checked · ✎ archive write</p>
           </div>
         </section>
 
@@ -277,31 +371,34 @@ export default function OpsRoom({
               Everything on this floor is measured, never staged. Session facts are read from the
               Claude Code transcripts each agent writes on the operator&apos;s machine
               (<code>~/.claude/projects</code>); repo facts come from <code>git</code> in the same
-              source repos the project entries cite; archive writes are the entries&apos; own
-              dates. Two things are inferred and say so: <em>states</em> — a moving transcript is
-              «working», a finished turn is «a human decides next», a stop-hook failure is
-              «blocked» — and <em>active time</em>, which sums the gaps between transcript events
-              and stops counting any gap longer than five minutes.
+              source repos the project entries cite; archive writes are the entries&apos; own dates.
+              Two things are inferred and say so: <em>states</em> — a moving transcript is «working»,
+              a finished turn is «a human decides next», a stop-hook failure is «blocked» — and
+              <em> active time</em>, which sums the gaps between transcript events and stops counting
+              any gap longer than five minutes.
             </p>
             <p>
-              The work numbers are the agent&apos;s own labor, not the repo&apos;s: every tool call
-              in a transcript is counted — files edited, commands run, test and check runs,
-              subagents dispatched. A session that shipped no commit still shows its hours. What
-              <em> landed</em> is git&apos;s story; what <em>was done</em> is the transcript&apos;s.
+              Each card splits an agent&apos;s labor three ways. <em>Build</em> is the development
+              done <em>to</em> the agent — edits to its source. <em>Operate</em> is the agent running
+              its <em>own</em> job: every time its entrypoints fire in a transcript — a set planned, a
+              cart priced, a memo drafted — counted as an invocation. <em>Verify</em> is the agent
+              checking itself. Operate counts are runs, not shipped artifacts: these agents keep their
+              real output in a database or in memory, not on disk, so a card with operate activity
+              says «no output recorded on disk» rather than dress an invocation as a delivered set.
             </p>
             <p>
               This page can&apos;t see that machine from your browser — and shouldn&apos;t. At the
               operator&apos;s desk the board is live and re-measured every few seconds. Everywhere
               else it serves the last <em>filed report</em>: a snapshot cut on the machine
               (<code>npm run ops:snapshot</code>), sanitized in code — assigned titles and measured
-              numbers only; prompts, patches and file paths never leave the desk — then committed
-              and deployed like any other change. The chip in the bar names which one you&apos;re
-              reading, and when it was cut.
+              numbers only; prompts, patches and file paths never leave the desk — then committed and
+              deployed like any other change. The chip in the bar names which one you&apos;re reading,
+              and when it was cut.
             </p>
             <p>
               Steering notes land in <code>~/.claude/fleet/steering/&lt;repo&gt;/</code>. No agent
-              reads them automatically — a repo opts in with a session-start hook that reads the
-              inbox aloud and archives it:
+              reads them automatically — a repo opts in with a session-start hook that reads the inbox
+              aloud and archives it:
             </p>
             <pre>{hookSnippet}</pre>
           </div>

@@ -3,6 +3,7 @@ import path from "node:path";
 import os from "node:os";
 import readline from "node:readline";
 import type { OpsSession, SessionState, SessionWork } from "./types";
+import type { OperateVerb } from "./profiles";
 
 /**
  * TRANSCRIPT SCANNER — turns Claude Code session files into session facts.
@@ -81,6 +82,12 @@ interface ParsedFile {
   work: SessionWork;
   /** edit counts per file path, for the live-only top-files detail */
   fileEdits: Map<string, number>;
+  /** operate runs by unit noun, e.g. { "set": 3 } — the agent's own job */
+  operateUnits: Map<string, number>;
+  /** this repo's operation surface, longest token first (set per scan) */
+  verbs: OperateVerb[];
+  /** extra verify command substrings for this repo */
+  verifyTokens: string[];
 }
 
 const parseCache = new Map<string, { key: string; parsed: ParsedFile }>();
@@ -113,7 +120,26 @@ const PARSE_CAP = 4_000_000;
 const ACTIVE_GAP_MS = 5 * 60_000;
 
 function emptyWork(): SessionWork {
-  return { toolCalls: 0, edits: 0, filesTouched: 0, commands: 0, reads: 0, testRuns: 0, activeMinutes: 0 };
+  return {
+    toolCalls: 0, edits: 0, filesTouched: 0, commands: 0, reads: 0,
+    testRuns: 0, operateRuns: 0, activeMinutes: 0,
+  };
+}
+
+/** classify one Bash command: did it RUN the agent (operate), CHECK it
+ *  (verify), or neither? Operate wins — running the job is the headline.
+ *  Longest token first, one classification per command (no double count). */
+function classifyCommand(p: ParsedFile, cmd: string): void {
+  for (const v of p.verbs) {
+    if (cmd.includes(v.token)) {
+      p.work.operateRuns += 1;
+      p.operateUnits.set(v.unit, (p.operateUnits.get(v.unit) ?? 0) + 1);
+      return;
+    }
+  }
+  if (TEST_CMD.test(cmd) || p.verifyTokens.some((t) => cmd.includes(t))) {
+    p.work.testRuns += 1;
+  }
 }
 
 function tallyToolUse(p: ParsedFile, line: string): void {
@@ -134,9 +160,7 @@ function tallyToolUse(p: ParsedFile, line: string): void {
           }
         } else if (name === "Bash") {
           p.work.commands += 1;
-          if (typeof input.command === "string" && TEST_CMD.test(input.command)) {
-            p.work.testRuns += 1;
-          }
+          if (typeof input.command === "string") classifyCommand(p, input.command);
         } else if (READ_TOOLS.has(name)) {
           p.work.reads += 1;
         }
@@ -175,12 +199,23 @@ function promptText(s: string): string {
   return stripped || s;
 }
 
-async function parseFile(file: string, stat: fs.Stats): Promise<ParsedFile> {
-  const key = `${stat.mtimeMs}:${stat.size}`;
+async function parseFile(
+  file: string,
+  stat: fs.Stats,
+  verbs: OperateVerb[],
+  verifyTokens: string[],
+  profileSig: string
+): Promise<ParsedFile> {
+  // the operation surface is part of the cache identity — re-mine if its
+  // tokens OR units changed (a renamed unit must not serve a stale parse)
+  const key = `${stat.mtimeMs}:${stat.size}:${profileSig}`;
   const hit = parseCache.get(file);
   if (hit && hit.key === key) return hit.parsed;
 
-  const p: ParsedFile = { events: 0, work: emptyWork(), fileEdits: new Map() };
+  const p: ParsedFile = {
+    events: 0, work: emptyWork(), fileEdits: new Map(),
+    operateUnits: new Map(), verbs, verifyTokens,
+  };
   const tail: { type: string; raw: string }[] = [];
   let activeMs = 0;
   let prevTs = NaN;
@@ -276,6 +311,9 @@ async function parseFile(file: string, stat: fs.Stats): Promise<ParsedFile> {
   p.lastEvent = tail.at(-1)?.type;
   p.work.filesTouched = p.fileEdits.size;
   p.work.activeMinutes = Math.round(activeMs / 60_000);
+  if (p.operateUnits.size > 0) {
+    p.work.operateUnits = Object.fromEntries(p.operateUnits);
+  }
 
   // a stop-hook that prevented continuation at the very end = blocked turn
   for (const t of tail.slice(-3)) {
@@ -330,10 +368,19 @@ function countSubagents(dir: string, sessionId: string): number {
   }
 }
 
-/** all sessions for a repo (main checkout + agent worktrees), newest first */
-export async function scanSessions(repoPath: string): Promise<OpsSession[]> {
+/** all sessions for a repo (main checkout + agent worktrees), newest first.
+ *  `verbs`/`verifyTokens` are the repo's operation surface (lib/ops/profiles)
+ *  so the scanner can split OPERATE/VERIFY from generic BUILD work. */
+export async function scanSessions(
+  repoPath: string,
+  verbs: OperateVerb[] = [],
+  verifyTokens: string[] = []
+): Promise<OpsSession[]> {
   const now = Date.now();
   const out: OpsSession[] = [];
+  // a signature of the operation surface, so the parse cache invalidates
+  // when a token or unit is edited (not just when their count changes)
+  const profileSig = `${verbs.map((v) => `${v.token}>${v.unit}`).join("|")}#${verifyTokens.join("|")}`;
 
   for (const { dir, worktree } of transcriptDirsFor(repoPath)) {
     let files: string[] = [];
@@ -351,7 +398,7 @@ export async function scanSessions(repoPath: string): Promise<OpsSession[]> {
         continue;
       }
       if (stat.size === 0) continue;
-      const parsed = await parseFile(file, stat);
+      const parsed = await parseFile(file, stat, verbs, verifyTokens, profileSig);
       // queue-only stubs (no conversation ever) aren't sessions
       if (!parsed.startedAt && !parsed.firstPrompt) continue;
 
