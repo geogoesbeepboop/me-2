@@ -15,6 +15,10 @@ export default function CityFooter() {
         <p className="city-foot-contact">
           <a href="mailto:georgeandrade93@gmail.com">georgeandrade93@gmail.com</a>
           <span className="city-foot-dot">·</span>
+          <a href="https://github.com/geogoesbeepboop">github @geogoesbeepboop</a>
+          <span className="city-foot-dot">·</span>
+          <a href="https://www.linkedin.com/in/george-andrade-munoz/">linkedin</a>
+          <span className="city-foot-dot">·</span>
           <a href="https://x.com/geobuilds">@geobuilds</a>
         </p>
       </div>

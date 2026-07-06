@@ -390,4 +390,93 @@ subprocess; only the small summary enters this chat.
 1. **Run the per-session census** (saves a bar chart + JSON to \`~/dev/token-breakdowns/\` and
    auto-opens). Use \`--limit N\` for the printed row count if I asked for one (default 30)`,
   },
+
+  gates: {
+    path: "jim-agent/.claude/gate.sh",
+    note: "one per repo — the guard-commit hook runs this on every git commit and blocks on red",
+    lang: "bash",
+    excerpt: `#!/usr/bin/env bash
+# Health gate — runs on every \`git commit\` via the global guard-commit hook.
+# Fast (<120s target; ~15s in practice): lint + the full offline test suite.
+# Skip deliberately with \`git commit --no-verify\`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+echo "gate: ruff check"
+run ruff check .
+
+# Full offline suite (~10s, 338 tests) — no DB/network/API-key/wallet needed by
+# design, and the hypothesis fuzz tests are derandomized + bounded, so nothing
+# is excluded for speed. -p no:cacheprovider keeps the gate from writing
+# .pytest_cache state during a commit.
+echo "gate: pytest (offline suite)"
+run pytest -q -p no:cacheprovider
+
+echo "gate: OK"`,
+  },
+
+  evals: {
+    path: "jim-agent/.claude/evals.sh",
+    note: "tests for the nondeterministic parts — offline, zero-credential, baseline-armed",
+    lang: "bash",
+    excerpt: `# Offline eval suite — picked up by the nightly digest convention (like gate.sh
+# is by guard-commit). Runs the deterministic suites only (gate + guards +
+# scenarios: no key, no DB, no network, no spend; ~2s) and persists the run
+# under ./eval_runs (gitignored) so \`jim-eval ui\` can plot trends. Any failing
+# offline case exits 1; with a baseline set (\`jim-eval baseline set <id>\`),
+# --compare-baseline also exits 1 on regression vs that baseline.
+
+# jim-eval runs without tests/conftest.py, so neutralize the same .env leakage
+# the test suite does: empty values override .env in pydantic-settings, forcing
+# the in-memory store and the no-key/testnet paths. The offline suites need
+# none of these — this guarantees zero credentials, zero cost, and reproducible
+# results whatever the local .env says.
+export DATABASE_URL=""
+export ANTHROPIC_API_KEY=""
+
+echo "evals: jim-eval (offline suites)"
+run jim-eval run --suite offline --compare-baseline --label nightly`,
+  },
+
+  night: {
+    path: "~/dev/scripts/nightly-gate-digest.sh",
+    note: "launchd fires it at 06:17 — every repo's gate + evals, digested to one dated file",
+    lang: "bash",
+    excerpt: `# nightly-gate-digest.sh — run each focus project's .claude/gate.sh and write a dated digest.
+# Exit 0 = all gates green; exit 1 = at least one failure (lets a scheduler/notifier branch on it).
+
+REPOS=(jim-agent grocery-buddy procurement-agent dj-agent)
+out="$OUT_DIR/$(date +%F).md"
+
+for r in "\${REPOS[@]}"; do
+  if log=$(cd "$ROOT/$r" && "$gate" 2>&1); then status="✅ pass"; else status="❌ FAIL"; overall=1; fi
+  printf '## %s — %s (%ss)\\n' "$r" "$status" "$dur" >> "$out"
+
+  # Optional per-repo offline evals (.claude/evals.sh): zero-credential, zero-LLM-cost suites
+  # only. They run here nightly — never in the commit gate, so gates stay <120s.
+  if elog=$(cd "$ROOT/$r" && "$evals" 2>&1); then estatus="✅ evals pass"
+  else estatus="🟡 EVAL REGRESSION"; overall=1; fi
+done`,
+  },
+
+  board: {
+    path: "me-2/scripts/file-report.sh · scripts/curate.sh",
+    note: "the site is the instrument panel — it files its own report daily and curates its own entries weekly",
+    lang: "bash",
+    excerpt: `# file-report.sh — the fleet files its own morning report, unconditionally.
+# Measurement runs in THIS checkout (real repo paths, real transcripts) —
+# but the record publishes through a detached worktree pinned to origin/main,
+# so filing never depends on which branch the operator's checkout is on.
+FLEET_SNAPSHOT_PATH="$PAD/data/fleet-snapshot.json" npm run ops:snapshot -- 24
+git -C "$PAD" commit --quiet -m "ops: file the fleet report ($(stamp))"
+git -C "$PAD" push origin HEAD:main
+
+# curate.sh — the archive maintains its own content (Sunday 07:15).
+# Drift first: repo's last commit vs the entry's updated date — no drift,
+# no model run, $0. Then a headless /update-project per drifted entry,
+# merged to main ONLY if the content check, the production build and the
+# content-scope allowlist all pass. The model writes; code decides what ships.
+node scripts/check-content.mjs || GATES_OK=0
+npm run build >/dev/null 2>&1 || GATES_OK=0`,
+  },
 };

@@ -93,6 +93,29 @@ export default function AboutPage() {
               </li>
             ))}
           </ul>
+
+          <p className="mt-8 mb-3 font-mono text-label tracking-[0.2em] text-dim uppercase">
+            Elsewhere
+          </p>
+          <ul className="divide-y divide-line border-y border-line font-mono text-mono-sm">
+            {[
+              { label: "GitHub", handle: "@geogoesbeepboop", href: "https://github.com/geogoesbeepboop" },
+              { label: "LinkedIn", handle: "george-andrade-munoz", href: "https://www.linkedin.com/in/george-andrade-munoz/" },
+              { label: "X", handle: "@geobuilds", href: "https://x.com/geobuilds" },
+            ].map((l) => (
+              <li key={l.label} className="flex items-baseline justify-between py-3">
+                <span className="text-label tracking-[0.2em] text-dim uppercase">{l.label}</span>
+                <a
+                  href={l.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-bone underline decoration-line underline-offset-4 transition-colors hover:decoration-(--accent)"
+                >
+                  {l.handle}
+                </a>
+              </li>
+            ))}
+          </ul>
         </aside>
 
         {/* the beliefs — motto first, then the small thoughts */}

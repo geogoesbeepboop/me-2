@@ -1,0 +1,51 @@
+---
+title: "The Gate Held"
+summary: "Six weeks ago I built a refusal before I built a product. Now JIM sells cited research on mainnet rails, buys from other agents, and can prove every number it ships. A reflection on what compounds when the first thing you write is the thing that says no."
+date: "2026-07-06"
+thesis: "Build the refusal first. Everything trustworthy compounds off it."
+refs:
+  - "projects/jim"
+  - "writing/ship-the-how#the-how-is-the-product"
+---
+
+## Where it stands
+
+Six weeks ago the first component I wrote for JIM wasn't the research engine, the payment rail, or the pretty memo. It was a gate: a deterministic function that reads a finished memo, extracts every figure, and refuses to ship anything it can't trace to a cited fact. No model in the loop. No judgment call. A regex and a tolerance — `max(2%, 0.05)` — standing between the language model and the customer.
+
+Today JIM is an agent with a market stall. It sells cited research memos over x402 micropayments — a 402 challenge, a signed USDC authorization, settlement before service — and it *buys* its upstream data through the same rails it sells on. The facilitator is authenticated against mainnet. There's a public proof page listing settlement receipts, gate refusals, and what those refusals didn't cost anyone, because a run the gate rejects is never billed — structurally, not by convention. Every shipped memo can carry a signed attestation: memo hash, snapshot fingerprint, gate verdict, settlement transaction, signed with JIM's own key, verifiable offline by anyone with an EVM stack. Phase 7 landed the part I wasn't sure I'd reach this soon: JIM buying research inputs from *other agents*, with a trust ledger deciding who's worth paying.
+
+That's the inventory. The interesting part is what the six weeks taught me.
+
+## The refusal compounds
+
+I keep being surprised by how much got cheaper because the gate existed first.
+
+The retry loop was free: a memo that fails the gate goes back to the synthesizer with the violations attached, and exhaustion means rejection, not a discount on quality. The trust ledger was almost free: when the gate passes a memo, every source that contributed a fact gets credited; when it fails, only the sources actually *cited in the violations* get debited. Reputation as an append-only ledger of gate outcomes — `(ok+1)/(ok+fail+2)`, a Laplace-smoothed pass rate where every new source starts at 0.5 and a peer below 0.4 gets refused before any money moves. The attestation was nearly free too: the gate's verdict was already a structured fact, so signing it cost a hash and a key.
+
+And the fuzzing — the part I genuinely expected to lose. Track 0 threw property-based tests at the gate: scientific notation, unicode minus signs, underscore-grouped integers, `5B`-style suffixes, "five billion" spelled out, ranges, euro and pound amounts. The extractor grew notation families instead of needing a rewrite, and Hypothesis now pins both invariants — no planted lie passes, no truthful memo gets falsely rejected. The regex gate survived its audit. I had an open question on the site asking whether it could. It's answered.
+
+One deterministic primitive, five features hanging off it. That's not an accident of this project; I think it's the shape of trustworthy agent products in general. **The model is the imagination. The refusal is the product.**
+
+## Evals are the product's memory
+
+The eval harness paid for itself the week it landed, and not in the way I designed it to.
+
+The offline suites — 88 cases, about a second and a half, zero credentials, zero spend — are the merge gate, and they stayed green the whole time. Meanwhile the live suite, held-out tickers through the real pipeline, showed every single memo failing the faithfulness judge. Same code. Green tests, dead product.
+
+The cause was nothing profound: the judge's `max_tokens` was 900, its JSON verdict was truncating mid-array, and unparseable output reads as rejection. But here's the thing — no unit test catches that, because it isn't a logic bug; it's a budget bug that only manifests under real output lengths. Only a *persisted, trend-tracked* eval run could distinguish "the memos got worse" from "the auditor ran out of paper." The fix was one number. Finding it without the harness could have eaten a week of prompt archaeology.
+
+So the lesson I'm keeping: tests remember what the code promised; evals remember what the *system* did. A product with an LLM in it that doesn't persist eval runs isn't being watched — it's being trusted, and not the earned kind.
+
+## Trust is arithmetic
+
+Everything in JIM that looks like a social concept is implemented as arithmetic with a threshold. Reputation is a smoothed pass rate. Composition safety is a header — `X-Jim-Call-Chain` — where finding your own address means a loop and a 409 before the 402 ever fires, and depth past four hops means the same. Graceful degradation is a circuit breaker: five transport failures opens it for thirty seconds, a failing peer gets skipped with a note, and JIM gates whatever it *could* verify instead of taking the whole memo down.
+
+None of this required agents to be honest. It required the bookkeeping to be append-only and the refusals to happen before payment. If there's going to be an economy of agents buying from agents — and after this month I think there is — I'd bet on it being built out of exactly this: small deterministic ledgers standing between probabilistic systems, each one auditable row by row.
+
+## The producer had to change too
+
+The quiet lesson is that JIM's discipline escaped the repo. The same week the eval harness landed, the development loop around it got the same treatment: an executable gate that runs on every commit and blocks red, the eval suite running nightly at 6:17 with a baseline, a digest waiting in the morning. The question that reorganized my whole workflow — *can the agent verify this without me?* — is just the gate question, pointed at the producer instead of the product.
+
+That's the actual state of mind after six weeks. Not "the agent got smarter." The system around the agent got harder to fool, cheaper to check, and honest by construction — and it turns out that's what makes speed sustainable.
+
+Still open, and honestly stated: the settle-then-record window (a datum bought and lost if the cache write fails after settlement), the live suite's cadence (it costs real inference and its regression verdict still wants a human reading the trend), and the fact that the trust ledger has only ever met well-behaved peers. The gate held. Now it gets adversaries.
