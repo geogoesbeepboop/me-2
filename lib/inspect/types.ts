@@ -78,6 +78,29 @@ export interface StateMachine {
   transitions: FlowTransition[];
 }
 
+/* ── sub-graphs — what's actually inside a compressed topology chunk ──
+   Structurally identical to the deep dive's DiagramNode/DiagramEdge so a
+   clicked chunk (Gather, Eval harness…) can open onto the real internal
+   wiring — actual sources, actual context, actual suites — rendered on
+   the same layout engine at drawer scale. */
+
+export interface GraphNode {
+  id: string;
+  label: string;
+  sub?: string;
+  col: number;
+  row: number;
+  /** accent outline = the model has no say here (same doctrine as topology) */
+  accent?: boolean;
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  label?: string;
+  dashed?: boolean;
+}
+
 /* ── designed blocks — the UI behind a clicked component ───────────── */
 
 export interface RuleItem {
@@ -131,6 +154,13 @@ export type InspectBlock =
       caption?: string;
       states: FlowState[];
       transitions: FlowTransition[];
+    }
+  | {
+      kind: "graph";
+      title?: string;
+      caption?: string;
+      nodes: GraphNode[];
+      edges: GraphEdge[];
     }
   | { kind: "rules"; title?: string; items: RuleItem[] }
   | { kind: "steps"; title?: string; items: StepItem[]; ordered?: boolean }

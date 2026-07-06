@@ -58,6 +58,17 @@ export const TOPOLOGY_METRICS: GridMetrics = {
   wrapAt: 104,
 };
 
+/** drawer-scale preset — the same engine, sized for an inspect panel */
+export const INSPECT_METRICS: GridMetrics = {
+  W: 156,
+  H: 56,
+  minColGap: 30,
+  rowGap: 46,
+  pad: 10,
+  charW: 5.4,
+  wrapAt: 100,
+};
+
 interface GridBox {
   id: string;
   col: number;
@@ -475,6 +486,7 @@ export function DiagramSvg({
   interactiveIds,
   selectedId,
   onNodeClick,
+  metrics,
 }: {
   nodes: DiagramNode[];
   edges: DiagramEdge[];
@@ -486,8 +498,10 @@ export function DiagramSvg({
   interactiveIds?: ReadonlySet<string>;
   selectedId?: string | null;
   onNodeClick?: (id: string) => void;
+  /** grid preset — TOPOLOGY_METRICS by default, INSPECT_METRICS in drawers */
+  metrics?: GridMetrics;
 }) {
-  const m = TOPOLOGY_METRICS;
+  const m = metrics ?? TOPOLOGY_METRICS;
   const { width, height, boxX, boxY, routed } = layoutDiagram(nodes, edges, m);
 
   return (
@@ -553,7 +567,7 @@ export function DiagramSvg({
             />
             <text
               x={x + m.W / 2}
-              y={y + (n.sub ? 28 : 36)}
+              y={y + m.H / 2 + (n.sub ? -4 : 4)}
               textAnchor="middle"
               fill="var(--color-bone)"
               style={{
@@ -567,7 +581,7 @@ export function DiagramSvg({
             {n.sub && (
               <text
                 x={x + m.W / 2}
-                y={y + 46}
+                y={y + m.H / 2 + 14}
                 textAnchor="middle"
                 fill="var(--color-dim)"
                 style={{

@@ -12,6 +12,8 @@ import Ref from "@/components/artifacts/Ref";
 import Update from "@/components/artifacts/Update";
 import OpenQuestions from "@/components/artifacts/OpenQuestions";
 import Bench from "@/components/artifacts/Bench";
+import Ladder from "@/components/artifacts/Ladder";
+import LaneBoard from "@/components/artifacts/LaneBoard";
 import SetConsole from "@/components/artifacts/SetConsole";
 import PantryConsole from "@/components/artifacts/PantryConsole";
 import X402Console from "@/components/artifacts/X402Console";
@@ -111,6 +113,8 @@ export const mdxComponents: MDXComponents = {
   Update,
   OpenQuestions,
   Bench,
+  Ladder,
+  LaneBoard,
   SetConsole,
   PantryConsole,
   X402Console,

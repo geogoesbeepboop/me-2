@@ -33,9 +33,12 @@ prose and diagram subs) and `lib/inspect/method.ts` (verbatim excerpts).
 - **Fleet conventions:** for each focus repo (`jim-agent`, `grocery-buddy`,
   `procurement-agent`, `dj-agent`): does `.claude/gate.sh` exist and is it
   executable? `.claude/evals.sh`? That's the "repos gated" figure.
-- **Eval cases:** only if cheaply derivable from the repo (jim:
-  `src/jim/eval/dataset*.py` + `scenarios.py` case counts). If not cheaply
-  derivable, leave the existing figure and say so in the summary.
+- **Eval cases:** count by importing, never by grepping constructors (they
+  span lines): `cd ~/dev/jim-agent && .venv/bin/python -c "from
+  jim.eval.dataset import GATE_REGRESSION; from jim.eval.dataset_guards
+  import GUARD_CASES; from jim.eval.scenarios import SCENARIOS;
+  print(len(GATE_REGRESSION)+len(GUARD_CASES)+len(SCENARIOS))"`. If not
+  cheaply derivable, leave the existing figure and say so in the summary.
 - **Workflow docs:** `~/dev/docs/TOP_PERCENT_WORKFLOW.md` and
   `~/dev/docs/OPERATING_MANUAL.md` — skim for conventions the page doesn't
   yet describe (new rituals, changed cadences).
@@ -43,15 +46,24 @@ prose and diagram subs) and `lib/inspect/method.ts` (verbatim excerpts).
 ## 2 · Update the page
 
 - Fix every stale number **everywhere it appears**: frontmatter `metrics`,
-  the summary line, prose ("Seventeen slash-skills…"), and diagram node
-  subs ("17 skills"). A number that appears in three places changes in
-  three places.
+  the summary line, the deep-dive node subs ("21 front doors", "5 guards"),
+  and the `layers` notes ("Twenty-one front doors…", "Five hooks…"). A
+  number that appears in three places changes in three places.
+- The page is organized as a day (WHILE I SLEPT → the open → the ladder →
+  lanes → verification → flywheel → the machine). Its UI surfaces carry the
+  facts: the night-shift `TerminalLog` quotes a real morning's digest (keep
+  it a verbatim recent run, timings included); the `Ladder` rungs are the
+  real skill front doors — a new shaping/starter skill gets a rung, a
+  retired one loses it (token lenses and session bookends don't get rungs);
+  the commit-flow and flywheel `ArchitectureDiagram`s name real hooks and
+  files.
 - If a harness component was added/removed (a new hook, a new LaunchAgent,
-  a retired skill family), update the relevant section prose and the
-  diagrams — smallest truthful edit, never a rewrite.
+  a retired skill family), update the deep-dive topology and the relevant
+  section — smallest truthful edit, never a rewrite.
 - Refresh `lib/inspect/method.ts` excerpts that no longer match their
-  source files (diff each excerpt against the file its `path:` names).
-  Excerpts stay trimmed to the definition-is-the-story lines.
+  source files. Merged chunks hold tabbed `files` (skills · rim · memory ·
+  fleet · night) — diff each tab's excerpt against the file its `path:`
+  names. Excerpts stay trimmed to the definition-is-the-story lines.
 
 ## 3 · Editorial rules (non-negotiable)
 

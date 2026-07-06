@@ -80,42 +80,34 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
 <SystemDeepDive
   title="Grocery Buddy"
   inspect="grocery-buddy"
-  subtitle="Two brains, deliberately separated: six Claude call-sites for language, Temporal for time and money, and a self-healing browser where Amazon refuses to have an API."
+  subtitle="Two brains, deliberately separated: eight model call-sites for language, Temporal for time and money, and a self-healing browser where Amazon refuses to have an API."
   nodes={[
-    { id: "tg", label: "Telegram", sub: "commands · buttons · free text", col: 0, row: 0 },
-    { id: "wh", label: "FastAPI webhook", sub: "top-level decision tree", col: 1, row: 0 },
-    { id: "intent", label: "Intent parsers", sub: "haiku · 6 call-sites", col: 2, row: 0 },
-    { id: "tmp", label: "Temporal", sub: "GroceryRun · QuickBuy · Import", col: 3, row: 0, accent: true },
-    { id: "relay", label: "2FA relay", sub: "auth challenges table", col: 0, row: 1 },
-    { id: "act", label: "Activities ×20", sub: "workflows stay pure", col: 1, row: 1 },
-    { id: "pred", label: "Predictor", sub: "(qty + incoming) / rate", col: 2, row: 1 },
-    { id: "synth", label: "Import synthesis", sub: "sonnet 4.6 · the one smart call", col: 3, row: 1 },
-    { id: "amz", label: "Amazon", sub: "persistent playwright profile", col: 0, row: 2 },
-    { id: "repair", label: "Selector repair", sub: "llm only on a 0-match", col: 1, row: 2 },
-    { id: "db", label: "Postgres", sub: "18 tables · 11 migrations", col: 2, row: 2 },
-    { id: "evals", label: "Evals", sub: "precision · cost · langfuse", col: 3, row: 2 },
-    { id: "link", label: "Checkout link", sub: "human places the order", col: 0, row: 3, accent: true },
-    { id: "gate", label: "Approval gate", sub: "24h / 6h durable timers", col: 1, row: 3, accent: true },
-    { id: "mlg", label: "Money-live gate", sub: "5 conditions, all must pass", col: 2, row: 3, accent: true },
-    { id: "probe", label: "Scraper probe", sub: "synthetic health check", col: 3, row: 3 }
+    { id: "wh", label: "Telegram front door", sub: "webhook · deterministic ladder", col: 0, row: 0 },
+    { id: "llm", label: "Claude call-sites", sub: "haiku ×6 · sonnet ×2", col: 1, row: 0 },
+    { id: "tmp", label: "Temporal core", sub: "3 workflows · 20 activities", col: 2, row: 0, accent: true },
+    { id: "gate", label: "Approval gate", sub: "durable wait · 24h / 6h", col: 3, row: 0, accent: true },
+    { id: "db", label: "Postgres", sub: "18 tables · 11 migrations", col: 0, row: 1 },
+    { id: "pred", label: "Prediction engine", sub: "arithmetic · no llm", col: 1, row: 1, accent: true },
+    { id: "amz", label: "The Amazon seam", sub: "playwright · self-healing", col: 2, row: 1 },
+    { id: "link", label: "Checkout handoff", sub: "human places the order", col: 3, row: 1, accent: true },
+    { id: "lf", label: "One run, traced", sub: "langfuse · spans + scores", col: 0, row: 2 },
+    { id: "meas", label: "Measurement", sub: "precision · cost · probes", col: 1, row: 2 },
+    { id: "mlg", label: "Money-live gate", sub: "5 conditions · shut on purpose", col: 2, row: 2, accent: true }
   ]}
   edges={[
-    { from: "tg", to: "wh", label: "update" },
-    { from: "wh", to: "intent", label: "free text" },
-    { from: "intent", to: "tmp", label: "start · signal" },
-    { from: "tmp", to: "act", label: "schedule-proof" },
-    { from: "act", to: "amz", label: "search · stage" },
-    { from: "act", to: "pred" },
-    { from: "act", to: "synth", label: "import" },
-    { from: "act", to: "db", label: "read · write" },
-    { from: "amz", to: "repair", label: "0-match only", dashed: true },
-    { from: "amz", to: "relay", label: "otp needed", dashed: true },
-    { from: "relay", to: "tg", label: "ask the human", dashed: true },
-    { from: "tmp", to: "gate", label: "briefing" },
-    { from: "gate", to: "link", label: "approve" },
-    { from: "db", to: "evals", label: "snapshots · ledger" },
-    { from: "evals", to: "mlg", label: "gates", dashed: true },
-    { from: "probe", to: "mlg", label: "precondition", dashed: true }
+    { from: "wh", to: "llm", label: "free text" },
+    { from: "llm", to: "tmp", label: "start · signal" },
+    { from: "tmp", to: "gate", label: "briefing → wait" },
+    { from: "tmp", to: "pred", label: "pantry math" },
+    { from: "pred", to: "amz", label: "must-buys + fillers" },
+    { from: "amz", to: "gate", label: "priced cart" },
+    { from: "gate", to: "link", label: "approve → stage" },
+    { from: "db", to: "pred", label: "inventory · events" },
+    { from: "db", to: "meas", label: "snapshots · ledger" },
+    { from: "meas", to: "lf", label: "scores per run" },
+    { from: "meas", to: "mlg", label: "preconditions" },
+    { from: "meas", to: "amz", label: "synthetic probe" },
+    { from: "amz", to: "wh", label: "2fa → ask the human", dashed: true }
   ]}
   stateMachines={[
     {
@@ -164,14 +156,14 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
   ]}
   core={[
     { name: "predictor", rule: "days_left = (qty + incoming) / blended daily rate · flag when ≤ lead time + buffer — no model anywhere near it" },
-    { name: "run guardrails", rule: "scheduled runs skip on a pending cart or a recent run — checked and written atomically, 60-min cooldown" },
+    { name: "run guardrails", rule: "scheduled runs skip on a pending cart or a recent run — checked and written atomically, 180-min cooldown" },
     { name: "checkout staging", rule: "clear the cart first · stage by ASIN · idempotent on a per-run key — exactly-once at the money edge" },
     { name: "money-live gate", rule: "flags on · predictor precision ≥ 0.70 · scraper green · cost ≤ $0.50/run · checkout_verified (hard stop, unbuilt on purpose)" },
     { name: "scraper health", rule: "synthetic probe asserts price + ASIN still extract from known staples; first regression pages a human" },
     { name: "cost ledger", rule: "every model call priced into llm_usage, summed per run; alert over $1.00" }
   ]}
   layers={[
-    { name: "Conversation", note: "Telegram → webhook decision tree → Haiku intent parsing. Six Claude call-sites total; Sonnet appears exactly once, where two years of messy orders must become a clean pantry proposal." },
+    { name: "Conversation", note: "Telegram → webhook decision tree → Haiku intent parsing. Eight model call-sites total — six Haiku; Sonnet twice: turning two years of messy orders into a pantry proposal, and re-finding a broken selector on a total 0-match." },
     { name: "Orchestration", note: "Three Temporal workflows own scheduling, durable approval timers (24h standard, 6h quick-buy), retries, and the in-transit lifecycle: confirm → on-the-way → restock on arrival." },
     { name: "Automation", note: "A persistent authenticated Playwright profile, because Amazon has no consumer API. Sessions self-heal: a verified state-machine form fill, with 2FA codes relayed through Telegram." },
     { name: "Safety", note: "Approval gate on every cart, clear-first staging, idempotency keys at the order edge, and a money-live gate that stays shut until evals — not vibes — say otherwise." }
