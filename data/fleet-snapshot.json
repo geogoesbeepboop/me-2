@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-07-06T09:08:43.480Z",
+  "generatedAt": "2026-07-06T13:45:07.667Z",
   "windowHours": 24,
   "agents": [
     {
@@ -291,11 +291,11 @@
       "nightly": {
         "repo": "jim-agent",
         "gate": "pass",
-        "gateSeconds": 10,
+        "gateSeconds": 9,
         "evals": "pass",
         "evalSeconds": 2,
         "slug": "jim",
-        "at": "2026-07-06T03:11:00.000Z"
+        "at": "2026-07-06T13:17:00.000Z"
       }
     },
     {
@@ -529,9 +529,9 @@
       "nightly": {
         "repo": "dj-agent",
         "gate": "pass",
-        "gateSeconds": 13,
+        "gateSeconds": 7,
         "slug": "dj-agent",
-        "at": "2026-07-06T03:11:00.000Z"
+        "at": "2026-07-06T13:17:00.000Z"
       }
     },
     {
@@ -867,7 +867,7 @@
         "gate": "pass",
         "gateSeconds": 3,
         "slug": "grocery-buddy",
-        "at": "2026-07-06T03:11:00.000Z"
+        "at": "2026-07-06T13:17:00.000Z"
       }
     },
     {
@@ -911,9 +911,9 @@
       "nightly": {
         "repo": "procurement-agent",
         "gate": "pass",
-        "gateSeconds": 4,
+        "gateSeconds": 2,
         "slug": "procurement-agent",
-        "at": "2026-07-06T03:11:00.000Z"
+        "at": "2026-07-06T13:17:00.000Z"
       }
     },
     {
@@ -925,11 +925,34 @@
       "mandate": "The site you're reading — a living archive that measures its own fleet and files the report.",
       "metrics": [],
       "branch": "site/landing-umph",
-      "dirty": 4,
-      "state": "parked",
-      "stateDetail": "no activity for 2 days",
-      "lastActiveAt": "2026-07-04T05:58:34.460Z",
+      "dirty": 0,
+      "state": "waiting",
+      "stateDetail": "stopped mid-work — last event was a tool result",
+      "lastActiveAt": "2026-07-06T09:12:55.578Z",
       "sessions": [
+        {
+          "id": "89156b2f-922f-41e8-b415-fd6aff1481e2",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "curator",
+          "branch": "HEAD",
+          "startedAt": "2026-07-06T09:09:02.866Z",
+          "lastActiveAt": "2026-07-06T09:12:55.578Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 47,
+          "subagents": 1,
+          "work": {
+            "toolCalls": 9,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 4,
+            "reads": 4,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 4
+          }
+        },
         {
           "id": "55b4201f-3130-4561-8346-2e7141c5c450",
           "title": "untitled session",
@@ -1186,31 +1209,47 @@
           },
           "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/3",
           "prNumber": 3
-        },
-        {
-          "id": "e2c85ff1-aa23-479b-90ec-e6f7e75dde32",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "site/projects-merge-and-dj-console",
-          "startedAt": "2026-06-11T07:48:04.068Z",
-          "lastActiveAt": "2026-06-11T11:10:38.760Z",
-          "state": "parked",
-          "stateDetail": "no activity for 24 days",
-          "events": 453,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 144,
-            "edits": 59,
-            "filesTouched": 7,
-            "commands": 29,
-            "reads": 8,
-            "testRuns": 4,
-            "operateRuns": 0,
-            "activeMinutes": 37
-          }
         }
       ],
       "commits": [
+        {
+          "hash": "a808651c32f2062111e2d159d820b9f1327bd2a8",
+          "shortHash": "a808651",
+          "subject": "The curator learns the method page and drafts the field notes",
+          "at": "2026-07-06T02:26:21-07:00",
+          "files": 3,
+          "ins": 233,
+          "del": 61,
+          "refs": "HEAD -> site/landing-umph, origin/site/landing-umph"
+        },
+        {
+          "hash": "41163c63c4013e70040aaa089e89f75fad2ccbbb",
+          "shortHash": "41163c6",
+          "subject": "The method learns its fleet layer, the person gets a face, and JIM gets its essay",
+          "at": "2026-07-06T02:21:46-07:00",
+          "files": 8,
+          "ins": 257,
+          "del": 12
+        },
+        {
+          "hash": "2e74398dddaee8e952cbf12d69566d06bee58ccc",
+          "shortHash": "2e74398",
+          "subject": "The site sustains itself: filing goes branch-independent, curation goes autonomous",
+          "at": "2026-07-06T02:09:54-07:00",
+          "files": 6,
+          "ins": 229,
+          "del": 34
+        },
+        {
+          "hash": "6c423ce491979ffcca652e74ec15c784d24a3f2a",
+          "shortHash": "6c423ce",
+          "subject": "ops: file the fleet report (2026-07-06 02:08)",
+          "at": "2026-07-06T02:08:43-07:00",
+          "files": 1,
+          "ins": 1260,
+          "del": 0,
+          "refs": "origin/main, origin/HEAD"
+        },
         {
           "hash": "5563a6bcf0c0b91a00ac2d1353966b1703f204da",
           "shortHash": "5563a6b",
@@ -1218,13 +1257,43 @@
           "at": "2026-07-06T01:59:19-07:00",
           "files": 16,
           "ins": 1548,
-          "del": 836,
-          "refs": "HEAD -> site/landing-umph"
+          "del": 836
         }
       ]
     }
   ],
   "gateDigests": [
+    {
+      "at": "2026-07-06T13:17:00.000Z",
+      "runs": [
+        {
+          "repo": "jim-agent",
+          "gate": "pass",
+          "gateSeconds": 9,
+          "evals": "pass",
+          "evalSeconds": 2,
+          "slug": "jim"
+        },
+        {
+          "repo": "grocery-buddy",
+          "gate": "pass",
+          "gateSeconds": 3,
+          "slug": "grocery-buddy"
+        },
+        {
+          "repo": "procurement-agent",
+          "gate": "pass",
+          "gateSeconds": 2,
+          "slug": "procurement-agent"
+        },
+        {
+          "repo": "dj-agent",
+          "gate": "pass",
+          "gateSeconds": 7,
+          "slug": "dj-agent"
+        }
+      ]
+    },
     {
       "at": "2026-07-06T03:11:00.000Z",
       "runs": [
