@@ -126,6 +126,37 @@ export interface AgentOps {
   commits: OpsCommit[];
   /** pending steering notes — live mode only */
   steering?: SteeringNote[];
+  /** this agent's latest nightly gate/eval run, when one exists */
+  nightly?: NightlyRun;
+}
+
+/** ── the nightly gate digest — the system's own heartbeat ──────
+ * Every morning a LaunchAgent runs each focus repo's .claude/gate.sh
+ * (lint + hermetic tests) and .claude/evals.sh (offline eval suites)
+ * and writes a dated digest to ~/dev/docs/gate-digests. The fleet
+ * parses those files — the site never runs a gate itself, it reads
+ * the record the night left behind. */
+export interface NightlyRun {
+  /** repo basename as the digest names it, e.g. "jim-agent" */
+  repo: string;
+  /** fleet slug when the repo maps to an agent on the board */
+  slug?: string;
+  gate: "pass" | "fail" | "missing";
+  gateSeconds?: number;
+  /** absent = the repo has no evals.sh (absent ≠ pass) */
+  evals?: "pass" | "regression";
+  evalSeconds?: number;
+  /** tail of the failure log — live mode only, never recorded */
+  tail?: string;
+  /** when the run happened — set where a run travels without its digest
+   *  (an agent's `nightly`); inside a NightlyDigest the digest holds it */
+  at?: string;
+}
+
+export interface NightlyDigest {
+  /** when the digest was written, from its own header */
+  at: string;
+  runs: NightlyRun[];
 }
 
 export interface FleetSnapshot {
@@ -134,6 +165,8 @@ export interface FleetSnapshot {
   generatedAt: string;
   windowHours: number;
   agents: AgentOps[];
+  /** recent nightly gate digests, newest first */
+  gateDigests?: NightlyDigest[];
 }
 
 /** ───── state doctrine (rendered as the visible legend) ─────

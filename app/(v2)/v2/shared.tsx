@@ -18,6 +18,8 @@ import {
   STATE_WORDS,
   type AgentOps,
   type FleetSnapshot,
+  type NightlyDigest,
+  type NightlyRun,
   type OpsCommit,
   type OpsSession,
 } from "@/lib/ops/types";
@@ -80,47 +82,18 @@ export function useFleet(initial: FleetSnapshot) {
 
 /* ── top-bar widgets ─────────────────────────────────────── */
 
+/** which record you're reading, and when it was cut — lives at the fleet
+ *  board's foot (never in the bar; the bar stays one instrument row) */
 export function FeedChip({ fleet }: { fleet: FleetSnapshot }) {
   const live = fleet.mode === "live";
   const empty = fleet.agents.length === 0;
   return (
     <span className="v2-feed" data-live={live}>
       {live
-        ? "live — measured on the operator's machine"
+        ? "live — this machine"
         : empty
           ? "no record yet"
           : `report filed ${sfStamp(fleet.generatedAt)}`}
-    </span>
-  );
-}
-
-const SCENE_ORDER: SceneName[] = ["morning", "day", "evening", "night"];
-
-export function SceneSwitch({
-  scene,
-  override,
-  onOverride,
-}: {
-  scene: SceneName;
-  override: SceneName | null;
-  onOverride: (s: SceneName | null) => void;
-}) {
-  return (
-    <span className="v2-scenes" role="group" aria-label="Scene — the clock decides unless you do">
-      <span className="v2-scenes-note">scene</span>
-      <button aria-pressed={override === null} onClick={() => onOverride(null)}>
-        clock
-      </button>
-      {SCENE_ORDER.map((s) => (
-        <button key={s} aria-pressed={override === s} onClick={() => onOverride(s)}>
-          {s}
-        </button>
-      ))}
-      {override === null && (
-        <span className="v2-scenes-note" aria-hidden>
-          → {scene}
-        </span>
-      )}
     </span>
   );
 }
@@ -414,7 +387,7 @@ export interface ShiftEvent {
   accent: string;
   agent: string;
   slug: string;
-  kind: "commit" | "session" | "pr" | "entry";
+  kind: "commit" | "session" | "pr" | "entry" | "gate";
   /** which labor band a session leant into — drives the row glyph */
   band?: "operate" | "build" | "verify";
   line: string;
@@ -424,6 +397,7 @@ export interface ShiftEvent {
   entry?: WriteRow;
   prUrl?: string;
   prNumber?: number;
+  digest?: NightlyDigest;
 }
 
 /** a session's dominant labor band — operate beats verify beats build */
@@ -435,9 +409,34 @@ function sessionBand(s: OpsSession): "operate" | "build" | "verify" {
   return "build";
 }
 
+/** did every gate and eval in a digest come back green? */
+export function nightlyGreen(d: NightlyDigest): boolean {
+  return d.runs.every((r) => r.gate === "pass" && r.evals !== "regression");
+}
+
+/** one closed-row line for a night's digest — failures lead, by name */
+export function nightlyLine(d: NightlyDigest): string {
+  const fails = d.runs.filter((r) => r.gate === "fail");
+  const missing = d.runs.filter((r) => r.gate === "missing");
+  const regressions = d.runs.filter((r) => r.evals === "regression");
+  const evalCount = d.runs.filter((r) => r.evals).length;
+  const parts: string[] = [];
+  if (fails.length > 0) parts.push(`${fails.map((r) => r.repo).join(", ")} FAILED`);
+  const green = d.runs.length - fails.length - missing.length;
+  if (green > 0) parts.push(`${green} ${green === 1 ? "gate" : "gates"} green`);
+  if (regressions.length > 0) parts.push(`eval regression — ${regressions.map((r) => r.repo).join(", ")}`);
+  else if (evalCount > 0) parts.push("evals green");
+  if (missing.length > 0) parts.push(`${missing.length} without a gate`);
+  return `the night ran the gates — ${parts.join(" · ")}`;
+}
+
 /** the row glyph encodes the KIND (and a session's band) as a shape, so a
  *  column of rows reads as a column of marks, not a wall of words */
 export function shiftGlyph(e: ShiftEvent): { mark: string; cls: string; title: string } {
+  if (e.kind === "gate") {
+    const green = e.digest ? nightlyGreen(e.digest) : true;
+    return { mark: "☾", cls: green ? "g-verify" : "g-fail", title: "nightly gate digest" };
+  }
   if (e.kind === "commit") return { mark: "▫", cls: "g-build", title: "commit" };
   if (e.kind === "pr") return { mark: "⇡", cls: "g-build", title: "pull request" };
   if (e.kind === "entry") return { mark: "✎", cls: "g-build", title: "archive write" };
@@ -511,6 +510,20 @@ export function buildShiftLog(
       kind: "entry",
       line: w.title,
       entry: w,
+    });
+  }
+  // the system's own heartbeat: one row per nightly gate digest — the
+  // suites that ran against the whole fleet while nobody watched
+  for (const d of fleet.gateDigests ?? []) {
+    events.push({
+      id: `g-${d.at}`,
+      at: d.at,
+      accent: "var(--color-cyan)",
+      agent: "Night watch",
+      slug: "night-watch",
+      kind: "gate",
+      line: nightlyLine(d),
+      digest: d,
     });
   }
   return events
@@ -697,6 +710,65 @@ function PrDetail({ e }: { e: ShiftEvent }) {
   );
 }
 
+/** one nightly run, spelled out — pass in plain ink, failure in ember */
+function nightlyRunLine(r: NightlyRun): React.ReactNode {
+  return (
+    <>
+      <b>{r.repo}</b>
+      {" · gate "}
+      {r.gate === "pass" ? (
+        <>green{r.gateSeconds !== undefined && ` (${r.gateSeconds}s)`}</>
+      ) : r.gate === "fail" ? (
+        <em className="v2-gate-bad">failed{r.gateSeconds !== undefined && ` (${r.gateSeconds}s)`}</em>
+      ) : (
+        "not installed"
+      )}
+      {r.evals && (
+        <>
+          {" · evals "}
+          {r.evals === "pass" ? (
+            <>green{r.evalSeconds !== undefined && ` (${r.evalSeconds}s)`}</>
+          ) : (
+            <em className="v2-gate-bad">regression</em>
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
+function GateDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
+  const d = e.digest!;
+  const tails = d.runs.filter((r) => r.tail);
+  return (
+    <div className="v2-detail">
+      <div className="v2-facts">
+        <Fact label="ran" value={<span suppressHydrationWarning>{sfStamp(d.at)}</span>} />
+        <Fact label="repos" value={d.runs.length} />
+      </div>
+      <ul className="v2-gate-runs">
+        {d.runs.map((r) => (
+          <li key={r.repo}>{nightlyRunLine(r)}</li>
+        ))}
+      </ul>
+      <p className="v2-detail-note">
+        each repo&apos;s own .claude/gate.sh (lint + hermetic tests) and .claude/evals.sh (offline
+        eval suites), run by the 6:17 LaunchAgent — the site reads the digest it writes
+      </p>
+      {live &&
+        tails.map((r) => (
+          <div key={r.repo} style={{ width: "100%" }}>
+            <p className="v2-detail-note">{r.repo} — tail of the failure:</p>
+            <PatchView text={r.tail!} />
+          </div>
+        ))}
+      {!live && d.runs.some((r) => r.gate === "fail" || r.evals === "regression") && (
+        <p className="v2-detail-note">failure logs are readable on the operator&apos;s machine only</p>
+      )}
+    </div>
+  );
+}
+
 /* ── the rows ────────────────────────────────────────────── */
 
 export function ShiftRow({
@@ -740,6 +812,8 @@ export function ShiftRow({
           <SessionDetail e={e} live={live} />
         ) : e.kind === "entry" ? (
           <EntryDetail e={e} />
+        ) : e.kind === "gate" ? (
+          <GateDetail e={e} live={live} />
         ) : (
           <PrDetail e={e} />
         ))}

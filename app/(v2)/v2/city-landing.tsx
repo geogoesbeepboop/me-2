@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import SfScene, { type SceneName } from "@/components/city/SfScene";
 import { relTime, sfStamp } from "@/lib/ops/time";
 import type { FleetSnapshot } from "@/lib/ops/types";
 import type { SfWeather } from "@/lib/ops/weather";
 import {
+  FeedChip,
   Legend,
   ShiftLog,
   agentWork,
   fmtActive,
+  nightlyGreen,
+  nightlyLine,
   useCityTime,
   useFleet,
   windowWorkLine,
@@ -57,22 +60,13 @@ export default function CityLanding({
   initialScene: SceneName;
 }) {
   const { clock, liveScene } = useCityTime(initialScene);
-  const [override, setOverride] = useState<SceneName | null>(null);
-  const scene = override ?? liveScene;
+  const scene = liveScene;
   const { fleet, live } = useFleet(initialFleet);
   const hero = HERO[scene];
 
   return (
     <div className="v2-root">
-      <CityBar
-        clock={clock}
-        scene={scene}
-        weather={weather}
-        showScenes
-        override={override}
-        onOverride={setOverride}
-        feed={fleet}
-      />
+      <CityBar clock={clock} scene={scene} weather={weather} />
 
       <section id="content" className="v2-stage" aria-label="San Francisco, drawn — the data below is measured">
         <SfScene scene={scene} condition={weather?.condition} />
@@ -116,8 +110,8 @@ export default function CityLanding({
           <div className="v2-panel-foot">
             <Legend />
             <p className="v2-note">
-              the skyline is drawn — this board is measured; states inferred from transcripts on
-              disk, active time counts gaps under 5m
+              <FeedChip fleet={fleet} /> — the skyline is drawn, this board is measured; states
+              inferred from transcripts on disk, active time counts gaps under 5m
             </p>
           </div>
         </section>
@@ -203,7 +197,26 @@ function DigestPanel({ fleet, writes }: { fleet: FleetSnapshot; writes: WriteRow
           </div>
         </>
       )}
+      <NightWatchLine fleet={fleet} refMs={ref} />
     </section>
+  );
+}
+
+/** the newest nightly gate digest, when it's fresh enough to matter —
+ *  the suites that ran against the whole fleet while nobody watched */
+function NightWatchLine({ fleet, refMs }: { fleet: FleetSnapshot; refMs: number }) {
+  const d = fleet.gateDigests?.[0];
+  if (!d) return null;
+  const age = refMs - (Date.parse(d.at) || 0);
+  if (Number.isNaN(age) || age > 48 * 3600_000) return null;
+  return (
+    <p className="v2-nightwatch" data-green={nightlyGreen(d)}>
+      <i className="v2-shift-glyph g-verify" aria-hidden>
+        ☾
+      </i>
+      {nightlyLine(d)} · <span suppressHydrationWarning>{relTime(d.at, refMs)}</span> — detail in
+      the shift log
+    </p>
   );
 }
 

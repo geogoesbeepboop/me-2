@@ -14,6 +14,7 @@ import {
 import type { SfWeather } from "@/lib/ops/weather";
 import {
   CopyButton,
+  FeedChip,
   LaborStrip,
   Legend,
   ShiftLog,
@@ -219,6 +220,25 @@ function AgentCard({ a, live }: { a: AgentOps; live: boolean }) {
       {/* ZONE 3 — real headline facts */}
       {a.metrics && <StatRow metrics={a.metrics} accent={a.accent} />}
 
+      {/* ZONE 3.5 — last night's health run, straight from the digest */}
+      {a.nightly && (
+        <p className="v2-nightly" data-bad={a.nightly.gate === "fail" || a.nightly.evals === "regression"}>
+          <i aria-hidden>☾</i> nightly gate{" "}
+          {a.nightly.gate === "pass"
+            ? `green${a.nightly.gateSeconds !== undefined ? ` (${a.nightly.gateSeconds}s)` : ""}`
+            : a.nightly.gate === "fail"
+              ? "FAILED"
+              : "not installed"}
+          {a.nightly.evals && ` · evals ${a.nightly.evals === "pass" ? "green" : "REGRESSION"}`}
+          {a.nightly.at && (
+            <>
+              {" · "}
+              <span suppressHydrationWarning>{relTime(a.nightly.at)}</span>
+            </>
+          )}
+        </p>
+      )}
+
       {/* ZONE 4 — sessions, as marks not sentences */}
       {shown.length > 0 ? (
         <ul className="v2-sessions">
@@ -271,8 +291,7 @@ export default function OpsRoom({
   initialScene: SceneName;
 }) {
   const { clock, liveScene } = useCityTime(initialScene);
-  const [override, setOverride] = useState<SceneName | null>(null);
-  const scene = override ?? liveScene;
+  const scene = liveScene;
   const { fleet, windowHours, pick, live } = useFleet(initialFleet);
 
   const ordered = sortByAttention(fleet.agents);
@@ -283,15 +302,7 @@ export default function OpsRoom({
 
   return (
     <div className="v2-root">
-      <CityBar
-        clock={clock}
-        scene={scene}
-        weather={weather}
-        showScenes
-        override={override}
-        onOverride={setOverride}
-        feed={fleet}
-      />
+      <CityBar clock={clock} scene={scene} weather={weather} />
 
       <div className="v2-room-strip" aria-hidden>
         <SfScene scene={scene} condition={weather?.condition} />
@@ -329,6 +340,7 @@ export default function OpsRoom({
             </details>
           )}
           <div className="v2-panel v2-panel-foot-strip">
+            <FeedChip fleet={fleet} />
             <Legend />
             <span className="v2-lane-legend" aria-label="Labor legend">
               <span><i className="v2-swatch" data-lane="build" /> build</span>
@@ -358,7 +370,9 @@ export default function OpsRoom({
             cutoffMs={(Date.parse(fleet.generatedAt) || 0) - windowHours * 3600_000}
           />
           <div className="v2-panel-foot">
-            <p className="v2-note">▸ the agent ran · ▫ built · ✓ checked · ✎ archive write</p>
+            <p className="v2-note">
+              ▸ the agent ran · ▫ built · ✓ checked · ✎ archive write · ☾ the night ran the gates
+            </p>
           </div>
         </section>
 
@@ -388,13 +402,25 @@ export default function OpsRoom({
               says «no output recorded on disk» rather than dress an invocation as a delivered set.
             </p>
             <p>
+              The fleet also checks itself while nobody watches. Every morning a LaunchAgent runs
+              each repo&apos;s <code>.claude/gate.sh</code> — lint plus its full hermetic test
+              suite — and <code>.claude/evals.sh</code>, the offline eval suites, and writes a
+              dated digest. The board reads that digest: the ☾ rows in the shift log are those
+              runs, each card&apos;s «nightly gate» line is its repo&apos;s latest result, and a
+              red gate or a yellow eval regression is the first thing the operator triages in the
+              morning. The site never runs a gate itself — it reports what the night actually did.
+            </p>
+            <p>
               This page can&apos;t see that machine from your browser — and shouldn&apos;t. At the
               operator&apos;s desk the board is live and re-measured every few seconds. Everywhere
               else it serves the last <em>filed report</em>: a snapshot cut on the machine
               (<code>npm run ops:snapshot</code>), sanitized in code — assigned titles and measured
-              numbers only; prompts, patches and file paths never leave the desk — then committed and
-              deployed like any other change. The chip in the bar names which one you&apos;re reading,
-              and when it was cut.
+              numbers only; prompts, patches, file paths and failure logs never leave the desk —
+              then committed and deployed like any other change. Filing is itself automated: after
+              the gates run, a second LaunchAgent cuts the snapshot, commits it and pushes, and the
+              host redeploys — so the public record refreshes every morning without a hand on it.
+              The chip at the fleet board&apos;s foot names which report you&apos;re reading, and
+              when it was cut.
             </p>
             <p>
               Steering notes land in <code>~/.claude/fleet/steering/&lt;repo&gt;/</code>. No agent

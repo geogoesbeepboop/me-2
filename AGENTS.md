@@ -42,13 +42,25 @@ explore layer reaches actual implementation depth.
   untouched; the reskin only FRAMES.
 - **One chrome, everywhere.** Every page wears the shared `CityBar`
   (`components/city/`) — archive void/bone tokens (not indigo), numbered
-  nav, the real SF clock + weather + a scene-tint dot — and one
-  `CityFooter`. Editorial pages get it via `ContentShell`/`ContentChrome`
-  plus a slim horizon strip (a cropped `SfScene`) and a clamped scene
-  wash. The city/ops floors add the scene switch + live/recorded chip.
-  `app/city.css` (the old v2.css, now global) holds all `.v2-*`/`.sf-*`/
-  `.city-*` styles; `globals.css` editorial tokens stay untouched, the
-  namespaces are disjoint.
+  nav, the real SF clock + weather + a scene-tint dot, and NOTHING else:
+  the bar is one instrument row. The live/recorded chip (`FeedChip`)
+  lives at the fleet board's foot on both floors, and the clock alone
+  decides the scene (the scene switch is gone — don't reintroduce
+  either into the bar). Editorial pages get the chrome via
+  `ContentShell`/`ContentChrome` plus a slim horizon strip (a cropped
+  `SfScene`) and a clamped scene wash. `app/city.css` (the old v2.css,
+  now global) holds all `.v2-*`/`.sf-*`/`.city-*` styles; `globals.css`
+  editorial tokens stay untouched, the namespaces are disjoint.
+- **Scroll performance is doctrine.** No `backdrop-filter` anywhere (the
+  panels sit on flat void; translucency bought nothing and the blur cost
+  every scrolled frame). The scene never uses SVG filter blur — soft
+  bodies (fog, clouds) are gradient-filled (`#sf-fogsoft`/`#sf-cloudsoft`);
+  a Gaussian blur re-rasterizes every animation frame. `.sf-scene` is
+  promoted/contained (`will-change` + `contain`), only a subset of
+  stars/bay-lights animate, and the cropped strips (`.city-strip`,
+  `.v2-room-strip`) hold a STILL frame — the full scene performs only on
+  the front door. Any new always-on animation must justify its frame
+  budget.
 - **Real weather.** `lib/ops/weather.ts` fetches SF conditions from
   open-meteo (no key, cached 15m, degrades to clear) → fog/rain/cloud/
   clear drive the scene via `data-weather`; the bar labels the live
@@ -59,6 +71,18 @@ explore layer reaches actual implementation depth.
   overnight (20:00–06:00 PT) rollup, or the most-recent active shift when
   the night was quiet, always labeled with the true window. `npm run
   ops:digest` prints it for a cron/notification.
+- **The night watch** (`lib/ops/gates.ts`): the fleet's own health runs
+  on the board. A LaunchAgent (`com.geoandr.nightly-gate-digest`, 06:17)
+  runs each focus repo's `.claude/gate.sh` (lint + hermetic tests) and
+  `.claude/evals.sh` (offline eval suites) and writes a dated markdown
+  digest to `~/dev/docs/gate-digests/`; `gates.ts` parses those files —
+  the site never runs a gate, it reads the record the night left.
+  Surfaces: ☾ rows in the shift log (one per digest, expandable to
+  per-repo results), a `nightly` line on each agent card, and the
+  NightWatchLine under the landing digest. Statuses and durations file
+  with the snapshot; failure-log tails are live-only (stripped in
+  `sanitizeForRecord`, like patches and prompts). Pass renders in plain
+  ink; only failure carries a hue (ember) — per the color doctrine.
 - **Ops felt in the archive.** A project dossier whose `repo:` resolves
   in the fleet gets one slim `AgentStrip` (`components/dossier/`) under
   its breadcrumb: state + build/operate/verify summary from the **filed
@@ -95,13 +119,16 @@ explore layer reaches actual implementation depth.
   only the snapshot file (refuses a dirty stage) and pushes; the host
   redeploys and serves it. Sanitization is enforced in
   `sanitizeForRecord` — prompts, prompt-derived titles, repo and file
-  paths, patches and steering notes never enter the record; assigned
-  titles and measured numbers only. The script commits to whatever branch
-  is checked out — run it from the branch you publish from. To file
-  automatically at shift change, schedule it with launchd
-  (`~/Library/LaunchAgents/me.ops-report.plist` running
-  `npm run ops:snapshot -- 24 --commit --push` in this repo at 06:00 PT)
-  or any cron equivalent.
+  paths, patches, steering notes and gate-failure tails never enter the
+  record; assigned titles and measured numbers only. The script commits
+  to whatever branch is checked out — run it from the branch you publish
+  from. **Filing is automated:** `~/Library/LaunchAgents/me.ops-report.plist`
+  (INSTALLED, 06:45 daily — half an hour after the gate digest so the
+  snapshot carries the fresh results) runs `scripts/file-report.sh`,
+  which fail-opens: not on `main`, or anything staged → it logs and
+  skips that morning (`~/Library/Logs/me.ops-report.log`). Manage it
+  like the digest agent: `launchctl print|kickstart|bootout
+  gui/$UID/me.ops-report`.
 - Steering notes land in `~/.claude/fleet/steering/<repo basename>/`;
   nothing reads them automatically — repos opt in with the SessionStart
   hook shown in /v2/ops under PROTOCOL.

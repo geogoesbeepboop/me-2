@@ -2,12 +2,14 @@
  * THE CITY — San Francisco drawn in layered silhouette, west to east:
  * two ridges of Marin, the Golden Gate with its traffic, the Presidio
  * treeline, the Palace of Fine Arts at the shore, Sutro Tower on Twin
- * Peaks, the painted ladies, row houses cresting Russian Hill, downtown
- * (555 California, the Transamerica Pyramid, Salesforce Tower and its
- * night crown), Coit Tower, the Ferry Building, the arched pier sheds,
- * the Bay Bridge running to Treasure Island and the new east-span mast,
- * the port cranes of Oakland on the far shore, Oracle Park and Chase
- * Center — and the bay in front of it all: Alcatraz sweeping its light,
+ * Peaks, the Painted Ladies on the slope west of downtown, the financial
+ * district (555 California, the Transamerica Pyramid, Salesforce Tower
+ * and its night crown, 181 Fremont, Millennium) over a low base of
+ * fill buildings, the Ferry Building's clock tower standing in the gap
+ * before the Bay Bridge — its west span carrying the Bay
+ * Lights at night — running to Treasure Island and the east-span mast,
+ * the port cranes of Oakland on the far shore — and the bay in front
+ * of it all: Alcatraz sweeping its light,
  * a ferry and a container ship passing, sailboats out when the sun is,
  * gulls in the morning, the fog doing what the fog does, and the
  * cable-car grade in the near foreground.
@@ -62,52 +64,82 @@ const GG_LIGHTS = Array.from({ length: 9 }, (_, i) => {
   return { x: Math.round(x), y: Math.round(ggCableY(x)) };
 });
 
-/* ── lit windows, hand-gridded per tower, PRNG-thinned ────── */
-interface TowerGrid {
-  x: number; y: number; cols: number; rows: number; sx: number; sy: number; keep: number;
+/* ── Bay Bridge west span — "The Bay Lights" ───────────────
+   Leo Villareal's white LEDs ride the vertical suspenders of the
+   west span between the SF anchorage and Yerba Buena, lit at night.
+   We trace the three cable segments and hang a strand from the cable
+   down to the deck at each station so the necklace runs true. */
+const BB = { a: 1196, t1: 1268, t2: 1392, e: 1468, top: 268, deck: 350, aY: 322, eY: 342 };
+function bbCableY(x: number): number {
+  if (x <= BB.t1) {
+    const t = (x - BB.a) / (BB.t1 - BB.a);
+    return (1 - t) * (1 - t) * BB.aY + 2 * (1 - t) * t * 350 + t * t * BB.top;
+  }
+  if (x <= BB.t2) {
+    const t = (x - BB.t1) / (BB.t2 - BB.t1);
+    return (1 - t) * (1 - t) * BB.top + 2 * (1 - t) * t * 354 + t * t * BB.top;
+  }
+  const t = (x - BB.t2) / (BB.e - BB.t2);
+  return (1 - t) * (1 - t) * BB.top + 2 * (1 - t) * t * 330 + t * t * BB.eY;
 }
-const TOWERS: TowerGrid[] = [
-  { x: 806, y: 262, cols: 5, rows: 14, sx: 7, sy: 10, keep: 0.34 }, // 555 California
-  { x: 935, y: 152, cols: 4, rows: 22, sx: 7, sy: 11, keep: 0.3 }, // Salesforce
-  { x: 873, y: 250, cols: 2, rows: 12, sx: 8, sy: 12, keep: 0.3 }, // Transamerica shaft
-  { x: 984, y: 218, cols: 3, rows: 16, sx: 7, sy: 11, keep: 0.28 }, // 181 Fremont
-  { x: 1014, y: 248, cols: 3, rows: 13, sx: 7, sy: 11, keep: 0.3 }, // Millennium
-  { x: 768, y: 300, cols: 3, rows: 9, sx: 7, sy: 11, keep: 0.3 }, // back slab west
-  { x: 1052, y: 296, cols: 2, rows: 9, sx: 7, sy: 11, keep: 0.32 }, // back slab east
-  { x: 747, y: 336, cols: 2, rows: 7, sx: 6, sy: 10, keep: 0.3 }, // mid-rise west
-  { x: 1109, y: 342, cols: 2, rows: 6, sx: 6, sy: 10, keep: 0.32 }, // North Beach mid-rise
+const BB_STRANDS: { x: number; y: number }[] = [];
+for (let x = 1206; x <= 1458; x += 6) {
+  if (Math.abs(x - BB.t1) < 7 || Math.abs(x - BB.t2) < 7) continue; // clear the towers
+  const y = bbCableY(x);
+  if (BB.deck - y < 7) continue; // skip near the anchorages, where the strand is a nub
+  BB_STRANDS.push({ x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 });
+}
+
+/* ── lit windows — each grid is generated STRICTLY inside its tower's
+   shaft (x..x+w, top..bot), so a lit cell can never float off the
+   silhouette into open sky. Non-rectangular landmarks (the pyramid)
+   carry no window grid and read by their shape. ─────────────────── */
+interface Shaft {
+  x: number; w: number; top: number; bot: number; gx: number; gy: number; keep: number;
+}
+const SHAFTS: Shaft[] = [
+  { x: 802, w: 38, top: 266, bot: 402, gx: 8, gy: 11, keep: 0.42 }, // 555 California
+  { x: 934, w: 30, top: 170, bot: 400, gx: 8, gy: 12, keep: 0.34 }, // Salesforce
+  { x: 986, w: 20, top: 252, bot: 400, gx: 7, gy: 12, keep: 0.32 }, // 181 Fremont
+  { x: 1024, w: 30, top: 262, bot: 400, gx: 8, gy: 11, keep: 0.44 }, // Millennium (residential)
 ];
 const winRand = mulberry32(41587); // area codes of the city
 const WINDOWS: { x: number; y: number; late: boolean }[] = [];
-for (const t of TOWERS) {
-  for (let c = 0; c < t.cols; c++) {
-    for (let r = 0; r < t.rows; r++) {
+for (const s of SHAFTS) {
+  const cols = Math.max(1, Math.floor(s.w / s.gx) + 1);
+  const rows = Math.max(1, Math.floor((s.bot - s.top) / s.gy) + 1);
+  const ox = s.x + (s.w - (cols - 1) * s.gx) / 2; // centre the grid in the shaft
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < rows; r++) {
       const roll = winRand();
-      if (roll < t.keep) {
-        WINDOWS.push({ x: t.x + c * t.sx, y: t.y + r * t.sy, late: roll < t.keep * 0.45 });
+      if (roll < s.keep) {
+        WINDOWS.push({
+          x: Math.round((ox + c * s.gx) * 10) / 10,
+          y: s.top + r * s.gy,
+          late: roll < s.keep * 0.4,
+        });
       }
     }
   }
 }
 
-/* painted-ladies row — six gabled bays stepping down the hill */
+/* the Painted Ladies — a row of Victorians on the Alamo Square slope,
+   well WEST of the financial district; their own cluster, never under
+   a tower. Stepping down toward downtown. */
 const LADIES = Array.from({ length: 6 }, (_, i) => {
-  const x = 656 + i * 17;
-  const base = 386 + i * 2.4;
-  const h = 30 - i * 1.2;
-  return { x, base, h, i };
+  const x = 650 + i * 20;
+  return { x, base: 408, h: 46 - i * 3, i };
 });
 
-/* row houses cresting Russian Hill, in front of the towers' feet —
-   positions ride a gentle crest curve, heights jittered by PRNG */
-const houseRand = mulberry32(94109); // Russian Hill's own zip
-const HILL_CREST = (x: number) => 372 - 16 * Math.sin(((x - 758) / 96) * Math.PI);
-const HILL_HOUSES = Array.from({ length: 9 }, (_, i) => {
-  const x = 762 + i * 10.4;
-  const base = Math.round(HILL_CREST(x + 4) * 10) / 10;
-  const h = 9 + Math.round(houseRand() * 5);
-  return { x: Math.round(x * 10) / 10, base, h, i };
-});
+/* a low downtown base — short buildings that fill the gaps between the
+   landmark towers and ground the cluster at the waterline */
+const BASE = [
+  { x: 844, w: 14, h: 18 },
+  { x: 966, w: 16, h: 24 },
+  { x: 1010, w: 12, h: 16 },
+  { x: 1060, w: 20, h: 34 },
+  { x: 1083, w: 15, h: 22 },
+];
 
 /* Presidio conifers on the bluff east of the toll plaza */
 const TREES = [480, 491, 503, 516, 528, 541].map((x, i) => {
@@ -138,16 +170,20 @@ export default function SfScene({
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             <circle className="sf-moon-bite" cx="87.2%" cy="14.6%" r="19" fill="black" />
           </mask>
-          <filter id="sf-cloudblur" x="-30%" y="-60%" width="160%" height="260%">
-            <feGaussianBlur stdDeviation="13" />
-          </filter>
+          {/* soft-body fill for clouds/fog — a gradient, never a filter:
+              Gaussian blur re-rasterizes every animation frame; this is free */}
+          <radialGradient id="sf-cloudsoft">
+            <stop className="g-soft-c" offset="0" />
+            <stop className="g-soft-m" offset="0.62" />
+            <stop className="g-soft-e" offset="1" />
+          </radialGradient>
         </defs>
         {/* real-weather cloud bank — drifts in when SF is overcast or wet */}
-        <g className="sf-clouds" filter="url(#sf-cloudblur)">
-          <ellipse cx="18%" cy="20%" rx="170" ry="26" />
-          <ellipse cx="52%" cy="13%" rx="210" ry="32" />
-          <ellipse cx="83%" cy="24%" rx="150" ry="24" />
-          <ellipse cx="36%" cy="30%" rx="140" ry="20" />
+        <g className="sf-clouds">
+          <ellipse cx="18%" cy="20%" rx="200" ry="34" />
+          <ellipse cx="52%" cy="13%" rx="240" ry="40" />
+          <ellipse cx="83%" cy="24%" rx="180" ry="32" />
+          <ellipse cx="36%" cy="30%" rx="170" ry="27" />
         </g>
         <g className="sf-stars">
           {STARS.map((s) => (
@@ -175,9 +211,12 @@ export default function SfScene({
         overflow="visible"
       >
         <defs>
-          <filter id="sf-fog" x="-40%" y="-200%" width="180%" height="500%">
-            <feGaussianBlur stdDeviation="16" />
-          </filter>
+          {/* soft-body fill for the fog banks — see sf-cloudsoft */}
+          <radialGradient id="sf-fogsoft">
+            <stop className="g-soft-c" offset="0" />
+            <stop className="g-soft-m" offset="0.62" />
+            <stop className="g-soft-e" offset="1" />
+          </radialGradient>
           <radialGradient id="sf-sunglow" r="50%">
             <stop offset="0%" stopColor="var(--sf-sun)" stopOpacity="0.9" />
             <stop offset="45%" stopColor="var(--sf-sun)" stopOpacity="0.25" />
@@ -365,66 +404,75 @@ export default function SfScene({
           <path d="M512 389 A 16 16 0 0 1 544 389 Z" />
         </g>
 
-        {/* painted ladies on their slope */}
+        {/* ── the Painted Ladies — Victorians on the Alamo Square slope,
+            west of downtown; their own cluster, never under a tower ── */}
         <g className="sf-ladies">
-          <path d="M640 410 L 640 392 L 768 404 L 768 410 Z" className="sf-mid" />
-          {LADIES.map((l) => (
-            <g key={l.i}>
-              <rect x={l.x} y={l.base - l.h} width="13" height={l.h} />
-              <path d={`M${l.x - 1} ${l.base - l.h} L ${l.x + 6.5} ${l.base - l.h - 7} L ${l.x + 14} ${l.base - l.h} Z`} />
-              <rect x={l.x + 4} y={l.base - l.h + 6} width="5" height="7" className="sf-lady-win" />
-            </g>
-          ))}
+          <path d="M632 410 L 632 401 Q 706 393 778 399 L 778 410 Z" className="sf-mid" />
+          {LADIES.map((l) => {
+            const top = l.base - l.h;
+            return (
+              <g key={l.i}>
+                <rect x={l.x} y={top} width="16" height={l.h} />
+                <path d={`M${l.x - 1.5} ${top} L ${l.x + 8} ${top - 9} L ${l.x + 17.5} ${top} Z`} />
+                <rect x={l.x + 3} y={top + 6} width="4" height="6" className="sf-lady-win" />
+                <rect x={l.x + 9} y={top + 6} width="4" height="6" className="sf-lady-win" />
+                <rect x={l.x + 6} y={l.base - 11} width="4" height="6" className="sf-lady-win" />
+              </g>
+            );
+          })}
         </g>
 
-        {/* ── downtown ── */}
+        {/* ── downtown — the financial district. Each landmark is a clean,
+            well-separated silhouette so it reads on its own; a low base
+            grounds the cluster, and every window sits inside a shaft ── */}
         <g className="sf-city">
-          {/* back row */}
-          <rect x="762" y="294" width="26" height="116" />
-          <rect x="744" y="330" width="15" height="80" />
-          <rect x="900" y="306" width="22" height="104" />
-          <rect x="1046" y="290" width="20" height="120" />
-          <rect x="1090" y="316" width="18" height="94" />
-          <rect x="1106" y="336" width="16" height="74" />
-          {/* 555 California — fluted slab */}
-          <rect x="800" y="254" width="42" height="156" />
-          <path d="M804 254 V410 M812 254 V410 M820 254 V410 M828 254 V410 M836 254 V410" className="sf-flute" />
-          {/* Transamerica — pyramid, wings, spire */}
-          <path d="M858 410 L 873 396 L 886 220 Q 888 200 890 220 L 903 396 L 918 410 Z" />
-          <rect x="868" y="262" width="5" height="60" />
-          <rect x="903" y="262" width="5" height="60" />
-          <line x1="888" y1="206" x2="888" y2="178" className="sf-spire" />
-          {/* Moscone hall + banners, low in front */}
-          <rect x="848" y="394" width="58" height="16" />
-          <line x1="856" y1="394" x2="856" y2="380" className="sf-spire" />
-          <line x1="898" y1="394" x2="898" y2="380" className="sf-spire" />
-          <path d="M856 380 l 9 3 l -9 3 Z M898 380 l 9 3 l -9 3 Z" className="sf-banner" />
-          {/* Salesforce — round-shouldered tube + crown */}
+          {/* the low base that fills the gaps and meets the waterline */}
+          {BASE.map((b) => (
+            <rect key={b.x} x={b.x} y={410 - b.h} width={b.w} height={b.h} />
+          ))}
+
+          {/* 555 California Street — dark fluted slab, flat mechanical crown */}
+          <rect x="800" y="252" width="42" height="158" />
+          <rect x="809" y="244" width="24" height="9" />
+          <path d="M806 252 V410 M814 252 V410 M822 252 V410 M830 252 V410 M838 252 V410" className="sf-flute" />
+
+          {/* Transamerica Pyramid — pyramid, wings, spire (reads by shape) */}
+          <path d="M858 410 L 873 396 L 887 218 Q 888 211 889 218 L 903 396 L 918 410 Z" />
+          <rect x="868" y="300" width="5" height="96" />
+          <rect x="903" y="300" width="5" height="96" />
+          <line x1="888" y1="218" x2="888" y2="180" className="sf-spire" />
+          <circle cx="888" cy="178" r="1.6" className="sf-beacon" />
+
+          {/* Salesforce Tower — tallest, round-shouldered tube + LED crown */}
           <path d="M930 410 V 162 Q 930 142 948 142 Q 966 142 966 162 V 410 Z" />
           <g className="sf-crown">
             {[0, 1, 2, 3, 4].map((i) => (
               <rect key={i} x={932 + i * 7} y="146" width="4" height="10" style={{ ["--i" as string]: i }} />
             ))}
           </g>
-          {/* 181 Fremont — sloped crown; Millennium — flat + penthouse */}
-          <path d="M980 410 V 224 L 1002 210 V 410 Z" />
-          <rect x="1010" y="242" width="26" height="168" />
-          <rect x="1016" y="236" width="13" height="6" />
-          {/* rooftop antennas, lit at night */}
-          <line x1="821" y1="254" x2="821" y2="234" className="sf-antenna" />
-          <line x1="1099" y1="316" x2="1099" y2="298" className="sf-antenna" />
-          <circle cx="821" cy="232" r="1.5" className="sf-beacon" />
-          <circle cx="1099" cy="296" r="1.4" className="sf-beacon" />
-          {/* lit faces catch the sky on the east edge; the two headline
-              slabs also carry a shaded west face → each reads as a volume */}
-          <rect x="800" y="254" width="7" height="156" className="sf-shade" />
-          <rect x="834" y="254" width="8" height="156" className="sf-edge" />
+
+          {/* 181 Fremont — tapered shaft with an exposed structural crown */}
+          <path d="M984 410 V 236 L 992 214 L 1000 214 L 1008 236 V 410 Z" />
+          <path d="M992 214 V 203 M996 214 V 198 M1000 214 V 203" className="sf-spire" />
+
+          {/* Millennium Tower — flat residential slab + rooftop penthouse */}
+          <rect x="1022" y="250" width="34" height="160" />
+          <rect x="1030" y="244" width="18" height="6" />
+
+          {/* rooftop antenna + beacon on 555 California */}
+          <line x1="819" y1="244" x2="819" y2="226" className="sf-antenna" />
+          <circle cx="819" cy="224" r="1.5" className="sf-beacon" />
+
+          {/* lit faces — a sky-catching east edge + a shaded west face give
+              the headline slabs volume */}
+          <rect x="800" y="252" width="7" height="158" className="sf-shade" />
+          <rect x="835" y="252" width="7" height="158" className="sf-edge" />
           <rect x="930" y="162" width="8" height="248" className="sf-shade" />
           <rect x="958" y="152" width="8" height="258" className="sf-edge" />
-          <rect x="999" y="212" width="3" height="198" className="sf-edge" />
-          <rect x="1030" y="242" width="6" height="168" className="sf-edge" />
-          <rect x="785.5" y="294" width="2.5" height="116" className="sf-edge" />
-          {/* lit windows — opacity is the scene's call */}
+          <rect x="1004" y="236" width="4" height="174" className="sf-edge" />
+          <rect x="1050" y="250" width="6" height="160" className="sf-edge" />
+
+          {/* lit windows — strictly inside each shaft; opacity is the scene's */}
           <g className="sf-windows">
             {WINDOWS.filter((w) => !w.late).map((w, i) => (
               <rect key={i} x={w.x} y={w.y} width="3" height="4" />
@@ -437,48 +485,12 @@ export default function SfScene({
           </g>
         </g>
 
-        {/* row houses cresting Russian Hill, in front of the towers' feet */}
-        <g className="sf-hillhouses">
-          <path d="M752 410 L 752 392 Q 800 348 852 366 L 860 410 Z" />
-          {HILL_HOUSES.map((h) => (
-            <g key={h.i}>
-              <rect x={h.x} y={h.base - h.h} width="8" height={h.h} />
-              <path d={`M${h.x - 0.8} ${h.base - h.h} L ${h.x + 4} ${h.base - h.h - 4.5} L ${h.x + 8.8} ${h.base - h.h} Z`} />
-              {h.i % 2 === 0 && (
-                <rect x={h.x + 2.6} y={h.base - h.h + 3.4} width="3" height="4" className="sf-lady-win" />
-              )}
-            </g>
-          ))}
-        </g>
+        {/* (Telegraph Hill + Coit Tower removed — read ambiguously at this
+            scale. The Ferry Building is now drawn in front of the Bay
+            Bridge, further below, so the bridge sweeps behind its tower.) */}
 
-        {/* Telegraph Hill + Coit */}
-        <g className="sf-city">
-          <path d="M1100 410 Q 1124 366 1148 360 Q 1172 366 1192 410 Z" />
-          <rect x="1142" y="300" width="12" height="62" />
-          <path d="M1140 300 h16 l-2 -8 h-12 Z" />
-          <rect x="1144" y="288" width="8" height="6" />
-        </g>
-
-        {/* Ferry Building at the waterline */}
-        <g className="sf-city">
-          <rect x="1196" y="392" width="78" height="18" />
-          <rect x="1228" y="328" width="15" height="64" />
-          <rect x="1230" y="324" width="11" height="6" />
-          <path d="M1228 324 L 1235.5 312 L 1243 324 Z" />
-          <rect x="1232.5" y="338" width="6" height="6" className="sf-clock" />
-        </g>
-
-        {/* the arched pier sheds — the wharf gesture, masts behind */}
-        <g className="sf-piers">
-          <path d="M1126 410 L 1131 394 H 1171 L 1176 410 Z" />
-          <path d="M1142 410 A 9 8 0 0 1 1160 410 Z" className="sf-arch" />
-          <path d="M1286 410 L 1290 396 H 1324 L 1328 410 Z" />
-          <path d="M1299 410 A 8 7 0 0 1 1315 410 Z" className="sf-arch" />
-          <line x1="1137" y1="394" x2="1137" y2="384" />
-          <line x1="1165" y1="394" x2="1165" y2="386" />
-          <line x1="1295" y1="396" x2="1295" y2="387" />
-          <line x1="1319" y1="396" x2="1319" y2="388" />
-        </g>
+        {/* (the arched pier sheds that flanked the Ferry Building were
+            removed — they crowded it and the Bay Bridge tower) */}
 
         {/* Treasure Island under the bridge's east run */}
         <g className="sf-far">
@@ -505,6 +517,20 @@ export default function SfScene({
             </g>
           ))}
           <path d="M1196 322 Q 1232 350 1268 268 M1268 268 Q 1330 354 1392 268 M1392 268 Q 1430 330 1468 342" className="sf-cable" />
+          {/* vertical suspenders — faint structure in every scene */}
+          <g className="sf-bb-susp">
+            {BB_STRANDS.map((s) => (
+              <line key={s.x} x1={s.x} y1={s.y} x2={s.x} y2={BB.deck} />
+            ))}
+          </g>
+          {/* The Bay Lights — white LED strands that come up at night and
+              shimmer west→east across the span, evoking Leo Villareal's
+              2013 installation on the west-span cables */}
+          <g className="sf-baylights">
+            {BB_STRANDS.map((s, i) => (
+              <line key={s.x} x1={s.x} y1={s.y} x2={s.x} y2={BB.deck} style={{ ["--i" as string]: i }} />
+            ))}
+          </g>
           {/* the self-anchored mast east of Yerba Buena */}
           <rect x="1524" y="256" width="5" height="94" />
           <circle cx="1526.5" cy="252" r="1.6" className="sf-beacon" />
@@ -516,17 +542,32 @@ export default function SfScene({
           </g>
         </g>
 
-        {/* ── the yards: Oracle Park + Chase Center, on the south water ── */}
-        <g className="sf-yards">
-          <path d="M1216 410 L 1222 392 Q 1252 384 1282 392 L 1288 410 Z" />
-          {[1228, 1244, 1262, 1278].map((lx) => (
-            <g key={lx} className="sf-lightmast">
-              <line x1={lx} y1="390" x2={lx} y2="372" />
-              <rect x={lx - 5} y="368" width="10" height="4" rx="1" className="sf-floodhead" />
-            </g>
+        {/* ── the Ferry Building — the long Beaux-Arts arcade and its
+            Giralda-inspired clock tower at the foot of Market Street;
+            drawn here, after the bridge, so the Bay Bridge sweeps behind
+            its tower (the postcard view) ── */}
+        <g className="sf-city">
+          {/* the long two-storey arcade + its cornice */}
+          <rect x="1096" y="389" width="116" height="21" />
+          <rect x="1094" y="385" width="120" height="4" />
+          {/* the clock tower: shaft, belfry, hipped roof, flagpole */}
+          <rect x="1142" y="316" width="18" height="74" />
+          <rect x="1138" y="309" width="26" height="8" />
+          <rect x="1145" y="296" width="12" height="13" />
+          <rect x="1143" y="292" width="16" height="4" />
+          <path d="M1145 292 L 1151 282 L 1157 292 Z" />
+          <line x1="1151" y1="282" x2="1151" y2="274" className="sf-spire" />
+          <circle cx="1151" cy="273" r="1.4" className="sf-beacon" />
+        </g>
+        {/* the lit clock + the arcade marketplace glow — night-driven,
+            like the city's windows */}
+        <g className="sf-windows">
+          {/* the four-faced clock high on the tower */}
+          <rect x="1146" y="320" width="10" height="10" rx="1.5" />
+          {/* the arcade glow, either side of the tower */}
+          {[1101, 1110, 1119, 1128, 1174, 1183, 1192, 1201].map((wx) => (
+            <rect key={wx} x={wx} y="396" width="4" height="10" />
           ))}
-          <path d="M1318 410 L 1322 398 Q 1352 386 1382 398 L 1386 410 Z" />
-          <path d="M1330 400 h44" className="sf-flute" />
         </g>
 
         {/* ── the bay — wider than any screen ── */}
@@ -540,7 +581,7 @@ export default function SfScene({
         <g className="sf-glimmer">
           {[
             { x: 818, h: 30 }, { x: 884, h: 24 }, { x: 946, h: 38 },
-            { x: 992, h: 28 }, { x: 1022, h: 33 }, { x: 1148, h: 20 },
+            { x: 992, h: 28 }, { x: 1022, h: 33 }, { x: 1151, h: 22 },
           ].map((g, i) => (
             <rect key={g.x} x={g.x} y="413" width="2" height={g.h} style={{ ["--i" as string]: i }} />
           ))}
@@ -610,14 +651,14 @@ export default function SfScene({
 
         {/* ── fog — Karl, drawn three times, plus the marine band that
             rolls across the whole front when SF is really socked in ── */}
-        <g className="sf-fog" filter="url(#sf-fog)">
-          <ellipse className="sf-fog-gate" cx="240" cy="330" rx="240" ry="34" />
-          <ellipse className="sf-fog-low" cx="520" cy="372" rx="290" ry="22" />
-          <ellipse className="sf-fog-city" cx="900" cy="300" rx="300" ry="30" />
+        <g className="sf-fog">
+          <ellipse className="sf-fog-gate" cx="240" cy="330" rx="290" ry="48" />
+          <ellipse className="sf-fog-low" cx="520" cy="372" rx="340" ry="34" />
+          <ellipse className="sf-fog-city" cx="900" cy="300" rx="350" ry="44" />
         </g>
-        <g className="sf-marine" filter="url(#sf-fog)">
-          <ellipse cx="500" cy="356" rx="1100" ry="46" />
-          <ellipse cx="980" cy="338" rx="900" ry="38" />
+        <g className="sf-marine">
+          <ellipse cx="500" cy="356" rx="1150" ry="60" />
+          <ellipse cx="980" cy="338" rx="950" ry="52" />
         </g>
 
         {/* ── foreground: the cable-car grade ── */}

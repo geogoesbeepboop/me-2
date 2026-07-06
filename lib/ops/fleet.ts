@@ -5,7 +5,8 @@ import { scanSessions, transcriptsAvailable } from "./sessions";
 import { recentCommits, repoStatus } from "./git";
 import { listSteering } from "./steer";
 import { AGENT_PROFILES, operateVerbs } from "./profiles";
-import type { AgentOps, AgentState, FleetSnapshot, OpsSession } from "./types";
+import { readNightlyDigests } from "./gates";
+import type { AgentOps, AgentState, FleetSnapshot, NightlyDigest, OpsSession } from "./types";
 
 /**
  * FLEET ASSEMBLY — one snapshot of every agent's real state.
@@ -98,15 +99,34 @@ async function measureAgent(
   };
 }
 
+/** resolve digest repo basenames to fleet slugs, and hand each agent its
+ *  latest run — the digest names repos by directory, the board by slug */
+function attachNightly(agents: AgentOps[], digests: NightlyDigest[]): void {
+  const bySlug = new Map(
+    agents.filter((a) => a.repoPath).map((a) => [path.basename(a.repoPath as string), a])
+  );
+  for (const d of digests) {
+    for (const run of d.runs) {
+      const agent = bySlug.get(run.repo);
+      if (!agent) continue;
+      run.slug = agent.slug;
+      if (!agent.nightly) agent.nightly = { ...run, at: d.at };
+    }
+  }
+}
+
 export async function measureFleet(windowHours = 24): Promise<FleetSnapshot> {
   const agents = await Promise.all(
     roster().map((r) => measureAgent(r, windowHours, true))
   );
+  const gateDigests = readNightlyDigests();
+  attachNightly(agents, gateDigests);
   return {
     mode: "live",
     generatedAt: new Date().toISOString(),
     windowHours,
     agents,
+    gateDigests,
   };
 }
 
@@ -152,12 +172,19 @@ export function sanitizeForRecord(snap: FleetSnapshot): FleetSnapshot {
       ...a,
       repoPath: undefined,
       steering: undefined,
+      nightly: a.nightly && { ...a.nightly, tail: undefined },
       sessions: a.sessions.map((s) => ({
         ...s,
         lastPrompt: undefined,
         topFiles: undefined,
         title: s.titleSource === "prompt" ? "untitled session" : s.title,
       })),
+    })),
+    // gate/eval statuses and durations are measured numbers — they file;
+    // failure log tails can quote paths and code, so they stay home
+    gateDigests: snap.gateDigests?.map((d) => ({
+      ...d,
+      runs: d.runs.map((r) => ({ ...r, tail: undefined })),
     })),
   };
 }

@@ -76,7 +76,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       { token: "vibe-review", unit: "taste review" },
       { token: "library-status", unit: "library check" },
     ],
-    verify: ["test-gate", "dj.evals", "ruff"],
+    verify: ["test-gate", "dj.evals", "ruff", "gate.sh", "evals.sh"],
     metrics: [
       { k: "test fns", v: "213" },
       { k: "CLAP vector", v: "512-d" },
@@ -105,7 +105,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       { token: "grocery-buddy scraper-health", unit: "scraper probe" },
       { token: "grocery-buddy gate", unit: "gate check" },
     ],
-    verify: ["make test", "make evals", "grocery-buddy evals", "ruff"],
+    verify: ["make test", "make evals", "grocery-buddy evals", "ruff", "gate.sh", "evals.sh"],
     metrics: [
       { k: "test fns", v: "124" },
       { k: "orders placed", v: "0" },
@@ -128,15 +128,16 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       { token: "jim-dashboard", unit: "margin read" },
       { token: "precompute.py", unit: "precompute run" },
     ],
-    verify: ["jim-eval", "ruff"],
+    verify: ["jim-eval", "ruff", "gate.sh", "evals.sh"],
     metrics: [
-      { k: "offline tests", v: "114" },
+      // mined 2026-07-06: 172 = grep -rc "^def test_" tests/; 88 = 39 gate
+      // + 40 guard + 9 scenario cases (ADR-0009, dataset*.py/scenarios.py)
+      { k: "test fns", v: "172" },
+      { k: "offline eval cases", v: "88" },
       { k: "data budget cap", v: "$0.10", gate: true, money: true },
       { k: "faithfulness gate", v: "≥0.8", gate: true },
-      { k: "memo price", v: "$0.25", money: true },
     ],
     outputUnpersisted: true,
-    noGitHistory: true,
   },
 
   "procurement-agent": {
@@ -148,7 +149,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       { token: "workflows.worker", unit: "worker run" },
       { token: "webhook.app", unit: "auth endpoint" },
     ],
-    verify: ["ruff"],
+    verify: ["ruff", "gate.sh", "evals.sh"],
     metrics: [
       { k: "tests", v: "57" },
       { k: "auto-spend cap", v: "$50", gate: true, money: true },
