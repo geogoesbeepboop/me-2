@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-07-06T08:53:49.144Z",
+  "generatedAt": "2026-07-06T09:08:43.480Z",
   "windowHours": 24,
   "agents": [
     {
@@ -925,7 +925,7 @@
       "mandate": "The site you're reading — a living archive that measures its own fleet and files the report.",
       "metrics": [],
       "branch": "site/landing-umph",
-      "dirty": 14,
+      "dirty": 4,
       "state": "parked",
       "stateDetail": "no activity for 2 days",
       "lastActiveAt": "2026-07-04T05:58:34.460Z",
@@ -1210,7 +1210,18 @@
           }
         }
       ],
-      "commits": []
+      "commits": [
+        {
+          "hash": "5563a6bcf0c0b91a00ac2d1353966b1703f204da",
+          "shortHash": "5563a6b",
+          "subject": "The bar goes quiet, the scroll goes smooth, and the night watch takes the board",
+          "at": "2026-07-06T01:59:19-07:00",
+          "files": 16,
+          "ins": 1548,
+          "del": 836,
+          "refs": "HEAD -> site/landing-umph"
+        }
+      ]
     }
   ],
   "gateDigests": [

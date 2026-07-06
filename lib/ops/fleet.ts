@@ -20,7 +20,11 @@ import type { AgentOps, AgentState, FleetSnapshot, NightlyDigest, OpsSession } f
  * data/fleet-snapshot.json and is labeled RECORDED with its timestamp.
  */
 
-const SNAPSHOT_PATH = path.join(process.cwd(), "data", "fleet-snapshot.json");
+// overridable so the filing automation can cut a report in this checkout
+// but write it straight into the publishing worktree (scripts/file-report.sh)
+const SNAPSHOT_PATH =
+  process.env.FLEET_SNAPSHOT_PATH ??
+  path.join(process.cwd(), "data", "fleet-snapshot.json");
 const SESSION_CAP = 12;
 
 interface RosterEntry {

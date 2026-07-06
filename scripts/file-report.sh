@@ -1,35 +1,50 @@
 #!/usr/bin/env bash
-# file-report.sh — the fleet files its own morning report.
+# file-report.sh — the fleet files its own morning report, unconditionally.
 #
 # Scheduled by ~/Library/LaunchAgents/me.ops-report.plist at 06:45, half an
-# hour after the nightly gate digest (06:17) so the snapshot it cuts already
-# contains the fresh gate/eval results. The pipeline is ops-snapshot's own:
-# cut → sanitize (enforced in code) → commit only the snapshot file → push →
-# the host redeploys and serves the new record.
+# hour after the nightly gate digest (06:17) so the snapshot already carries
+# the fresh gate/eval results.
 #
-# Fail-open guards, in keeping with the rest of the automation:
-#   - not on main            → skip (file from the branch you publish from;
-#                              a feature-branch night just misses one filing)
-#   - anything already staged → skip (the data commit must carry data only —
-#                              ops-snapshot would refuse anyway; we skip
-#                              earlier and quieter)
-# A skipped filing is a log line, never a stuck morning.
+# Measurement runs in THIS checkout (real repo paths, real transcripts) —
+# but the record publishes through a detached worktree pinned to origin/main
+# (~/dev/me-2--reports), so filing never depends on which branch the
+# operator's checkout happens to be on. The pad is a pure publishing pad:
+# nothing builds or runs there; it receives one sanitized JSON file, commits
+# it to main, pushes, and the host redeploys.
+#
+# Failure is fail-open: a rejected push or an asleep machine just means the
+# next morning files instead. Log: ~/Library/Logs/me.ops-report.log
 set -euo pipefail
 
 # launchd runs with a bare PATH — node/npm live in homebrew
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-cd "$(cd "$(dirname "$0")/.." && pwd)"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+PAD="$HOME/dev/me-2--reports"
+stamp() { date '+%F %H:%M'; }
 
-branch=$(git rev-parse --abbrev-ref HEAD)
-if [ "$branch" != "main" ]; then
-  echo "file-report [$(date '+%F %H:%M')]: checkout is on '$branch', not main — skipping today's auto-file."
+cd "$REPO"
+git fetch origin
+
+# bootstrap the publishing pad on first run
+if [ ! -d "$PAD" ]; then
+  git worktree add --detach "$PAD" origin/main
+  echo "file-report [$(stamp)]: publishing pad created at $PAD"
+fi
+
+# the pad always publishes on top of the current main tip; a stray unpushed
+# commit or dirty file from a crashed run is discarded — today's cut wins
+git -C "$PAD" reset --hard origin/main --quiet
+
+# cut the report HERE (live sources), write it straight into the pad
+FLEET_SNAPSHOT_PATH="$PAD/data/fleet-snapshot.json" npm run ops:snapshot -- 24
+
+if [ -z "$(git -C "$PAD" status --porcelain -- data/fleet-snapshot.json)" ]; then
+  echo "file-report [$(stamp)]: record unchanged — nothing to file."
   exit 0
 fi
-if [ -n "$(git diff --cached --name-only)" ]; then
-  echo "file-report [$(date '+%F %H:%M')]: staged changes present — skipping."
-  exit 0
-fi
 
-echo "file-report [$(date '+%F %H:%M')]: filing the morning report…"
-npm run ops:snapshot -- 24 --commit --push
+git -C "$PAD" add data/fleet-snapshot.json
+git -C "$PAD" commit --quiet -m "ops: file the fleet report ($(stamp))"
+git -C "$PAD" push origin HEAD:main
+echo "file-report [$(stamp)]: filed and pushed — the deploy will serve this report."

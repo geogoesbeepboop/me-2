@@ -120,15 +120,35 @@ explore layer reaches actual implementation depth.
   redeploys and serves it. Sanitization is enforced in
   `sanitizeForRecord` — prompts, prompt-derived titles, repo and file
   paths, patches, steering notes and gate-failure tails never enter the
-  record; assigned titles and measured numbers only. The script commits
-  to whatever branch is checked out — run it from the branch you publish
-  from. **Filing is automated:** `~/Library/LaunchAgents/me.ops-report.plist`
-  (INSTALLED, 06:45 daily — half an hour after the gate digest so the
-  snapshot carries the fresh results) runs `scripts/file-report.sh`,
-  which fail-opens: not on `main`, or anything staged → it logs and
-  skips that morning (`~/Library/Logs/me.ops-report.log`). Manage it
-  like the digest agent: `launchctl print|kickstart|bootout
-  gui/$UID/me.ops-report`.
+  record; assigned titles and measured numbers only. **Filing is
+  automated and branch-independent:**
+  `~/Library/LaunchAgents/me.ops-report.plist` (INSTALLED, 06:45 daily —
+  half an hour after the gate digest so the snapshot carries the fresh
+  results) runs `scripts/file-report.sh`: measurement happens in this
+  checkout (real repo paths and transcripts), but the record publishes
+  through a detached worktree pinned to `origin/main`
+  (`~/dev/me-2--reports`, auto-created), so the daily filing never
+  depends on which branch the operator is working on. Log:
+  `~/Library/Logs/me.ops-report.log`; manage with `launchctl
+  print|kickstart|bootout gui/$UID/me.ops-report`.
+- **Content curates itself weekly (the autonomy decision, 2026-07-06).**
+  `~/Library/LaunchAgents/me.curator.plist` (INSTALLED, Sunday 07:15)
+  runs `scripts/curate.sh`: for each project entry whose source repo has
+  commits newer than the entry's `updated:` date, it runs
+  `/update-project <slug>` headless (`claude -p`) in the
+  `.claude-worktrees/curator` worktree — placed there deliberately so
+  the curator's own sessions appear on the ops board and its commits in
+  the shift log; the board is the notification. George chose **fully
+  autonomous merge to main** over PR review for curator output; the
+  counterweight is deterministic: the result publishes ONLY if the
+  content check passes, the production build passes, and the diff stays
+  inside content/ · lib/inspect/ · lib/ops/profiles.ts. Any gate failing
+  parks the work on a `site/auto-curate-<date>` branch instead. No drift
+  → no model run → $0. Human sessions still work on `site/*` branches
+  for George's review — the autonomy applies to the curator alone.
+  Manual: `scripts/curate.sh --dry-run` (drift report only) or
+  `CURATE_ONLY=<slug> scripts/curate.sh`. Log:
+  `~/Library/Logs/me.curator.log`.
 - Steering notes land in `~/.claude/fleet/steering/<repo basename>/`;
   nothing reads them automatically — repos opt in with the SessionStart
   hook shown in /v2/ops under PROTOCOL.
