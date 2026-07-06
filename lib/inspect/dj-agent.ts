@@ -2,48 +2,103 @@ import type { InspectMap } from "./types";
 
 /**
  * The artifact behind each component of ~/dev/dj-agent, distilled into
- * designed blocks — flows, rules, schema maps. Every name, number,
- * threshold and quote is as coded in the repo; nothing illustrative.
+ * designed blocks — sub-graphs, flows, rules, schema maps. The topology
+ * shows 12 chunks; clicking one opens the real wiring inside it. Every
+ * name, number, threshold and quote is as coded in the repo; nothing
+ * illustrative.
  */
 export const DJ_AGENT: InspectMap = {
-  cur: {
+  ingest: {
     path: "src/dj/curator.py",
-    note: "one track in: segment → analyze → embed → one upsert, under a trace span",
+    note: "one track in — the deterministic analyses fan out, and everything lands as one idempotent transaction",
     blocks: [
       {
-        kind: "flow",
-        title: "Ingesting one track",
-        states: [
-          { id: "ref", label: "track file", col: 0, row: 0 },
-          { id: "seg", label: "segment", col: 1, row: 0 },
-          { id: "ana", label: "analyze", col: 2, row: 0 },
-          { id: "emb", label: "embed (clap)", col: 3, row: 0 },
-          { id: "up", label: "one upsert", col: 3, row: 1, kind: "terminal" },
+        kind: "graph",
+        title: "One track, one transaction",
+        caption:
+          "no model anywhere in ingest — five analyses from one file, one upsert at the end",
+        nodes: [
+          { id: "src", label: "source file", sub: "local folder · resolved link", col: 2, row: 0 },
+          { id: "seg", label: "allin1 sections", sub: "bpm · downbeats · grid-snapped", col: 0, row: 1 },
+          { id: "lufs", label: "loudness", sub: "integrated LUFS · pyloudnorm", col: 1, row: 1 },
+          { id: "key", label: "camelot key", sub: "chroma → krumhansl", col: 2, row: 1 },
+          { id: "clap", label: "clap vectors", sub: "512-d · track + per-section", col: 3, row: 1 },
+          { id: "tags", label: "id3 tags", sub: "mutagen · isrc kept", col: 4, row: 1 },
+          { id: "up", label: "upsert_track", sub: "1 track row + N section rows", col: 2, row: 2, accent: true },
         ],
-        transitions: [
-          { from: "ref", to: "seg" },
-          { from: "seg", to: "ana", label: "beat grid + sections" },
-          { from: "ana", to: "emb", label: "bpm · key · lufs" },
-          { from: "emb", to: "up", label: "track + section vectors" },
+        edges: [
+          { from: "src", to: "seg" },
+          { from: "src", to: "lufs" },
+          { from: "src", to: "key" },
+          { from: "src", to: "clap" },
+          { from: "src", to: "tags" },
+          { from: "seg", to: "clap", label: "section bounds" },
+          { from: "seg", to: "up" },
+          { from: "lufs", to: "up" },
+          { from: "key", to: "up" },
+          { from: "clap", to: "up" },
+          { from: "tags", to: "up" },
+        ],
+      },
+      {
+        kind: "steps",
+        title: "The link path (ADR 0009) — a pasted URL becomes a library file",
+        items: [
+          {
+            name: "classify",
+            tag: "gate",
+            detail:
+              "pure URL parsing — spotify track/album/playlist/artist, youtube video/shorts/playlist; anything else fails fast, naming what is supported",
+          },
+          {
+            name: "resolve",
+            tag: "io",
+            detail:
+              "spotify gives names, durations and the ISRC — catalog metadata only, never audio",
+          },
+          {
+            name: "match on youtube",
+            tag: "gate",
+            detail:
+              "ytsearch5, scored — duration within ±25 s of the catalog dominates; live / sped-up / cover tokens penalized unless I asked for them",
+          },
+          {
+            name: "fetch → flac",
+            tag: "io",
+            detail:
+              "yt-dlp download, idempotent by video id — re-pasting a playlist pulls only what's new",
+          },
+          {
+            name: "stamp identity",
+            tag: "io",
+            detail:
+              "the rip carries no tags, so the resolved artist / title / ISRC are written onto the file before it hits the same ingest path as a local file",
+          },
         ],
       },
       {
         kind: "rules",
+        title: "Idempotent, forever",
         items: [
           {
-            name: "idempotent",
+            name: "one transaction",
             detail:
-              "the upsert is one statement, on-conflict by path — re-ingesting a track updates it, never duplicates it.",
+              "the track row upserts ON CONFLICT (path); its old sections are deleted and the new set inserted in the same transaction — re-ingesting updates, never duplicates.",
           },
           {
-            name: "sections are first-class",
+            name: "sticky signals",
             detail:
-              "every section gets its own LUFS measurement, its own CLAP vector, its mix-in/mix-out/loopable flags — written in the same upsert as the track.",
+              "is_favorite ORs with the existing row and a known ISRC survives a re-ingest that arrives without one — a plain re-run can't erase a taste signal.",
           },
           {
-            name: "traced",
+            name: "parked reviews drain",
             detail:
-              "the whole ingest runs under a curate-track span with section count and detector source in the metadata.",
+              "a taste review left before the file existed auto-applies on a confident match — ISRC, or unique name plus duration; anything ambiguous stays parked for a one-line manual resolve.",
+          },
+          {
+            name: "keep going",
+            detail:
+              "one bad file prints FAILED and the run continues — a 40-track playlist never dies on entry 3.",
           },
         ],
       },
@@ -125,55 +180,9 @@ export const DJ_AGENT: InspectMap = {
           },
         ],
       },
-    ],
-  },
-
-  ana: {
-    path: "src/dj/audio/analyze.py",
-    note: "bpm, key → camelot, and cross-track lufs from one waveform",
-    blocks: [
-      {
-        kind: "steps",
-        title: "Features from one mono waveform",
-        items: [
-          { name: "bpm", tag: "gate", detail: "the detector's value when present; otherwise an octave-corrected librosa estimate" },
-          { name: "key → camelot", tag: "gate", detail: "chroma CQT averaged, Krumhansl correlation over 12 rotations, pitch class + mode mapped to the Camelot wheel" },
-          { name: "loudness", tag: "gate", detail: "integrated LUFS — the cross-track-comparable measure, not raw RMS" },
-          { name: "energy curve", tag: "gate", detail: "RMS downsampled to a fixed-length normalized arc, for display and arc-fitting" },
-        ],
-      },
       {
         kind: "note",
-        text: "Pure signal processing — no model anywhere in analysis. The core function takes a waveform, not a path, so the whole feature extractor is testable without audio files.",
-      },
-    ],
-  },
-
-  taste: {
-    path: "src/dj/taste/propagate.py",
-    note: "spreads my hand-written labels across the library via clap neighbors",
-    blocks: [
-      {
-        kind: "steps",
-        title: "A provisional taste vector for an untagged track",
-        items: [
-          { name: "find acoustic neighbors", tag: "gate", detail: "top-k (k = 8) tagged tracks by CLAP cosine similarity" },
-          { name: "weight by similarity", tag: "gate", detail: "negative similarities clipped to zero; weights normalized — nothing is learned from a dissimilar track" },
-          { name: "blend their taste", tag: "gate", detail: "similarity-weighted average of the neighbors' 384-d taste vectors, re-normalized" },
-          { name: "carry a confidence", tag: "gate", detail: "the weighted mean neighbor similarity (0–1) rides along — downstream can discount weak propagation" },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "k", v: "8 neighbors" },
-          { k: "taste dim", v: "384" },
-          { k: "no neighbors similar", v: "returns None — nothing to learn from" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "My hand-written taste notes embed to 384-d vectors (taste/embed.py); propagation gives every untagged track a provisional rating and vector from its tagged acoustic neighbors — taste_source records 'manual' vs 'propagated' so the two are never confused.",
+        text: "Key and loudness (analyze.py) are pure signal processing over one mono waveform — chroma CQT correlated against the Krumhansl profiles over 12 rotations for Camelot, pyloudnorm integrated LUFS for cross-track-comparable energy. The core function takes a waveform, not a path, so the whole feature extractor tests without audio files.",
       },
     ],
   },
@@ -199,10 +208,12 @@ export const DJ_AGENT: InspectMap = {
               { name: "bpm", type: "REAL · downbeat-derived" },
               { name: "camelot", type: "TEXT" },
               { name: "loudness_lufs", type: "REAL · comparable" },
+              { name: "first_downbeat_s", type: "REAL · grid anchor" },
               { name: "embedding", type: "vector(512) · CLAP" },
               { name: "taste_note", type: "TEXT · nullable" },
               { name: "taste_vec", type: "vector(384) · nullable" },
               { name: "taste_source", type: "manual · propagated" },
+              { name: "taste_confidence", type: "REAL · 0–1" },
             ],
           },
           {
@@ -213,6 +224,9 @@ export const DJ_AGENT: InspectMap = {
             columns: [
               { name: "id", type: "BIGSERIAL", key: "pk" },
               { name: "track_id", type: "BIGINT", key: "fk", ref: "tracks" },
+              { name: "label", type: "intro … drop … outro" },
+              { name: "energy_lufs", type: "REAL · this section" },
+              { name: "is_mixin · is_mixout", type: "BOOLEAN · cue flags" },
               { name: "embedding", type: "vector(512) · THIS section" },
             ],
           },
@@ -240,36 +254,62 @@ export const DJ_AGENT: InspectMap = {
     ],
   },
 
-  clap: {
-    path: "src/dj/vibe/clap.py",
-    note: "one audio load yields the 512-d track vector and every per-section vector",
+  taste: {
+    path: "src/dj/taste/",
+    note: "two spaces, one bridge — my words become vectors, and CLAP neighbors spread sparse labels across the library",
     blocks: [
       {
-        kind: "kv",
-        items: [
-          { k: "window", v: "~10 s · CLAP's training clip length" },
-          { k: "max windows", v: "12 · ~2 min sampled evenly" },
-          { k: "output", v: "512-d, L2-normalized" },
-          { k: "audio loads per track", v: "1", accent: true },
+        kind: "graph",
+        title: "The dual taste space",
+        caption:
+          "512-d hears the track; 384-d speaks my words — propagation bridges them so ~150 hand tags can cover a library",
+        nodes: [
+          { id: "note", label: "my note", sub: "“dreamy 3am closer” · rating", col: 0, row: 0 },
+          { id: "st", label: "sentence model", sub: "all-MiniLM-L6-v2 · 384-d", col: 1, row: 0 },
+          { id: "man", label: "manual taste_vec", sub: "confidence 1.0", col: 2, row: 0 },
+          { id: "clapsp", label: "clap space", sub: "512-d · what it sounds like", col: 0, row: 1 },
+          { id: "nb", label: "k = 8 neighbors", sub: "tagged tracks · cosine", col: 1, row: 1 },
+          { id: "prop", label: "propagated taste_vec", sub: "weighted avg · measured confidence", col: 2, row: 1 },
+          { id: "blend", label: "blended rank", sub: ".5 acoustic · .4 taste · .1 rating", col: 3, row: 0, accent: true },
+          { id: "queue", label: "labeling queue", sub: "most uncertain first", col: 3, row: 1 },
+        ],
+        edges: [
+          { from: "note", to: "st", label: "embeds" },
+          { from: "st", to: "man" },
+          { from: "clapsp", to: "nb", label: "acoustic similarity" },
+          { from: "nb", to: "prop", label: "similarity-weighted" },
+          { from: "man", to: "blend", label: "counts in full" },
+          { from: "prop", to: "blend", label: "discounted" },
+          { from: "nb", to: "queue", label: "far or disagreeing" },
+          { from: "queue", to: "note", label: "what to tag next", dashed: true },
         ],
       },
       {
         kind: "rules",
         items: [
           {
-            name: "track vector",
-            detail: "mean-pool ALL windows — the discovery vector (tracks.embedding).",
+            name: "manual beats propagated",
+            detail:
+              "a label I wrote counts at confidence 1.0; a propagated one counts at its measured propagation confidence (0.5 when unmeasured) — taste_source keeps the two from ever being confused.",
           },
           {
-            name: "section vectors",
+            name: "cold start is acoustic",
             detail:
-              "mean-pool only the windows inside each section's (start, end) span — that section's own vibe (sections.embedding).",
+              "no taste vector → the taste term contributes 0 and ranking falls back to pure acoustic — the intended behavior before enough tags exist (ADR 0003).",
           },
           {
-            name: "why both",
+            name: "nothing from dissimilar tracks",
             detail:
-              "averaging a 6-minute track's ambient intro with its peak drop yields a mushy midpoint that represents neither — the parts get their own vectors, and transition matching compares parts.",
+              "propagation clips negative similarities to zero before weighting; no positively-similar tagged neighbor → None — nothing to learn from, so nothing is guessed.",
           },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "blend α · β · γ", v: "0.5 acoustic · 0.4 taste · 0.1 rating", accent: true },
+          { k: "taste model", v: "all-MiniLM-L6-v2 · local" },
+          { k: "propagation", v: "k = 8 CLAP neighbors" },
         ],
       },
     ],
@@ -328,9 +368,9 @@ export const DJ_AGENT: InspectMap = {
         kind: "steps",
         title: "plan_arc — brief in, arc out",
         items: [
-          { name: "model drafts the arc", tag: "model", detail: "JSON only — a name plus 4–7 {position, bpm, lufs} control points" },
-          { name: "parse + sanity check", tag: "gate", detail: "unparseable JSON or fewer than 2 points → discarded" },
-          { name: "deterministic fallback", tag: "gate", detail: "no model, a failed call, or a failed parse → a coded arc shape; plan_arc never raises" },
+          { name: "model drafts the arc", tag: "model", detail: "JSON only — a name plus 4–7 {position, bpm, lufs} control points; the genre profile seeds the BPM band it sees" },
+          { name: "parse + sanity check", tag: "gate", detail: "unparseable JSON, fewer than 2 points, or all positions equal → discarded" },
+          { name: "deterministic fallback", tag: "gate", detail: "no model, a failed call, or a failed parse → shape_from_brief picks a coded arc; plan_arc never raises" },
         ],
       },
       {
@@ -369,9 +409,15 @@ export const DJ_AGENT: InspectMap = {
         kind: "rules",
         items: [
           {
+            name: "the pool",
+            value: "k = 60",
+            detail:
+              "query_vibe_db retrieves 60 candidates by the blended score — the brief embeds through CLAP's text encoder for the acoustic side and the sentence model for the taste side — hard-filtered to the arc's BPM band (±4) with recently-played tracks excluded.",
+          },
+          {
             name: "play spans, not points",
             detail:
-              "each slot plans entry → core → exit: a mix-in-flagged section at or before the core, a mix-out-flagged one at or after, chosen to fill the genre's airtime window. The critic still grades the core's LUFS.",
+              "each slot plans entry → core → exit: a mix-in-flagged section at or before the core, a mix-out-flagged one at or after, chosen to fill the genre's airtime window. The critic grades the core's LUFS.",
           },
           {
             name: "what the prompt optimizes",
@@ -380,6 +426,7 @@ export const DJ_AGENT: InspectMap = {
           },
           {
             name: "best-so-far, then greedy",
+            value: "≤ 3 revisions",
             detail:
               "every revision is scored; if none passes, the best report wins. If the model produces nothing usable at all, a deterministic greedy selection still returns a set — the pipeline never dead-ends.",
           },
@@ -394,15 +441,43 @@ export const DJ_AGENT: InspectMap = {
     blocks: [
       {
         kind: "rules",
-        title: "The default gates — genres override the jump and harmonic bars",
+        title: "The bars — genres override the jump and harmonic gates",
         items: [
-          { name: "max_bpm_jump", value: "6.0", detail: "BPM difference between adjacent slots." },
-          { name: "max_lufs_jump", value: "5.0", detail: "energy difference between adjacent slots." },
-          { name: "min_harmonic_compat", value: "≥ 0.7", detail: "fraction of transitions that are Camelot-compatible." },
-          { name: "max_arc_rmse_lufs", value: "≤ 4.0", detail: "RMSE between the set's actual LUFS curve and the arc's target." },
-          { name: "max_artist_repeats", value: "0", detail: "back-to-back same-artist transitions allowed." },
-          { name: "min_artist_gap", value: "≥ 3", detail: "slots the same artist must be apart." },
-          { name: "max_key_run", value: "≤ 4", detail: "consecutive identical-Camelot slots before it's monotonous." },
+          {
+            name: "max_bpm_jump",
+            value: "6.0",
+            detail: "BPM between adjacent slots — the genre's call: 4.0 techno · 12.0 hip-hop · 14.0 pop.",
+          },
+          {
+            name: "min_harmonic_compat",
+            value: "≥ 0.7",
+            detail: "fraction of transitions Camelot-compatible — 0.75 techno, 0.8 trance and house, 0.4 hip-hop.",
+          },
+          {
+            name: "max_arc_rmse_lufs",
+            value: "≤ 4.0",
+            detail: "RMSE between the set's actual LUFS curve and the arc's target — holds for every genre.",
+          },
+          {
+            name: "max_artist_repeats",
+            value: "0",
+            detail: "back-to-back same-artist transitions — a hard fail in every genre.",
+          },
+          {
+            name: "max_lufs_jump",
+            value: "5.0",
+            detail: "energy jump between adjacent slots — flags the transition rough; roughness feeds the critique, not pass/fail.",
+          },
+          {
+            name: "min_artist_gap",
+            value: "≥ 3",
+            detail: "slots the same artist must be apart — soft: surfaced in the notes the next revision is prompted with.",
+          },
+          {
+            name: "max_key_run",
+            value: "≤ 4",
+            detail: "consecutive identical-Camelot slots before it's monotonous — soft, like the gap rule.",
+          },
         ],
       },
       {
@@ -430,6 +505,7 @@ export const DJ_AGENT: InspectMap = {
         items: [
           { k: "HITL_LEVEL=none", v: "auto-approves (printed, not silent)" },
           { k: "EOF on stdin", v: "treated as no" },
+          { k: "either way", v: "the plan + verdict log to set history" },
         ],
       },
     ],
@@ -475,19 +551,29 @@ export const DJ_AGENT: InspectMap = {
     ],
   },
 
-  mixer: {
-    path: "src/dj/mixer.py",
-    note: "beatmatch ratio, equal-power crossfade, and the butterworth bass swap",
+  exp: {
+    path: "src/dj/export/",
+    note: "the plan is the product — every approval writes three artifacts; the .wav renders on demand",
     blocks: [
       {
+        kind: "steps",
+        title: "What an approval writes",
+        items: [
+          { name: "rekordbox.xml", tag: "io", detail: "per-track cues — MIX IN, MIX OUT, and a third hot cue on the core's hit point, each doubled as a memory cue — plus a real TEMPO anchor at the first downbeat, so the decks show the grid the mixer assumed" },
+          { name: ".m3u8", tag: "io", detail: "the plain playlist — works in anything" },
+          { name: "set sheet", tag: "io", detail: "a printable markdown cue card: track table, per-transition bar counts and blend style (long blend · blend · short blend · quick cut), critic warnings inline" },
+          { name: ".wav, on --render", tag: "io", detail: "the automatic mix of the whole set — the only artifact that costs audio compute" },
+        ],
+      },
+      {
         kind: "rules",
-        title: "How two tracks join",
+        title: "How two tracks join — the render",
         items: [
           {
             name: "beatmatch",
             value: "dst ÷ src",
             detail:
-              "the pyrubberband time-stretch rate that matches the incoming track's tempo — >1 means play faster.",
+              "the pyrubberband time-stretch rate that matches the incoming track's tempo — clamped to the genre's max_stretch in both planning and render, so a track is never warped past what the genre tolerates.",
           },
           {
             name: "equal-power crossfade",
@@ -499,7 +585,7 @@ export const DJ_AGENT: InspectMap = {
             name: "bass swap",
             value: "high-pass 180 Hz",
             detail:
-              "the incoming track is Butterworth high-passed through the overlap so two basslines never clash; the outgoing track owns the low end until the join completes.",
+              "the incoming track is Butterworth high-passed through the overlap so two basslines never clash; without scipy the swap is skipped but the crossfade still happens — degraded, never broken.",
           },
           {
             name: "phrase quantization",
@@ -507,52 +593,74 @@ export const DJ_AGENT: InspectMap = {
             detail:
               "crossfade bars — half the outgoing section — quantize DOWN to a power of two and cap at the genre's blend limit, so joins land on phrase boundaries: 2-bar cuts for hip-hop, 16-bar blends for house.",
           },
-          {
-            name: "stretch budget",
-            detail:
-              "the tempo bend toward the arc is clamped by the genre's max_stretch in both planning and render — a track is never warped past what the genre tolerates.",
-          },
-          {
-            name: "graceful without scipy",
-            detail:
-              "no scipy → the swap is skipped but the equal-power crossfade still happens — degraded, never broken.",
-          },
         ],
+      },
+      {
+        kind: "note",
+        text: "The render tail normalizes on a robust peak — the 99.9th-percentile sample scaled to a 0.97 ceiling, rare overs hard-clipped — because dividing by the absolute max lets one stray transient crush the whole set's level and flatten the energy arc.",
       },
     ],
   },
 
-  exp: {
-    path: "src/dj/export/",
-    note: "the plan is the product — every approval writes three artifacts; the .wav is on demand",
+  verify: {
+    path: ".claude/gate.sh",
+    note: "the fast gate, the eval scorecard, and the set history — what keeps the bench honest",
     blocks: [
       {
-        kind: "steps",
-        title: "What an approval writes",
+        kind: "rules",
+        title: "The gate — on every commit",
         items: [
-          { name: "rekordbox.xml", tag: "io", detail: "per-track cues — MIX IN, MIX OUT, and a third hot cue on the core's hit point — plus a real TEMPO anchor at the first downbeat, so the decks show the grid the mixer assumed" },
-          { name: ".m3u8", tag: "io", detail: "the plain playlist — works in anything" },
-          { name: "set sheet", tag: "io", detail: "a printable markdown cue card: track table, per-transition bar counts and blend style (long blend · blend · short blend · quick cut), critic warnings inline" },
-          { name: ".wav, on --render", tag: "io", detail: "the automatic mix of the whole set — the only artifact that costs audio compute" },
+          {
+            name: "ruff + 256 fast tests",
+            value: "~19 s",
+            detail:
+              "runs on git commit via the guard-commit hook — no DB, no network, no audio fixtures, no model downloads. The 4 tests that pull CLAP/sentence weights are marked slow and deselected.",
+          },
+          {
+            name: "hermetic by design",
+            detail:
+              "every external — DB, models, yt-dlp, audio libs — sits behind an injectable seam or a lazy import, so the whole planning stack tests with fakes.",
+          },
         ],
       },
       {
         kind: "rules",
-        title: "The render tail — loudness-preserving normalize",
+        title: "The scorecard (evals/runner.py)",
         items: [
           {
-            name: "robust peak",
-            value: "99.9th percentile",
+            name: "taste-match",
             detail:
-              "dividing by the absolute max lets one stray transient crush the whole set's level and flatten the energy arc — so the anchor is the 99.9th-percentile sample, not the max.",
+              "mean cosine of the set's taste vectors to the centroid of my hand-labeled favorites — does this set sit where the music I love sits?",
           },
           {
-            name: "ceiling",
-            value: "0.97",
+            name: "discovery ratio",
             detail:
-              "the robust peak is scaled to 0.97; the rare samples above it are hard-clipped — preserving the arc's relative dynamics at the cost of a handful of clipped overs.",
+              "fraction of the set I had NOT already labeled or favorited — a good set is mine and still shows me something new.",
+          },
+          {
+            name: "the deterministic half",
+            detail:
+              "BPM continuity, harmonic-compat %, energy-arc RMSE and artist spacing come straight from the Critic's SetReport — the verifier is the scorecard, unchanged.",
+          },
+          {
+            name: "the A/B",
+            detail:
+              "compare_to_acoustic_baseline builds the same brief blended vs CLAP-only (taste off); greedy selection makes the A/B run with no API key. The blended set has to win on taste-match.",
           },
         ],
+      },
+      {
+        kind: "kv",
+        title: "set_history.jsonl — every generated set",
+        items: [
+          { k: "record", v: "brief · full plan · approval verdict" },
+          { k: "recently played", v: "last 3 sets excluded from the next pool" },
+          { k: "acceptance metric", v: "approving the plan as data" },
+        ],
+      },
+      {
+        kind: "note",
+        text: "The gate runs green offline and the scorecard math is unit-tested — but the A/B and the history need an ingested, hand-tagged library, and that hasn't happened yet. Phases 0–5 are code-complete; the next gate is contact with reality, not more code.",
       },
     ],
   },

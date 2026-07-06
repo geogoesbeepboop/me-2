@@ -2,8 +2,10 @@ import type { InspectMap } from "./types";
 
 /**
  * The artifact behind each component of ~/dev/jim-agent, distilled into
- * designed blocks — flows, rules, fact chips. Every name, number,
- * threshold and quote is as coded in the repo; nothing illustrative.
+ * designed blocks — sub-graphs, flows, rules, fact chips. The topology
+ * shows ~14 chunks; clicking one opens the real wiring inside it. Every
+ * name, number, threshold and quote is as coded in the repo; nothing
+ * illustrative.
  */
 export const JIM: InspectMap = {
   buyers: {
@@ -28,129 +30,87 @@ export const JIM: InspectMap = {
         ],
       },
       {
+        kind: "kv",
+        title: "What /.well-known/x402 declares — byte-identical every call",
+        items: [
+          { k: "x402Version", v: "2" },
+          { k: "asset", v: "USDC · 6 decimals" },
+          { k: "pay_to", v: "jim's EVM address" },
+          { k: "resources", v: "every paid route + price" },
+          { k: "mcp.tools", v: "research_<product> ×each" },
+          { k: "trust section", v: "the gate, machine-readable" },
+        ],
+      },
+      {
         kind: "rules",
         items: [
-          {
-            name: "one tool per product",
-            detail:
-              "the MCP catalog is built from the same listings as the HTTP routes — each tool x402-gated at the product's price, named research_<product>.",
-          },
           {
             name: "no api keys",
             detail:
               "there is no signup and no auth header — the payment cycle is the authentication. Any agent with a funded wallet is a customer.",
           },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "transport", v: "stdio · streamable-http" },
-          { k: "scheme", v: "exact (x402)" },
-          { k: "payment", v: "USDC on Base" },
-        ],
-      },
-    ],
-  },
-
-  disc: {
-    path: "src/jim/marketplace/discovery.py",
-    note: "the deterministic /.well-known/x402 manifest — byte-identical every call, cacheable, signable",
-    blocks: [
-      {
-        kind: "note",
-        text: "Discovery is a deterministic function of config — no model, no randomness, byte-identical on every call. A crawler, an agent, or another marketplace reads one URL and knows everything needed to buy.",
-      },
-      {
-        kind: "kv",
-        title: "What the manifest declares",
-        items: [
-          { k: "x402Version", v: "2" },
-          { k: "network", v: "CAIP-2 chain id" },
-          { k: "asset", v: "USDC · 6 decimals" },
-          { k: "pay_to", v: "jim's EVM address" },
-          { k: "facilitator", v: "verify + settle service" },
-          { k: "resources", v: "every paid route + price" },
-          { k: "mcp.endpoint", v: "/mcp" },
-          { k: "mcp.tools", v: "research_<product> ×each" },
-        ],
-      },
-      {
-        kind: "rules",
-        title: "The trust section, published machine-readable",
-        items: [
           {
-            name: "sourcing_gate",
+            name: "discovery is deterministic",
             detail:
-              "“deterministic; every published figure must match a cited fact” — the gate is part of the product promise, not an internal detail.",
-          },
-          {
-            name: "impersonal",
-            detail:
-              "“general analysis only — no personalized advice (publisher's-exclusion lane)” — the legal lane is declared up front.",
+              "the manifest is a pure function of config — no model, no randomness — so a crawler, an agent, or the Bazaar reads one URL and knows everything needed to buy.",
           },
         ],
       },
     ],
   },
 
-  mw: {
+  counter: {
     path: "src/jim/seller/app.py",
-    note: "one middleware paywalls every route — the facilitator does the on-chain verify + settle",
+    note: "one middleware paywalls every route; the facilitator — not jim — verifies and settles on-chain",
     blocks: [
+      {
+        kind: "flow",
+        title: "The counter, per request",
+        caption: "the chain guard refuses before payment; the facilitator verifies before the engine runs",
+        states: [
+          { id: "req", label: "request", col: 0, row: 0 },
+          { id: "chain", label: "call-chain guard", col: 1, row: 0, kind: "gate" },
+          { id: "px", label: "402 challenge", col: 2, row: 0 },
+          { id: "verify", label: "facilitator verify", col: 3, row: 0, kind: "gate" },
+          { id: "run", label: "route runs", col: 4, row: 0 },
+          { id: "settle", label: "settle → receipt", col: 4, row: 1, kind: "terminal" },
+          { id: "refuse", label: "409 · unpaid", col: 1, row: 1, kind: "terminal" },
+        ],
+        transitions: [
+          { from: "req", to: "chain" },
+          { from: "chain", to: "refuse", label: "loop or depth > 4", dashed: true },
+          { from: "chain", to: "px", label: "clean chain" },
+          { from: "px", to: "verify", label: "signed payment" },
+          { from: "verify", to: "run", label: "verified" },
+          { from: "run", to: "settle", label: "result ready" },
+        ],
+      },
       {
         kind: "rules",
-        title: "The paid routes",
+        title: "Composition safety — refused before the 402 ever fires",
         items: [
           {
-            name: "GET /ping",
-            value: "ping_price",
-            detail: "a trivial paid ping that proves the whole x402 cycle works end-to-end.",
+            name: "loop refused",
+            detail:
+              "if jim's own address already appears in the inbound X-Jim-Call-Chain header, the request is refused with a 409 — before payment, so a cycle can't bill anyone.",
+            fail: true,
           },
           {
-            name: "GET /research/fundamentals",
-            value: "$0.25",
-            detail: "the fundamentals memo — EDGAR-sourced, debated, gated, judged.",
+            name: "depth capped",
+            value: "≤ 4",
+            detail:
+              "four hops is the ceiling; the sell side refuses deeper chains, the buy side refuses to extend past it.",
           },
-          {
-            name: "GET /research/token",
-            value: "$0.50",
-            detail: "the token memo — jim buys its upstream data over x402 and resells the analysis.",
-          },
-        ],
-      },
-      {
-        kind: "note",
-        text: "One PaymentMiddlewareASGI wraps the app: route table in, paywall out. The x402 resource server registers the EXACT-EVM scheme for the configured network, and the facilitator — not jim — does the on-chain verify and settle.",
-      },
-    ],
-  },
-
-  fac: {
-    path: "src/jim/config.py",
-    note: "the base chain ids + usdc settlement assets the facilitator verifies and settles against",
-    blocks: [
-      {
-        kind: "kv",
-        title: "Networks (CAIP-2)",
-        items: [
-          { k: "base sepolia", v: "eip155:84532" },
-          { k: "base mainnet", v: "eip155:8453" },
-          { k: "default", v: "sepolia testnet" },
         ],
       },
       {
         kind: "kv",
-        title: "Settlement asset — USDC, 6 decimals",
+        title: "Settlement",
         items: [
-          { k: "sepolia usdc", v: "0x036C…CF7e" },
-          { k: "mainnet usdc", v: "0x8335…2913 · circle-native" },
-          { k: "facilitator", v: "x402.org/facilitator" },
+          { k: "networks", v: "base sepolia · base mainnet (CAIP-2)" },
+          { k: "asset", v: "USDC, 6 decimals · circle-native on mainnet" },
+          { k: "facilitator", v: "verify + settle service — a config URL" },
         ],
-      },
-      {
-        kind: "note",
-        text: "Mainnet USDC is the Phase 5 settlement asset; until then everything runs on Base Sepolia. The facilitator URL is config, so a different verify/settle service is a one-line change.",
       },
     ],
   },
@@ -167,7 +127,7 @@ export const JIM: InspectMap = {
             name: "fundamentals",
             value: "$0.25",
             detail:
-              "source: FundamentalsSource (SEC EDGAR, free) · identifier: a stock ticker, e.g. AAPL.",
+              "source: FundamentalsSource (SEC EDGAR + market data, free) · identifier: a stock ticker, e.g. AAPL.",
           },
           {
             name: "token",
@@ -184,442 +144,34 @@ export const JIM: InspectMap = {
     ],
   },
 
-  gather: {
-    path: "src/jim/research/engine.py",
-    note: "the langgraph pipeline — every run walks this graph",
+  proof: {
+    path: "src/jim/marketplace/proof.py",
+    note: "the public receipt drawer — settlements, refusals and trust scores, plus offline-verifiable signed attestations",
     blocks: [
-      {
-        kind: "flow",
-        title: "The research graph, as wired",
-        caption: "outlined = deterministic gate · dashed = the repair loop",
-        states: [
-          { id: "start", label: "start", col: 0, row: 0 },
-          { id: "gather", label: "gather", col: 1, row: 0 },
-          { id: "debate", label: "debate", col: 2, row: 0 },
-          { id: "synth", label: "synthesize", col: 2, row: 1 },
-          { id: "gate", label: "sourcing gate", col: 1, row: 1, kind: "gate" },
-          { id: "judge", label: "judge", col: 1, row: 2 },
-          { id: "fin", label: "finalize", col: 0, row: 2, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "start", to: "gather" },
-          { from: "gather", to: "debate", label: "facts ok" },
-          { from: "gather", to: "fin", label: "error", dashed: true },
-          { from: "debate", to: "synth" },
-          { from: "synth", to: "gate" },
-          { from: "gate", to: "synth", label: "violations → retry", dashed: true },
-          { from: "gate", to: "judge", label: "figures match" },
-          { from: "judge", to: "fin" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "gather is one node: it asks the product's source for a cited snapshot, under the budget and through the purchase cache. Errors (EDGAR down, budget exceeded, procurement failure) route straight to finalize as a failed run — never a half-sourced memo.",
-      },
-    ],
-  },
-
-  debate: {
-    path: "src/jim/research/debate.py",
-    note: "bull and bear run in parallel over the same facts; the judge arbitrates before synthesis",
-    blocks: [
-      {
-        kind: "flow",
-        title: "Adversarial pass",
-        states: [
-          { id: "facts", label: "cited facts", col: 0, row: 0 },
-          { id: "bull", label: "bull analyst", col: 1, row: 0 },
-          { id: "bear", label: "bear analyst", col: 1, row: 1 },
-          { id: "judge", label: "judge", col: 2, row: 0 },
-          { id: "out", label: "net assessment", col: 3, row: 0, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "facts", to: "bull", label: "same facts" },
-          { from: "facts", to: "bear", label: "same facts" },
-          { from: "bull", to: "judge" },
-          { from: "bear", to: "judge" },
-          { from: "judge", to: "out", label: "≤200 words · cites [C#]" },
-        ],
-      },
-      {
-        kind: "quote",
-        text: "Identify which specific claims each side supports with the facts and which over-reach. Then state a balanced net assessment a neutral analyst would defend.",
-        cite: "the judge prompt, verbatim",
-      },
-      {
-        kind: "note",
-        text: "Bull and bear run concurrently (asyncio.gather) over the identical fact set — the strongest evidence-based case each way. The judge's arbitration, not either case, is what synthesis builds on.",
-      },
-    ],
-  },
-
-  synth: {
-    path: "src/jim/research/synthesize.py",
-    note: "the hard-rules prompt — every number must sit next to a matching [C#] citation",
-    blocks: [
-      {
-        kind: "rules",
-        title: "The five hard rules (a downstream gate enforces them)",
-        items: [
-          {
-            name: "every number cited",
-            detail:
-              "every figure written — dollars, percentages, ratios, share counts — must be a provided fact, immediately followed by its [C#]. “Revenue was $394.3 billion [C1].”",
-          },
-          {
-            name: "never invent",
-            detail:
-              "no estimating, extrapolating, or computing numbers not in the facts. A missing figure is described qualitatively, with no number.",
-          },
-          {
-            name: "rounding stays honest",
-            detail:
-              "rounding is allowed, but the rounded number must still clearly equal the fact's value.",
-          },
-          {
-            name: "impersonal",
-            detail:
-              "no personalized advice, no price targets, no buy/sell/hold, no predictions.",
-          },
-          {
-            name: "disclaimer verbatim",
-            detail: "the memo ends with the provided disclaimer, unedited.",
-          },
-        ],
-      },
       {
         kind: "kv",
+        title: "what GET /proof shows",
         items: [
-          { k: "model", v: "claude-sonnet-4-6" },
-          { k: "max_tokens", v: "1500" },
-          { k: "system prompt", v: "cached across calls" },
-        ],
-      },
-    ],
-  },
-
-  gate: {
-    path: "src/jim/research/gate.py",
-    note: "the deterministic gate — no model in the loop",
-    blocks: [
-      {
-        kind: "rules",
-        title: "How a figure passes",
-        items: [
-          {
-            name: "match tolerance",
-            value: "max(2%, 0.05)",
-            detail:
-              "a written figure matches a cited fact when |value − fact| ≤ max(2% of the fact, 0.05) — generous enough for honest rounding, tight enough to catch drift.",
-          },
-          {
-            name: "units must agree",
-            detail:
-              "a dollar figure can't match a percentage fact — unit kind is checked before value.",
-          },
-          {
-            name: "uncited = violation",
-            detail:
-              "a figure in a segment with no [C#] citations is a violation, full stop.",
-          },
-          {
-            name: "mismatch = violation",
-            detail:
-              "a figure whose cited facts don't contain a matching value is a violation — each one recorded with the figure, the segment, and the cited ids.",
-          },
-        ],
-      },
-      {
-        kind: "note",
-        text: "check_sourcing walks every segment of the memo, extracts every figure, and resolves each against the facts its citations point to. Violations route the run back to synthesis; coverage lands on the trace as sourcing_coverage.",
-      },
-    ],
-  },
-
-  judge: {
-    path: "src/jim/research/judge.py",
-    note: "the semantic backstop behind the deterministic gate",
-    blocks: [
-      {
-        kind: "steps",
-        title: "The faithfulness check",
-        items: [
-          { name: "facts + memo in", tag: "io", detail: "the full fact set and the gated memo" },
-          { name: "haiku audits", tag: "model", detail: "JSON only: score 0–1, supported, issues" },
-          { name: "threshold", tag: "gate", detail: "passed = score ≥ judge_threshold (0.8 in config)" },
+          { k: "settlements", v: "count · total USDC · 15 most recent receipts" },
+          { k: "verification", v: "gate pass-rate · refused runs · refused-not-billed $" },
+          { k: "refusals", v: "recent gate rejections, last 500 runs" },
+          { k: "trust", v: "per-source laplace scores, sorted" },
         ],
       },
       {
         kind: "rules",
         items: [
           {
-            name: "unparseable = failed",
+            name: "receipts come from the facilitator",
             detail:
-              "a judge response that won't parse returns score 0.0, passed false, issue “judge returned unparseable output” — a broken judge can never silently pass a run.",
-          },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "model", v: "haiku" },
-          { k: "threshold", v: "0.8", accent: true },
-          { k: "output", v: "strict JSON only" },
-        ],
-      },
-    ],
-  },
-
-  edgar: {
-    path: "src/jim/research/edgar.py",
-    note: "ticker → cik → xbrl company facts; every value keeps the accession of the filing it came from",
-    blocks: [
-      {
-        kind: "steps",
-        title: "From ticker to cited facts",
-        items: [
-          { name: "resolve the CIK", tag: "io", detail: "sec.gov/files/company_tickers.json" },
-          { name: "fetch company facts", tag: "io", detail: "data.sec.gov XBRL companyfacts for that CIK" },
-          { name: "map concepts", tag: "gate", detail: "curated, ordered concept list — first matching XBRL tag with annual data wins" },
-          { name: "keep provenance", tag: "io", detail: "every value carries the accession number of the filing it came from" },
-        ],
-      },
-      {
-        kind: "kv",
-        title: "The curated concepts",
-        items: [
-          { k: "revenue", v: "3 tag fallbacks" },
-          { k: "cost of revenue", v: "3 tag fallbacks" },
-          { k: "gross profit", v: "GrossProfit" },
-          { k: "operating income", v: "OperatingIncomeLoss" },
-          { k: "net income", v: "NetIncomeLoss" },
-          { k: "r&d", v: "ResearchAndDevelopmentExpense" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "Companies tag the same idea differently — RevenueFromContractWithCustomerExcludingAssessedTax vs Revenues vs SalesRevenueNet — so each concept carries an ordered fallback chain instead of one brittle tag.",
-      },
-    ],
-  },
-
-  graph: {
-    path: "src/jim/sources/thegraph.py",
-    note: "the paid upstream — jim buys subgraph data over x402, routed through budget + cache",
-    blocks: [
-      {
-        kind: "steps",
-        title: "A paid gather",
-        items: [
-          { name: "resolve the token", tag: "gate", detail: "symbol or 0x address → contract address" },
-          { name: "procure", tag: "io", detail: "the shared cache → budget → buy → record pipeline" },
-          { name: "pay over x402", tag: "io", detail: "the same protocol jim sells through — buyer and seller in one binary" },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "price estimate", v: "$0.05" },
-          { k: "actual", v: "≈ $0.01" },
-          { k: "graph_live off", v: "local mock endpoint" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "When graph_live is false the source hits a local mock subgraph served by jim's own seller app — the full buy path exercises end-to-end in dev without spending on the gateway.",
-      },
-    ],
-  },
-
-  budget: {
-    path: "src/jim/research/budget.py",
-    note: "the model can want; only the code can spend",
-    blocks: [
-      {
-        kind: "rules",
-        title: "The spend envelope",
-        items: [
-          {
-            name: "per-query ceiling",
-            value: "$0.10",
-            detail:
-              "per_query_budget_usd in config — every data purchase inside one research run fits under it or doesn't happen.",
+              "the x402 PAYMENT-RESPONSE header the facilitator emits after settlement is decoded and persisted verbatim — jim reports settlements, it doesn't author them.",
           },
           {
-            name: "propose, then commit",
+            name: "attestations verify offline",
             detail:
-              "propose(amount) asks permission and records a Decision without spending; commit(amount) records actual spend only after the purchase settles.",
-          },
-          {
-            name: "denials are explicit",
-            detail:
-              "“denied: needs $0.0500, only $0.0300 left of $0.1000 per-query budget” — every decision, approved or not, lands in the audit list.",
+              "each signed receipt covers memo sha256 + snapshot fingerprint + gate verdict + settlement tx, EIP-191-signed with jim's key — any EVM stack can recover the signer with no server in the loop.",
           },
         ],
-      },
-      {
-        kind: "note",
-        text: "BudgetCap is plain data — ceiling, spent, decisions. No model holds a reference to anything that can move money; sources must come through propose/commit.",
-      },
-    ],
-  },
-
-  cache: {
-    path: "src/jim/sources/base.py",
-    note: "buy a datum once and resell every hit",
-    blocks: [
-      {
-        kind: "flow",
-        title: "procure() — every paid source walks this",
-        caption: "outlined = deterministic checks before any money moves",
-        states: [
-          { id: "ask", label: "source asks", col: 0, row: 0 },
-          { id: "cache", label: "cache check", col: 1, row: 0, kind: "gate" },
-          { id: "hit", label: "hit → $0.00", col: 1, row: 1, kind: "terminal" },
-          { id: "budget", label: "budget.propose", col: 2, row: 0, kind: "gate" },
-          { id: "buy", label: "buy over x402", col: 3, row: 0 },
-          { id: "rec", label: "commit + record", col: 3, row: 1, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "ask", to: "cache" },
-          { from: "cache", to: "hit", label: "fresh" },
-          { from: "cache", to: "budget", label: "miss" },
-          { from: "budget", to: "buy", label: "approved" },
-          { from: "buy", to: "rec", label: "HTTP 200 + JSON" },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "cache ttl", v: "86,400 s" },
-          { k: "cache hit cost", v: "$0.00", accent: true },
-          { k: "recorded", v: "cost · tx_hash · payload" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "A denied budget raises BudgetExceeded; a non-200 or non-JSON response raises ProcurementError. Only a settled purchase is committed and recorded — the cache can't hold a payment that didn't happen.",
-      },
-    ],
-  },
-
-  ledger: {
-    path: "src/jim/store/repo.py",
-    note: "margin = price_out − data − inference, recorded per query and summarized for /dashboard",
-    blocks: [
-      {
-        kind: "kv",
-        title: "Per query",
-        items: [
-          { k: "margin", v: "price_out − data − inference", accent: true },
-          { k: "billable", v: "status == ok only" },
-        ],
-      },
-      {
-        kind: "rules",
-        title: "What /dashboard summarizes",
-        items: [
-          {
-            name: "revenue & costs",
-            detail:
-              "revenue_usd, data_cost_usd, inference_cost_usd, total_margin_usd — summed over billable queries, rounded to 6 decimals because the unit economics live in fractions of a cent.",
-          },
-          {
-            name: "per-unit health",
-            detail:
-              "avg_margin_usd and margin_pct — is each $0.25 memo actually profitable after the model bill?",
-          },
-          {
-            name: "cache_hit_rate",
-            detail:
-              "the fraction of billable queries served from already-bought data — the lever that turns data cost into pure margin.",
-          },
-        ],
-      },
-    ],
-  },
-
-  mon: {
-    path: "src/jim/monitors/models.py",
-    note: "a monitor is data, not code — an LLM may propose one; deterministic triggers decide what's material",
-    blocks: [
-      {
-        kind: "kv",
-        title: "One monitor, serialized",
-        items: [
-          { k: "product", v: "fundamentals · token" },
-          { k: "identifier", v: "AAPL / WETH" },
-          { k: "interval", v: "86,400 s" },
-          { k: "cooldown", v: "21,600 s" },
-          { k: "severity_floor", v: "info" },
-          { k: "channels", v: "store · …" },
-        ],
-      },
-      {
-        kind: "rules",
-        items: [
-          {
-            name: "propose / dispose",
-            detail:
-              "a TriggerSpec is a kind naming a deterministic evaluator plus its threshold params (e.g. {pct: 5.0}). Pure data — so an LLM can propose a spec and code validates it before it ever runs.",
-          },
-          {
-            name: "rolling state",
-            detail:
-              "each run updates a baseline (label → value, unit, as_of, accession) and per-signal cooldown timestamps — diffs are computed against the baseline, not refetched history.",
-          },
-        ],
-      },
-    ],
-  },
-
-  mat: {
-    path: "src/jim/monitors/materiality.py",
-    note: "severity floor + per-signal cooldown — no model decides what's material",
-    blocks: [
-      {
-        kind: "steps",
-        title: "assess() — for each signal",
-        items: [
-          { name: "severity check", tag: "gate", detail: "below the monitor's severity_floor → suppressed" },
-          { name: "cooldown check", tag: "gate", detail: "same signal key fired within the cooldown window → suppressed" },
-          { name: "publish", tag: "io", detail: "survivors publish and stamp their cooldown timestamp" },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "default cooldown", v: "6 h" },
-          { k: "unparseable timestamp", v: "treated as expired" },
-          { k: "models involved", v: "0", accent: true },
-        ],
-      },
-      {
-        kind: "note",
-        text: "The thresholds that generate signals (5% price moves, 10% metric drifts) live in the trigger specs; this pass only decides which surviving signals are worth a human's attention right now.",
-      },
-    ],
-  },
-
-  imp: {
-    path: "src/jim/monitors/impersonal.py",
-    note: "a tone gate with no model — word-boundaried so 'buy' inside 'buyback' never trips",
-    blocks: [
-      {
-        kind: "rules",
-        title: "The patterns, as coded",
-        items: [
-          { name: "second-person address", detail: "“you / you're / your / yourself” — the memo must never talk to a person." },
-          { name: "recommendation", detail: "“we recommend”, “I recommend”, “recommendation(s)”." },
-          { name: "advice", detail: "“should buy / sell / hold / consider / avoid” · “buy/sell now / today / immediately”." },
-          { name: "rating", detail: "“strong buy”, “strong sell”." },
-          { name: "price target", detail: "“price target(s)”." },
-          { name: "personalization", detail: "“your portfolio / position / holdings / account”." },
-        ],
-      },
-      {
-        kind: "note",
-        text: "Every pattern is word-boundaried, so “buy” inside “buyback” never trips. The disclaimer is stripped before checking, violations dedupe by reason + phrase, and the result is pass/fail with the exact offending phrases — the publisher's-exclusion lane, enforced by regex.",
       },
     ],
   },
@@ -719,9 +271,269 @@ export const JIM: InspectMap = {
     },
   },
 
+  gather: {
+    path: "src/jim/sources/",
+    note: "four sources and the peer lane, one cited snapshot — paid data only through procure()",
+    blocks: [
+      {
+        kind: "graph",
+        title: "Where the facts actually come from",
+        caption: "every value keeps its provenance — free sources go straight to facts; money moves only through procure()",
+        nodes: [
+          { id: "edgar", label: "SEC EDGAR", sub: "xbrl companyfacts · 15 concepts", col: 0, row: 0 },
+          { id: "yahoo", label: "Yahoo Finance", sub: "price · sma · rsi · macd", col: 1, row: 0 },
+          { id: "macro", label: "US macro", sub: "effr · cpi · 2y/10y treasuries", col: 2, row: 0 },
+          { id: "thegraph", label: "The Graph", sub: "uniswap v3 · 4 chains · paid", col: 3, row: 0 },
+          { id: "peers", label: "Peer agents", sub: "x402 · trust ≥ 0.4", col: 4, row: 0 },
+          { id: "procure", label: "procure()", sub: "cache → budget → buy", col: 3, row: 1, accent: true },
+          { id: "facts", label: "Fact objects", sub: "value · unit · [C#] · source_url", col: 1, row: 2 },
+          { id: "derived", label: "compute_derived", sub: "margins · roe · ebitda — 7 formulas", col: 2, row: 2 },
+          { id: "snapshot", label: "Snapshot", sub: "sha256 fingerprint", col: 3, row: 2 },
+        ],
+        edges: [
+          { from: "edgar", to: "facts", label: "10-K values + accession" },
+          { from: "yahoo", to: "facts", label: "market data" },
+          { from: "macro", to: "facts", label: "gov primary series" },
+          { from: "thegraph", to: "procure", label: "propose $" },
+          { from: "peers", to: "procure", label: "propose $" },
+          { from: "procure", to: "facts", label: "settled payload" },
+          { from: "facts", to: "derived" },
+          { from: "derived", to: "snapshot", label: "facts + formulas" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "The spend envelope — the model can want; only code can spend",
+        items: [
+          {
+            name: "per-query ceiling",
+            value: "$0.10",
+            detail:
+              "per_query_budget_usd in config — every data purchase inside one research run fits under it or doesn't happen.",
+          },
+          {
+            name: "propose, then commit",
+            detail:
+              "propose(amount) asks permission and records a Decision without spending; commit(amount) records actual spend only after the purchase settles.",
+          },
+          {
+            name: "denials are explicit",
+            detail:
+              "“denied: needs $0.0500, only $0.0300 left of $0.1000 per-query budget” — every decision, approved or not, lands in the audit list.",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "purchase cache ttl", v: "86,400 s" },
+          { k: "cache hit cost", v: "$0.00", accent: true },
+          { k: "derived facts", v: "carry formula + parent [C#]s, never a source" },
+        ],
+      },
+      {
+        kind: "note",
+        text: "EDGAR values keep the accession number of the filing they came from; derived metrics carry their formula and input facts instead. Errors — EDGAR down, budget exceeded, procurement failure — fail the run closed: never a half-sourced memo. The snapshot's SHA256 fingerprint is the memo cache's identity, so any real data move invalidates the cache.",
+      },
+    ],
+  },
+
+  debate: {
+    path: "src/jim/research/debate.py",
+    note: "bull and bear run in parallel over the same facts; the judge arbitrates before synthesis",
+    blocks: [
+      {
+        kind: "flow",
+        title: "Adversarial pass",
+        states: [
+          { id: "facts", label: "cited facts", col: 0, row: 0 },
+          { id: "bull", label: "bull analyst", col: 1, row: 0 },
+          { id: "bear", label: "bear analyst", col: 1, row: 1 },
+          { id: "judge", label: "judge", col: 2, row: 0 },
+          { id: "out", label: "net assessment", col: 3, row: 0, kind: "terminal" },
+        ],
+        transitions: [
+          { from: "facts", to: "bull", label: "same facts" },
+          { from: "facts", to: "bear", label: "same facts" },
+          { from: "bull", to: "judge" },
+          { from: "bear", to: "judge" },
+          { from: "judge", to: "out", label: "≤200 words · cites [C#]" },
+        ],
+      },
+      {
+        kind: "quote",
+        text: "Identify which specific claims each side supports with the facts and which over-reach. Then state a balanced net assessment a neutral analyst would defend.",
+        cite: "the judge prompt, verbatim",
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "bull · bear", v: "≤ 180 words each · asyncio.gather" },
+          { k: "judge", v: "≤ 200 words" },
+          { k: "rule", v: "only provided FACTS · every number [C#]-tagged" },
+        ],
+      },
+      {
+        kind: "note",
+        text: "The judge's arbitration — not either case — is what synthesis builds on. Debate is optional luxury: ENABLE_DEBATE off still produces a memo, because the deterministic spine doesn't need the theater.",
+      },
+    ],
+  },
+
+  synth: {
+    path: "src/jim/research/synthesize.py",
+    note: "exactly what the synthesizer is fed — and the five hard rules a downstream gate enforces",
+    blocks: [
+      {
+        kind: "graph",
+        title: "The context, as assembled",
+        caption: "five inputs, one call — the gate-feedback lane exists only on a retry",
+        nodes: [
+          { id: "facts", label: "facts_block", sub: "every fact, [C#]-tagged", col: 0, row: 0 },
+          { id: "debate", label: "debate verdict", sub: "the judge's net assessment", col: 1, row: 0 },
+          { id: "feedback", label: "gate feedback", sub: "violations from attempt n−1", col: 2, row: 0 },
+          { id: "mode", label: "mode directive", sub: "human · agent", col: 3, row: 0 },
+          { id: "system", label: "hard-rules prompt", sub: "5 rules · cached", col: 1, row: 1, accent: true },
+          { id: "model", label: "claude-sonnet-4-6", sub: "max 1500 tokens", col: 2, row: 1 },
+          { id: "memo", label: "the memo", sub: "prose · every figure cited", col: 2, row: 2 },
+        ],
+        edges: [
+          { from: "facts", to: "model", label: "verbatim, never summarized" },
+          { from: "debate", to: "model" },
+          { from: "feedback", to: "model", label: "retry ≤ 2 only", dashed: true },
+          { from: "mode", to: "model" },
+          { from: "system", to: "model", label: "cached across calls" },
+          { from: "model", to: "memo" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "The five hard rules (the sourcing gate enforces them)",
+        items: [
+          {
+            name: "every number cited",
+            detail:
+              "every figure written — dollars, percentages, ratios, share counts — must be a provided fact, immediately followed by its [C#]. “Revenue was $394.3 billion [C1].”",
+          },
+          {
+            name: "never invent",
+            detail:
+              "no estimating, extrapolating, or computing numbers not in the facts. A missing figure is described qualitatively, with no number.",
+          },
+          {
+            name: "rounding stays honest",
+            detail:
+              "rounding is allowed, but the rounded number must still clearly equal the fact's value.",
+          },
+          {
+            name: "impersonal",
+            detail:
+              "no personalized advice, no price targets, no buy/sell/hold, no predictions.",
+          },
+          {
+            name: "disclaimer verbatim",
+            detail: "the memo ends with the provided disclaimer, unedited.",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "human mode", v: "~300–450 words · sections" },
+          { k: "agent mode", v: "metric-dense “label: value [C#]” lines" },
+        ],
+      },
+    ],
+  },
+
+  gate: {
+    path: "src/jim/research/gate.py",
+    note: "the deterministic gate — no model in the loop",
+    blocks: [
+      {
+        kind: "steps",
+        title: "check_sourcing — per memo segment",
+        items: [
+          { name: "extract ranges", tag: "gate", detail: "“$1.2–1.4 billion” → both endpoints" },
+          { name: "extract marked figures", tag: "gate", detail: "$ · % · × · word scales (“five billion”) · 5B suffixes · scientific notation" },
+          { name: "extract anchored decimals", tag: "gate", detail: "bare decimals sitting before a [C#] — RSI, ratios" },
+          { name: "check units", tag: "gate", detail: "a dollar figure can never match a percentage fact" },
+          { name: "match values", tag: "gate", detail: "against the facts the segment's citations point to" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "How a figure passes",
+        items: [
+          {
+            name: "match tolerance",
+            value: "max(2%, 0.05)",
+            detail:
+              "a written figure matches a cited fact when |value − fact| ≤ max(2% of the fact, 0.05) — generous enough for honest rounding, tight enough to catch drift.",
+          },
+          {
+            name: "uncited = violation",
+            detail:
+              "a figure in a segment with no [C#] citations is a violation, full stop.",
+            fail: true,
+          },
+          {
+            name: "mismatch = violation",
+            detail:
+              "a figure whose cited facts don't contain a matching value is a violation — each one recorded with the figure, the segment, and the cited ids.",
+            fail: true,
+          },
+          {
+            name: "phantom citation = violation",
+            detail: "a [C#] pointing at a fact that doesn't exist is itself a violation.",
+            fail: true,
+          },
+        ],
+      },
+      {
+        kind: "note",
+        text: "Violations route the run back to synthesis with the exact failures as feedback; retries exhausted, the run is rejected and never billed. Coverage lands on the trace as sourcing_coverage.",
+      },
+    ],
+  },
+
+  judge: {
+    path: "src/jim/research/judge.py",
+    note: "the semantic backstop behind the deterministic gate",
+    blocks: [
+      {
+        kind: "steps",
+        title: "The faithfulness check",
+        items: [
+          { name: "facts + memo in", tag: "io", detail: "the full fact set and the gated memo" },
+          { name: "haiku audits", tag: "model", detail: "JSON only: score 0–1, supported, issues" },
+          { name: "threshold", tag: "gate", detail: "passed = score ≥ judge_threshold (0.8 in config)" },
+        ],
+      },
+      {
+        kind: "rules",
+        items: [
+          {
+            name: "unparseable = failed",
+            detail:
+              "a judge response that won't parse returns score 0.0, passed false, issue “judge returned unparseable output” — a broken judge can never silently pass a run.",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "model", v: "haiku" },
+          { k: "threshold", v: "0.8", accent: true },
+          { k: "output", v: "strict JSON only" },
+        ],
+      },
+    ],
+  },
+
   peers: {
     path: "src/jim/sources/peer.py",
-    note: "buying research inputs from other agents over the same x402 rails jim sells on — no carve-out, no special path",
+    note: "buying research inputs from other agents over the same x402 rails jim sells on — trust checked before money moves",
     blocks: [
       {
         kind: "flow",
@@ -742,46 +554,10 @@ export const JIM: InspectMap = {
           { from: "trust", to: "budget", label: "ok" },
           { from: "budget", to: "cache", label: "approved" },
           { from: "cache", to: "buy", label: "miss" },
-          { from: "cache", to: "record", label: "hit — $0", dashed: true },
+          { from: "cache", to: "record", label: "hit — $0" },
           { from: "buy", to: "record" },
         ],
       },
-      {
-        kind: "rules",
-        items: [
-          {
-            name: "degrade, don't die",
-            detail:
-              "a failing peer is skipped with a note (CompositeSource catches budget, procurement, breaker and transport errors) — jim gates what it could verify instead of failing the run.",
-          },
-          {
-            name: "debit before failing",
-            detail:
-              "an unusable peer payload debits that peer's trust score before the error surfaces — bad behavior is remembered even when the run survives it.",
-          },
-          {
-            name: "transport retries only",
-            detail:
-              "the resilience wrapper retries timeouts and connection drops with backoff + jitter; 4xx/5xx are semantic and surface immediately. Five straight transport failures open a circuit breaker for 30s.",
-          },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "trust floor", v: "0.4 after ≥3 events", accent: true },
-          { k: "timeout / attempt", v: "20s" },
-          { k: "retries", v: "2 (3 attempts)" },
-          { k: "breaker", v: "5 fails → open 30s" },
-        ],
-      },
-    ],
-  },
-
-  trust: {
-    path: "src/jim/interop/trust.py",
-    note: "reputation as an append-only ledger of gate outcomes — deterministic, auditable row by row",
-    blocks: [
       {
         kind: "quote",
         text: "Smoothed pass-rate: (ok+1)/(ok+fail+2). A new source starts at 0.5.",
@@ -792,7 +568,8 @@ export const JIM: InspectMap = {
         items: [
           {
             name: "credit on pass",
-            detail: "when the sourcing gate passes a memo, every source that contributed a fact is credited ok=true.",
+            detail:
+              "when the sourcing gate passes a memo, every source that contributed a fact is credited ok=true.",
           },
           {
             name: "debit only the guilty",
@@ -801,114 +578,164 @@ export const JIM: InspectMap = {
             fail: true,
           },
           {
-            name: "refusal before payment",
+            name: "degrade, don't die",
             detail:
-              "a peer below the 0.4 floor (after at least 3 recorded events) is refused before any USDC moves.",
-            value: "floor 0.4",
+              "a failing peer is skipped with a note — jim gates what it could verify instead of failing the run. An unusable payload debits that peer's trust before the error surfaces.",
           },
         ],
       },
       {
         kind: "kv",
         items: [
-          { k: "ledger row", v: "source · ok · context · created_at" },
-          { k: "new source starts at", v: "0.5" },
-          { k: "astroturf resistance", v: "smoothing, not volume", accent: true },
+          { k: "trust floor", v: "0.4 after ≥3 events", accent: true },
+          { k: "timeout / attempt", v: "20s · 2 retries" },
+          { k: "breaker", v: "5 transport fails → open 30s" },
         ],
       },
     ],
   },
 
-  chain: {
-    path: "src/jim/interop/callchain.py",
-    note: "composition safety for agents buying from agents — loops and runaway depth refused before the 402 ever fires",
+  economy: {
+    path: "src/jim/store/repo.py",
+    note: "margin = price_out − data − inference, recorded per query — and the memo cache that makes the second sale nearly pure margin",
     blocks: [
       {
-        kind: "rules",
-        items: [
-          {
-            name: "loop refused",
-            detail:
-              "if jim's own address already appears in the inbound X-Jim-Call-Chain header, the request is refused with a 409 — before payment, so a cycle can't bill anyone.",
-            fail: true,
-          },
-          {
-            name: "depth capped",
-            detail: "four hops is the ceiling; the sell side refuses deeper chains, the buy side refuses to extend past it.",
-            value: "≤ 4",
-          },
-          {
-            name: "chain extends on buy",
-            detail: "every outbound peer purchase appends jim's address to the chain header it forwards.",
-          },
+        kind: "flow",
+        title: "The memo cache short-circuit",
+        caption: "a cached memo is re-gated before it's served — never trusted on age alone",
+        states: [
+          { id: "req", label: "paid request", col: 0, row: 0 },
+          { id: "cache", label: "memo cache", col: 1, row: 0, kind: "gate" },
+          { id: "recheck", label: "gate re-check", col: 2, row: 0, kind: "gate" },
+          { id: "serve", label: "served · $0 inference", col: 3, row: 0, kind: "terminal" },
+          { id: "run", label: "full pipeline", col: 1, row: 1 },
+          { id: "store", label: "stored · ttl", col: 2, row: 1, kind: "terminal" },
+        ],
+        transitions: [
+          { from: "req", to: "cache" },
+          { from: "cache", to: "recheck", label: "fingerprint match" },
+          { from: "recheck", to: "serve", label: "still passes" },
+          { from: "cache", to: "run", label: "miss" },
+          { from: "recheck", to: "run", label: "stale", dashed: true },
+          { from: "run", to: "store", label: "gate-passed memo" },
         ],
       },
       {
         kind: "kv",
+        title: "Per query",
         items: [
-          { k: "header", v: "X-Jim-Call-Chain" },
-          { k: "max depth", v: "4", accent: true },
-          { k: "refusal", v: "409, pre-payment", accent: true },
+          { k: "margin", v: "price_out − data − inference", accent: true },
+          { k: "billable", v: "status == ok only" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "What /dashboard summarizes",
+        items: [
+          {
+            name: "revenue & costs",
+            detail:
+              "revenue_usd, data_cost_usd, inference_cost_usd, total_margin_usd — summed over billable queries, rounded to 6 decimals because the unit economics live in fractions of a cent.",
+          },
+          {
+            name: "per-unit health",
+            detail:
+              "avg_margin_usd and margin_pct — is each $0.25 memo actually profitable after the model bill?",
+          },
+          {
+            name: "cache_hit_rate",
+            detail:
+              "the fraction of billable queries served from already-bought data — the lever that turns data cost into pure margin.",
+          },
         ],
       },
     ],
   },
 
-  proof: {
-    path: "src/jim/marketplace/proof.py",
-    note: "the public receipt drawer — settlements, refusals and trust scores, plus offline-verifiable signed attestations",
+  mon: {
+    path: "src/jim/monitors/materiality.py",
+    note: "monitors are data, materiality is code, tone is regex — the model speaks only on material news",
     blocks: [
       {
         kind: "kv",
-        title: "what GET /proof shows",
+        title: "One monitor, serialized",
         items: [
-          { k: "settlements", v: "count · total USDC · 15 most recent receipts" },
-          { k: "verification", v: "gate pass-rate · refused runs · refused-not-billed $" },
-          { k: "refusals", v: "recent gate rejections, last 500 runs" },
-          { k: "trust", v: "per-source laplace scores, sorted" },
+          { k: "interval", v: "86,400 s" },
+          { k: "cooldown", v: "21,600 s per signal" },
+          { k: "triggers", v: "{pct: 5.0} price · {pct: 10.0} metric · rsi 70/30" },
+          { k: "models involved in detection", v: "0", accent: true },
+        ],
+      },
+      {
+        kind: "steps",
+        title: "assess() — for each signal",
+        items: [
+          { name: "severity check", tag: "gate", detail: "below the monitor's severity_floor → suppressed" },
+          { name: "cooldown check", tag: "gate", detail: "same signal key fired within 6h → suppressed" },
+          { name: "synthesize", tag: "model", detail: "survivors earn a written update — through the sourcing gate again" },
+          { name: "tone gate", tag: "gate", detail: "the impersonal guard, before anything publishes" },
         ],
       },
       {
         kind: "rules",
+        title: "The impersonal guard — the publisher's-exclusion lane, as regex",
         items: [
-          {
-            name: "receipts come from the facilitator",
-            detail:
-              "the x402 PAYMENT-RESPONSE header the facilitator emits after settlement is decoded and persisted verbatim — jim reports settlements, it doesn't author them.",
-          },
-          {
-            name: "attestations verify offline",
-            detail:
-              "each signed receipt covers memo sha256 + snapshot fingerprint + gate verdict + settlement tx, EIP-191-signed with jim's key — any EVM stack can recover the signer with no server in the loop.",
-          },
+          { name: "second person", detail: "“you / your / yourself” — the memo must never talk to a person." },
+          { name: "advice & ratings", detail: "“should buy / sell / hold” · “strong buy” · “we recommend” · “price target(s)”." },
+          { name: "personalization", detail: "“your portfolio / position / holdings / account”." },
         ],
+      },
+      {
+        kind: "note",
+        text: "Every pattern is word-boundaried, so “buy” inside “buyback” never trips. A TriggerSpec is pure data — an LLM may propose one; code validates it before it ever runs. A quiet poll costs $0 of inference.",
       },
     ],
   },
 
   evals: {
-    path: "src/jim/eval/dataset.py",
-    note: "ADR-0009 — tiered suites with persisted runs and thresholded regression verdicts; offline is the merge gate, live is the trend",
+    path: "src/jim/eval/runner.py",
+    note: "ADR-0009 — tiered suites, persisted runs, thresholded regression verdicts; offline is the merge gate, live is the trend",
     blocks: [
       {
-        kind: "kv",
-        title: "the suites",
-        items: [
-          { k: "gate", v: "39 labeled memos — truthful + planted-lie pairs" },
-          { k: "guards", v: "40 cases — impersonal · identifiers · completeness · materiality" },
-          { k: "scenarios", v: "9 end-to-end langgraph runs" },
-          { k: "live", v: "held-out tickers · real pipeline · rubric-scored" },
+        kind: "graph",
+        title: "The harness, end to end",
+        caption: "87 offline cases · ~2s · $0 — the same run the 06:17 night watch executes",
+        nodes: [
+          { id: "gatecases", label: "gate suite", sub: "38 memos · truths + planted lies", col: 0, row: 0 },
+          { id: "guards", label: "guard suite", sub: "40 cases · 5 categories", col: 1, row: 0 },
+          { id: "scen", label: "scenarios", sub: "9 full-engine runs, scripted i/o", col: 2, row: 0 },
+          { id: "live", label: "live suite", sub: "8 held-out tickers × 2 variants", col: 3, row: 0 },
+          { id: "runner", label: "jim-eval run", sub: "offline: no keys · no network", col: 1, row: 1 },
+          { id: "runjson", label: "run document", sub: "eval_runs/<id>.json · git sha", col: 2, row: 1 },
+          { id: "baseline", label: "BASELINE diff", sub: "case-by-case + thresholds", col: 2, row: 2, accent: true },
+          { id: "verdict", label: "verdict", sub: "pass · regressed → exit 1", col: 3, row: 2 },
+          { id: "night", label: "nightly digest", sub: "launchd 06:17 · morning banner", col: 4, row: 2 },
+        ],
+        edges: [
+          { from: "gatecases", to: "runner" },
+          { from: "guards", to: "runner" },
+          { from: "scen", to: "runner" },
+          { from: "live", to: "runner", label: "opt-in · real spend" },
+          { from: "runner", to: "runjson", label: "aggregates + every case" },
+          { from: "runjson", to: "baseline", label: "compare" },
+          { from: "baseline", to: "verdict" },
+          { from: "verdict", to: "night", label: "filed while I sleep" },
         ],
       },
       {
         kind: "rules",
-        title: "regression verdicts",
+        title: "Regression verdicts",
         items: [
-          { name: "offline", detail: "zero tolerance — any failed case fails the run.", value: "88 cases · ~1.5s", fail: true },
+          {
+            name: "offline",
+            value: "87 cases · ~2s · $0",
+            detail: "zero tolerance — any newly-failing case regresses the run and exits 1.",
+            fail: true,
+          },
           {
             name: "live",
             detail:
-              "stochastic, so thresholded: fails on a gate pass-rate drop over 5%, rubric over 2%, cost over 25%, latency over 50% vs baseline.",
+              "stochastic, so thresholded: fails on a gate pass-rate drop over 5%, rubric over 2%, cost over 25%, latency p95 over 50% vs baseline.",
           },
           {
             name: "every run persists",
@@ -919,9 +746,21 @@ export const JIM: InspectMap = {
       },
       {
         kind: "kv",
+        title: "The rubric, weighted",
         items: [
-          { k: "nightly", v: ".claude/evals.sh — offline vs baseline, zero keys" },
-          { k: "merge gate", v: ".claude/gate.sh — ruff + full offline suite, ~15s", accent: true },
+          { k: "sourcing", v: "0.40", accent: true },
+          { k: "faithfulness", v: "0.30" },
+          { k: "completeness", v: "0.20" },
+          { k: "impersonal", v: "0.10" },
+        ],
+      },
+      {
+        kind: "kv",
+        title: "Offline isolation, enforced in .claude/evals.sh",
+        items: [
+          { k: "ANTHROPIC_API_KEY", v: "emptied — judge + debate skipped" },
+          { k: "DATABASE_URL", v: "emptied — in-memory store" },
+          { k: "NETWORK", v: "pinned to base sepolia" },
         ],
       },
     ],

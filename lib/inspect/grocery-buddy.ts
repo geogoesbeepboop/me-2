@@ -2,8 +2,10 @@ import type { InspectMap } from "./types";
 
 /**
  * The artifact behind each component of ~/dev/grocery-buddy, distilled
- * into designed blocks — flows, rules, schema maps. Every name, number,
- * threshold and quote is as coded in the repo; nothing illustrative.
+ * into designed blocks — sub-graphs, flows, rules, schema maps. The
+ * topology shows 11 chunks; clicking one opens the real wiring inside
+ * it. Every name, number, threshold and quote is as coded in the repo;
+ * nothing illustrative.
  */
 export const GROCERY_BUDDY: InspectMap = {
   wh: {
@@ -13,7 +15,7 @@ export const GROCERY_BUDDY: InspectMap = {
       {
         kind: "flow",
         title: "The top-level decision tree",
-        caption: "outlined = deterministic check — code decides, not a model",
+        caption: "the cheap checks run first — a model is asked only at the bottom of the ladder",
         states: [
           { id: "upd", label: "telegram update", col: 0, row: 0 },
           { id: "c1", label: "/import command?", col: 0, row: 1, kind: "gate" },
@@ -49,107 +51,78 @@ export const GROCERY_BUDDY: InspectMap = {
     ],
   },
 
-  intent: {
+  llm: {
     path: "src/grocery_buddy/agents/assistant.py",
-    note: "one of six haiku call-sites — free text becomes a tool call, never a guess",
+    note: "eight call-sites; seven priced into the ledger — names below are llm_usage labels, verbatim",
     blocks: [
       {
         kind: "rules",
-        title: "The four routes the prompt allows",
+        title: "Every model call, with exactly what it sees",
         items: [
           {
-            name: "request_purchase",
+            name: "parse_request",
+            value: "haiku",
             detail:
-              "They named item(s) to buy — “milk”, “we need paper towels”. A bare noun = qty 1; just buy it, don't ask how much.",
+              "free text + a plain-text pantry snapshot in the system prompt → one of five tools (request_purchase, restock_low_items, update_pantry_quantity, report_not_arrived, update_schedule) or plain chat. 512 tokens.",
           },
           {
-            name: "restock_low_items",
+            name: "briefing_reply",
+            value: "haiku",
             detail:
-              "They want to restock EVERYTHING low without naming items — “buy all items running low”, “do a grocery run”. The pantry snapshot is in the prompt; the model never says it can't see inventory.",
+              "the user's reply + the pending cart's exact lines and total, riding the user turn so the system-plus-tools prefix stays byte-stable → approve · buy_items · reject · reject_and_restart · fix stock · reschedule.",
           },
           {
-            name: "update_pantry_quantity",
+            name: "briefing",
+            value: "haiku",
             detail:
-              "They're telling you how much they CURRENTLY have, not buying — “we still have plenty of eggs”, “the kids finished the bread”. Corrects the estimate; buys nothing.",
+              "compose_briefing — the exact item lines and total as ground truth, plus the free-shipping note. Only called when there IS a note to phrase; the exact total must survive in the output or the deterministic render ships instead.",
           },
           {
-            name: "just reply",
+            name: "brand_select",
+            value: "haiku",
             detail:
-              "Pantry questions (“what am I low on?”) answered from the snapshot. Small talk stays chat.",
+              "the product, the preferred brand, and the numbered live listings → {index, reason} JSON. Skipped entirely when there's no preference or only one candidate — the common path costs $0.",
+          },
+          {
+            name: "import_synthesis",
+            value: "sonnet",
+            detail:
+              "two years of aggregated orders — title, times ordered, units, dates, days-since-last — forced onto the propose_pantry tool and streamed; the token budget scales with the product count so a long history can't truncate mid-JSON.",
+          },
+          {
+            name: "import_review",
+            value: "haiku",
+            detail:
+              "the staged pantry proposal + the user's conversational edits (“drop the donuts”). The live pantry is written only on explicit confirm.",
+          },
+          {
+            name: "onboarding",
+            value: "haiku",
+            detail:
+              "the interview tool loop — a free-form pantry dump becomes saved inventory and consumption habits.",
           },
         ],
       },
       {
         kind: "quote",
         text: "If it's small talk or the intent is unclear, chat — don't trigger a purchase or a run on a guess.",
-        cite: "the system prompt, verbatim",
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "model", v: "haiku (model_fast)" },
-          { k: "max_tokens", v: "512" },
-          { k: "tools", v: "_FRESH_TOOLS" },
-          { k: "usage label", v: "parse_request" },
-        ],
-      },
-    ],
-  },
-
-  relay: {
-    path: "src/grocery_buddy/tools/auth.py",
-    note: "two processes, one db table as the channel — the code is read exactly once",
-    blocks: [
-      {
-        kind: "flow",
-        title: "The 2FA mailbox",
-        caption: "outlined = a human holds the secret, not the model",
-        states: [
-          { id: "otp", label: "amazon asks otp", col: 0, row: 0 },
-          { id: "open", label: "challenge: pending", col: 1, row: 0 },
-          { id: "ask", label: "telegram asks me", col: 2, row: 0, kind: "gate" },
-          { id: "ans", label: "challenge: answered", col: 2, row: 1 },
-          { id: "wr", label: "webhook writes code", col: 1, row: 1 },
-          { id: "done", label: "consumed → login", col: 0, row: 1, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "otp", to: "open", label: "worker opens row" },
-          { from: "open", to: "ask" },
-          { from: "ask", to: "ans", label: "i reply the code" },
-          { from: "ans", to: "wr" },
-          { from: "wr", to: "done", label: "worker polls · read-once" },
-        ],
+        cite: "the parse_request system prompt, verbatim",
       },
       {
         kind: "note",
-        text: "The worker activity holds the browser open on the OTP page but can't read my authenticator — so it opens a challenge row and asks over Telegram. The webhook writes my reply back to the same row; the worker polls until it appears.",
-      },
-      {
-        kind: "rules",
-        items: [
-          {
-            name: "read exactly once",
-            detail:
-              "UPDATE … SET status='consumed' WHERE status='answered' RETURNING code — the flip is atomic, so a code can never be replayed.",
-          },
-          {
-            name: "one table, two processes",
-            detail:
-              "amazon_auth_challenges is the whole channel: webhook (user → DB) and worker activity (DB → Amazon).",
-          },
-        ],
+        text: "The eighth call-site is selector repair (Sonnet over the accessibility tree, only ever on a deterministic 0-match) — the one call that runs on its own client outside the llm_usage ledger. Everything above goes through llm.record_usage and is priced per run.",
       },
     ],
   },
 
   tmp: {
     path: "src/grocery_buddy/workflows/",
-    note: "the three durable workflows — temporal owns time, retries, and the money path",
+    note: "three durable workflows, twenty activities — temporal owns time, retries, and the money path",
     blocks: [
       {
         kind: "flow",
         title: "GroceryRunWorkflow — friday 05:00, or on demand",
-        caption: "grocery_run.py · outlined = code or a human decides",
+        caption: "grocery_run.py, step by step",
         states: [
           { id: "trig", label: "schedule · signal", col: 0, row: 0 },
           { id: "guard", label: "run guardrails", col: 1, row: 0, kind: "gate" },
@@ -177,112 +150,84 @@ export const GROCERY_BUDDY: InspectMap = {
         ],
       },
       {
-        kind: "flow",
-        title: "QuickBuyWorkflow — “buy milk”",
-        caption: "quick_buy.py · the same approval gate, at 6h",
-        states: [
-          { id: "req", label: "named item(s)", col: 0, row: 0 },
-          { id: "price", label: "price lookup", col: 1, row: 0 },
-          { id: "brief", label: "briefing", col: 2, row: 0 },
-          { id: "wait", label: "approval · 6h", col: 3, row: 0, kind: "gate" },
-          { id: "stage", label: "stage + link", col: 3, row: 1, kind: "terminal" },
-          { id: "out", label: "expired · rejected", col: 2, row: 1, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "req", to: "price" },
-          { from: "price", to: "brief" },
-          { from: "brief", to: "wait" },
-          { from: "wait", to: "stage", label: "approve" },
-          { from: "wait", to: "out", label: "timeout · reject", dashed: true },
-        ],
-      },
-      {
-        kind: "flow",
-        title: "Import workflow — /import",
-        caption: "two years of orders → a confirmed pantry",
-        states: [
-          { id: "scrape", label: "scrape orders", col: 0, row: 0 },
-          { id: "agg", label: "aggregate", col: 1, row: 0 },
-          { id: "syn", label: "sonnet synthesis", col: 2, row: 0 },
-          { id: "rev", label: "i edit in chat", col: 3, row: 0, kind: "gate" },
-          { id: "wr", label: "pantry written", col: 3, row: 1, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "scrape", to: "agg", label: "playwright" },
-          { from: "agg", to: "syn", label: "pure python" },
-          { from: "syn", to: "rev", label: "staged proposal" },
-          { from: "rev", to: "wr", label: "only on confirm" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "Why Temporal at all: every step above survives a crash. Workflows are replayed from history — which is exactly why they must stay pure, and why all twenty side-effecting steps live in activities.",
-      },
-    ],
-  },
-
-  act: {
-    path: "src/grocery_buddy/workflows/activities.py",
-    note: "what “Activities ×20” means: every side-effect lives here so workflows can replay",
-    blocks: [
-      {
-        kind: "note",
-        text: "A Temporal activity is one retryable unit of real-world work. The workflow that calls it must stay pure — no I/O, no clocks, no randomness — so Temporal can kill it, replay its history after a crash, and land in exactly the same state. Everything that touches the world gets pushed down into an activity.",
-      },
-      {
-        kind: "quote",
-        text: "Temporal activities — all I/O and side-effects live here (workflows stay pure).",
-        cite: "activities.py, line one",
-      },
-      {
         kind: "steps",
-        title: "The eleven a scheduled grocery run calls, in order",
+        title: "One scheduled run, activity by activity",
         items: [
-          { name: "reconcile_arrivals", tag: "io", detail: "landed orders top the pantry up" },
-          { name: "apply_estimated_depletion", tag: "io", detail: "the consumption model ticks on-hand down" },
-          { name: "predict_low_items", tag: "gate", detail: "rule-based predictor — no model in the loop" },
-          { name: "select_run_candidates", tag: "io", detail: "must-buys + fillers to clear free shipping" },
-          { name: "lookup_amazon_prices", tag: "io", detail: "live Playwright search, deterministic selectors" },
-          { name: "assemble_run_cart", tag: "io", detail: "totals the cart, trims fillers at the threshold" },
-          { name: "build_draft_cart", tag: "model", detail: "haiku composes the briefing copy" },
-          { name: "send_approval_notification", tag: "human", detail: "telegram briefing — approve · adjust · reject" },
-          { name: "prepare_checkout", tag: "io", detail: "clears the Amazon cart, stages by ASIN" },
-          { name: "send_checkout_link", tag: "human", detail: "“nothing's been bought yet” — I place the order" },
-          { name: "run_evals", tag: "io", detail: "precision / recall snapshot + cost ledger sum" },
+          { name: "reconcile_arrivals", tag: "io", detail: "in-transit orders whose ETA passed become on-hand stock" },
+          { name: "apply_estimated_depletion", tag: "io", detail: "estimates tick down by rate × days since last look" },
+          { name: "load_user_data", tag: "io", detail: "pantry, profiles, and the guardrail reads" },
+          { name: "select_run_candidates", tag: "gate", detail: "buckets every item and files the prediction snapshot" },
+          { name: "lookup_amazon_prices", tag: "io", detail: "one browser session — must-buys + capped fillers" },
+          { name: "assemble_run_cart", tag: "io", detail: "fillers in only until the $25 free-shipping bar" },
+          { name: "build_draft_cart", tag: "io", detail: "carts + cart_items rows written" },
+          { name: "send_approval_notification", tag: "model", detail: "compose_briefing (haiku) + the telegram buttons" },
+          { name: "prepare_checkout", tag: "io", detail: "clear first · stage by ASIN — the one no-retry activity" },
+          { name: "run_evals", tag: "io", detail: "precision / recall snapshot + the run's cost vs the alert" },
+          { name: "record_replenishments", tag: "human", detail: "on “I placed the order” — items go in-transit" },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "approval wait", v: "24h · quick-buy 6h" },
+          { k: "“i placed the order” ear", v: "72h" },
+          { k: "scheduled cooldown", v: "180 min" },
+          { k: "retries", v: "≤ 3 · backoff ×2" },
+          { k: "prepare_checkout retries", v: "1 — never auto-retried", accent: true },
         ],
       },
       {
         kind: "note",
-        text: "The other nine cover the import pipeline, onboarding, the Amazon re-login state machine and the health probe. Each activity wraps a pure function in I/O — predict_low_items_activity, for instance, only fetches inputs and calls the same predictor function the tests call.",
+        text: "Why Temporal at all: every step above survives a crash — workflows replay from history, which is exactly why they must stay pure and why all twenty side-effecting activities live outside them. The money edge is the exception to retries: prepare_checkout runs at most once per attempt, and its idempotency key makes even a manual re-run safe. The other activities cover the import pipeline, onboarding, the Amazon re-login state machine and the health probe.",
       },
     ],
   },
 
   pred: {
     path: "src/grocery_buddy/predictor.py",
-    note: "the actual rules — one line of arithmetic, no model near it",
+    note: "the actual pipeline, table to cart — one line of arithmetic per box, no model near any of it",
     blocks: [
+      {
+        kind: "graph",
+        title: "Inside the prediction engine",
+        caption: "predictor.py · depletion.py · runlist.py — every box is arithmetic; models are never asked",
+        nodes: [
+          { id: "inv", label: "inventory_items", sub: "qty + incoming on the way", col: 0, row: 0 },
+          { id: "prof", label: "consumption_profile", sub: "declared_rate × household", col: 0, row: 1 },
+          { id: "ev", label: "consumption_events", sub: "user_update only · 30d", col: 0, row: 2 },
+          { id: "decay", label: "depletion decay", sub: "qty − rate × days", col: 1, row: 0 },
+          { id: "rate", label: "effective_daily_rate", sub: "observed ≤ 80% · declared ≥ 20%", col: 1, row: 1 },
+          { id: "days", label: "days_remaining", sub: "(qty + incoming) ÷ rate", col: 2, row: 1 },
+          { id: "buckets", label: "the buckets", sub: "low ≤ 3d · medium ≤ 14d", col: 2, row: 2, accent: true },
+          { id: "split", label: "split_run_candidates", sub: "must-buy + fillers ≤ 6", col: 3, row: 2 },
+          { id: "ship", label: "free-shipping assembly", sub: "fillers in until ≥ $25", col: 3, row: 1 },
+        ],
+        edges: [
+          { from: "inv", to: "decay" },
+          { from: "prof", to: "rate", label: "the prior" },
+          { from: "ev", to: "rate", label: "the posterior" },
+          { from: "rate", to: "decay", label: "assumed consumption" },
+          { from: "decay", to: "days", label: "fresh estimate" },
+          { from: "rate", to: "days" },
+          { from: "days", to: "buckets" },
+          { from: "buckets", to: "split", label: "low = must-buy" },
+          { from: "split", to: "ship", label: "priced on amazon first" },
+        ],
+      },
       {
         kind: "rules",
         title: "How an item gets flagged",
         items: [
           {
-            name: "declared rate",
-            value: "rate × household",
-            detail:
-              "base_rate = declared_rate × household_factor — the habit I described at onboarding, scaled to the household.",
-          },
-          {
-            name: "observed rate",
-            value: "30-day lookback",
-            detail:
-              "units actually consumed over the last 30 days ÷ 30 — measured from pantry events, not from what I claimed.",
-          },
-          {
             name: "the blend",
             value: "min(events ÷ 14, 0.8)",
             detail:
               "observed consumption earns trust as events accumulate — at 14+ events it carries 80% of the weight, never more. Declared habits always keep a 20% say.",
+          },
+          {
+            name: "no feedback loop",
+            detail:
+              "only genuine user_update events inform the observed rate — the agent's own inferred depletion and one-off corrections are excluded, so the arithmetic can never feed back on the rate it was derived from.",
           },
           {
             name: "days left",
@@ -294,7 +239,13 @@ export const GROCERY_BUDDY: InspectMap = {
             name: "the flag",
             value: "≤ lead + buffer",
             detail:
-              "flagged when days_left ≤ lead_time_days (2.0) + buffer_days (1.0) — order when it'll run out before a delivery could land, plus a day of slack.",
+              "LOW when days_left ≤ lead_time_days (2.0) + buffer_days (1.0) — order when it'll run out before a delivery could land, plus a day of slack. MEDIUM up to 14 days is the filler pool; LARGE a scheduled run safely skips.",
+          },
+          {
+            name: "the round-out",
+            value: "≥ $25",
+            detail:
+              "every must-buy line is always kept; the soonest-to-deplete mediums are added — at most 6 — only until the cart clears Amazon's free next-day-shipping minimum, and the briefing says why they're there.",
           },
         ],
       },
@@ -304,88 +255,47 @@ export const GROCERY_BUDDY: InspectMap = {
           { k: "lead time", v: "2.0 days" },
           { k: "buffer", v: "1.0 day" },
           { k: "lookback", v: "30 days" },
-          { k: "max observed weight", v: "0.8" },
+          { k: "medium bucket", v: "≤ 14 days" },
           { k: "models involved", v: "0", accent: true },
         ],
       },
       {
         kind: "note",
-        text: "Deliberately boring math, debuggable in one line. The models never guess at arithmetic — and the predictor's precision is what the money-live gate measures.",
-      },
-    ],
-  },
-
-  synth: {
-    path: "src/grocery_buddy/agents/order_history.py",
-    note: "the only sonnet call on the happy path — forced tool_choice, streamed",
-    blocks: [
-      {
-        kind: "steps",
-        title: "Two years of orders → a clean pantry",
-        items: [
-          { name: "scrape order history", tag: "io", detail: "Playwright walks the Amazon order pages" },
-          { name: "aggregate", tag: "io", detail: "pure Python folds repeat purchases into per-product history" },
-          { name: "synthesize_grocery_history", tag: "model", detail: "Sonnet turns the pile into a proposed pantry — habits learned from every order, on-hand estimated honestly" },
-          { name: "conversational review", tag: "human", detail: "I edit the staged proposal in chat" },
-          { name: "confirm", tag: "gate", detail: "the live pantry is written only on explicit confirm" },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "model", v: "sonnet (model_smart)" },
-          { k: "tool_choice", v: "forced · propose_pantry" },
-          { k: "response", v: "streamed" },
-          { k: "system prompt", v: "cached across retries" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "Returns an empty proposal instead of raising — any failure degrades to manual onboarding, never a crash. Streaming matters because a large proposal can run past the non-streaming request window.",
+        text: "Deliberately boring math, debuggable in one line. Every run snapshots what this engine decided for every item — flagged or not — into prediction_snapshots, and the predictor's graded precision is what the money-live gate measures.",
       },
     ],
   },
 
   amz: {
     path: "src/grocery_buddy/automation/amazon.py",
-    note: "a persistent browser profile, because Amazon has no consumer API",
+    note: "a persistent browser profile, because Amazon has no consumer API — staging only, never checkout",
     blocks: [
       {
-        kind: "rules",
-        items: [
-          {
-            name: "persistent profile",
-            detail:
-              "launch_persistent_context on a saved user_data_dir — the signed-in session survives across runs and restarts; no re-login per run.",
-          },
-          {
-            name: "visible when it matters",
-            detail:
-              "headless by default (AMAZON_HEADLESS), but the self-healing re-login forces a visible window when it needs a human to sign in by hand.",
-          },
-          {
-            name: "no password manager",
-            detail:
-              "Chromium's password-manager prompts are disabled in the profile prefs — a popup mid-form-fill is a silent failure mode.",
-          },
-          {
-            name: "watchable",
-            detail:
-              "set AMAZON_HEADLESS=false and the log tells you so — every launch logs the profile path and mode.",
-          },
+        kind: "graph",
+        title: "From a search to a staged cart",
+        caption: "outlined = the two boxes where the code refuses to proceed on doubt — nothing here places an order",
+        nodes: [
+          { id: "srch", label: "search_grocery_price", sub: "layered selector chain", col: 0, row: 0 },
+          { id: "cand", label: "candidates", sub: "{product, price_usd, asin}", col: 1, row: 0 },
+          { id: "brand", label: "brand_select", sub: "haiku · only on a preference", col: 2, row: 0 },
+          { id: "line", label: "priced lines", sub: "the real listing · buy to par", col: 3, row: 0 },
+          { id: "clear", label: "clear_cart first", sub: "refuse if not verifiably empty", col: 3, row: 1, accent: true },
+          { id: "add", label: "add_to_cart_by_asin", sub: "purchases row · idempotent", col: 2, row: 1 },
+          { id: "url", label: "the cart url", sub: "account-scoped · never checkout", col: 1, row: 1, accent: true },
+        ],
+        edges: [
+          { from: "srch", to: "cand", label: "price + asin extracted" },
+          { from: "cand", to: "brand", label: "2+ listings + a preference" },
+          { from: "brand", to: "line", label: "{index, reason}" },
+          { from: "line", to: "clear", label: "only after human approval" },
+          { from: "clear", to: "add" },
+          { from: "add", to: "url", label: "one tap from checkout" },
         ],
       },
-    ],
-  },
-
-  repair: {
-    path: "src/grocery_buddy/automation/resilience.py",
-    note: "the deterministic chain goes first; the llm is reached only on a total 0-match",
-    blocks: [
       {
         kind: "flow",
         title: "Selector self-repair",
-        caption: "dashed = the repair path — taken only when determinism comes up empty",
+        caption: "resilience.py · dashed = the repair path — taken only when determinism comes up empty",
         states: [
           { id: "need", label: "selector intent", col: 0, row: 0 },
           { id: "chain", label: "deterministic chain", col: 1, row: 0, kind: "gate" },
@@ -406,19 +316,95 @@ export const GROCERY_BUDDY: InspectMap = {
         ],
       },
       {
-        kind: "rules",
-        items: [
-          {
-            name: "verify before caching",
-            detail:
-              "a healed descriptor is persisted only after it's confirmed to still match — a dud can never poison the cache for the next run.",
-          },
-          {
-            name: "everything recorded",
-            detail:
-              "every lookup records matched / repaired / critical, so selector drift shows up in telemetry before it becomes a broken run.",
-          },
+        kind: "flow",
+        title: "The 2FA mailbox",
+        caption: "tools/auth.py · outlined = a human holds the secret, not the model",
+        states: [
+          { id: "otp", label: "amazon asks otp", col: 0, row: 0 },
+          { id: "open", label: "challenge: pending", col: 1, row: 0 },
+          { id: "ask", label: "telegram asks me", col: 2, row: 0, kind: "gate" },
+          { id: "ans", label: "challenge: answered", col: 2, row: 1 },
+          { id: "wr", label: "webhook writes code", col: 1, row: 1 },
+          { id: "done", label: "consumed → login", col: 0, row: 1, kind: "terminal" },
         ],
+        transitions: [
+          { from: "otp", to: "open", label: "worker opens row" },
+          { from: "open", to: "ask" },
+          { from: "ask", to: "ans", label: "i reply the code" },
+          { from: "ans", to: "wr" },
+          { from: "wr", to: "done", label: "worker polls · read-once" },
+        ],
+      },
+      {
+        kind: "note",
+        text: "One persistent signed-in Chromium profile (launch_persistent_context) survives runs and restarts — headless by default, forced visible when a login needs a human hand. When Amazon asks for a one-time code mid-login, the worker opens a challenge row and asks over Telegram; the webhook writes the reply back and the flip to consumed is atomic — UPDATE … SET status='consumed' WHERE status='answered' — so a code can never be replayed. A healed selector is cached only after it's confirmed to still match; a dud can't poison the next run.",
+      },
+    ],
+  },
+
+  gate: {
+    path: "src/grocery_buddy/workflows/grocery_run.py",
+    note: "wait_condition survives worker crashes; quick_buy.py runs the same gate at 6h",
+    blocks: [
+      {
+        kind: "flow",
+        title: "The durable approval gate",
+        caption: "outlined = the workflow stops here unless a human signals",
+        states: [
+          { id: "brief", label: "briefing sent", col: 0, row: 0 },
+          { id: "wait", label: "wait_condition", col: 1, row: 0, kind: "gate" },
+          { id: "appr", label: "approved", col: 2, row: 0 },
+          { id: "stage", label: "cart staged + link", col: 3, row: 0, kind: "terminal" },
+          { id: "rej", label: "rejected", col: 1, row: 1, kind: "terminal" },
+          { id: "exp", label: "expired", col: 2, row: 1, kind: "terminal" },
+        ],
+        transitions: [
+          { from: "brief", to: "wait" },
+          { from: "wait", to: "appr", label: "approve signal" },
+          { from: "appr", to: "stage", label: "prepare_checkout" },
+          { from: "wait", to: "rej", label: "reject signal", dashed: true },
+          { from: "wait", to: "exp", label: "timeout", dashed: true },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "grocery run timer", v: "24h" },
+          { k: "quick-buy timer", v: "6h" },
+          { k: "“i placed the order” ear", v: "72h" },
+          { k: "auto-buy", v: "never", accent: true },
+        ],
+      },
+      {
+        kind: "note",
+        text: "The wait is durable: kill the worker mid-wait and Temporal replays the workflow into exactly this state, timer intact. Silence is a safe default — an unanswered briefing expires and nothing is staged; an unconfirmed checkout is never assumed to have happened.",
+      },
+    ],
+  },
+
+  link: {
+    path: "src/grocery_buddy/notifications.py",
+    note: "'nothing's been bought yet' is literal — the agent stops at the doorstep",
+    blocks: [
+      {
+        kind: "quote",
+        text: "I've added everything to your Amazon cart. Nothing's been bought yet — tap Open my Amazon cart (it opens right in your Amazon app where you're already signed in) and finish checkout.",
+        cite: "the telegram message, verbatim",
+      },
+      {
+        kind: "steps",
+        title: "Closing the loop",
+        items: [
+          { name: "cart staged", tag: "io", detail: "approved items added to my Amazon cart — nothing purchased" },
+          { name: "link sent", tag: "io", detail: "“🧾 Open my Amazon cart” + the run's total" },
+          { name: "i place the order", tag: "human", detail: "checkout happens in my Amazon app, signed in as me" },
+          { name: "“✅ I placed the order”", tag: "human", detail: "button tap — or just replying “ordered” / “done”" },
+          { name: "pantry updated", tag: "io", detail: "items marked in-transit; not re-suggested until they arrive" },
+        ],
+      },
+      {
+        kind: "note",
+        text: "The confirm step is what powers in-transit replenishment: confirmed items count as covered stock, so the Friday run won't double-suggest eggs that are already in a van.",
       },
     ],
   },
@@ -527,8 +513,8 @@ export const GROCERY_BUDDY: InspectMap = {
     ],
   },
 
-  evals: {
-    path: "src/grocery_buddy/evals.py",
+  lf: {
+    path: "src/grocery_buddy/tracing.py",
     note: "one grocery run in langfuse — the human approval is the longest span on purpose",
     trace: {
       title: "grocery_run · pantry → staged cart",
@@ -545,12 +531,12 @@ export const GROCERY_BUDDY: InspectMap = {
           detail: "consumption model ticks the pantry down",
         },
         {
-          name: "predict_low_items",
+          name: "select_run_candidates",
           type: "gate",
           depth: 0,
           start: 400,
           dur: 80,
-          detail: "rule-based predictor — no model in the loop",
+          detail: "rule-based buckets — no model · snapshot filed",
         },
         {
           name: "lookup_amazon_prices",
@@ -569,19 +555,27 @@ export const GROCERY_BUDDY: InspectMap = {
         },
         {
           name: "build_draft_cart",
-          type: "generation",
+          type: "span",
           depth: 0,
           start: 47100,
-          dur: 1900,
-          detail: "haiku 4.5 · itemized briefing copy",
+          dur: 200,
+          detail: "carts + cart_items rows written",
         },
         {
           name: "send_approval_notification",
-          type: "event",
+          type: "span",
           depth: 0,
-          start: 49100,
-          dur: 600,
+          start: 47500,
+          dur: 2500,
           detail: "telegram briefing + approve / adjust / reject",
+        },
+        {
+          name: "compose_briefing",
+          type: "generation",
+          depth: 1,
+          start: 47600,
+          dur: 1900,
+          detail: "haiku 4.5 · only because fillers need explaining",
         },
         {
           name: "approval gate",
@@ -597,7 +591,7 @@ export const GROCERY_BUDDY: InspectMap = {
           depth: 0,
           start: 191500,
           dur: 38000,
-          detail: "playwright stages the amazon cart",
+          detail: "playwright clears then stages the amazon cart",
         },
         {
           name: "send_checkout_link",
@@ -625,68 +619,75 @@ export const GROCERY_BUDDY: InspectMap = {
     },
   },
 
-  link: {
-    path: "src/grocery_buddy/notifications.py",
-    note: "'nothing's been bought yet' is literal — the agent stops at the doorstep",
+  meas: {
+    path: "src/grocery_buddy/evals.py",
+    note: "the agent grades itself with the same tables it works from — and a nightly suite grades the prompts",
     blocks: [
       {
-        kind: "quote",
-        text: "I've added everything to your Amazon cart. Nothing's been bought yet — tap Open my Amazon cart (it opens right in your Amazon app where you're already signed in) and finish checkout.",
-        cite: "the telegram message, verbatim",
+        kind: "graph",
+        title: "The measurement surface",
+        caption: "everything the money-live gate reads is measured here — none of it is self-reported",
+        nodes: [
+          { id: "snap", label: "prediction_snapshots", sub: "every item, every run", col: 0, row: 0 },
+          { id: "acc", label: "prediction accuracy", sub: "14d window · 7d horizon", col: 1, row: 0 },
+          { id: "scores", label: "langfuse scores", sub: "precision · recall per run", col: 2, row: 0 },
+          { id: "ledger", label: "llm_usage ledger", sub: "every call priced", col: 0, row: 1 },
+          { id: "cost", label: "cost per workflow", sub: "alert fires > $1.00", col: 1, row: 1 },
+          { id: "mlg", label: "money-live gate", sub: "reads all three lanes", col: 2, row: 1, accent: true },
+          { id: "probe", label: "scraper probe", sub: "milk · eggs · paper towels", col: 1, row: 2 },
+        ],
+        edges: [
+          { from: "snap", to: "acc", label: "graded vs purchased carts" },
+          { from: "acc", to: "scores" },
+          { from: "acc", to: "mlg", label: "floor ≥ 0.70" },
+          { from: "ledger", to: "cost", label: "SUM per workflow_id" },
+          { from: "cost", to: "mlg", label: "max run ≤ $0.50 · 14d" },
+          { from: "probe", to: "mlg", label: "green required" },
+        ],
       },
       {
-        kind: "steps",
-        title: "Closing the loop",
+        kind: "rules",
+        title: "The nightly prompt-regression suites — evals/run.py",
         items: [
-          { name: "cart staged", tag: "io", detail: "approved items added to my Amazon cart — nothing purchased" },
-          { name: "link sent", tag: "io", detail: "“🧾 Open my Amazon cart” + the run's total" },
-          { name: "i place the order", tag: "human", detail: "checkout happens in my Amazon app, signed in as me" },
-          { name: "“✅ I placed the order”", tag: "human", detail: "button tap — or just replying “ordered” / “done”" },
-          { name: "pantry updated", tag: "io", detail: "items marked in-transit; not re-suggested until they arrive" },
-        ],
-      },
-      {
-        kind: "note",
-        text: "The confirm step is what powers in-transit replenishment: confirmed items count as covered stock, so the Friday run won't double-suggest eggs that are already in a van.",
-      },
-    ],
-  },
-
-  gate: {
-    path: "src/grocery_buddy/workflows/grocery_run.py",
-    note: "wait_condition survives worker crashes; quick_buy.py runs the same gate at 6h",
-    blocks: [
-      {
-        kind: "flow",
-        title: "The durable approval gate",
-        caption: "outlined = the workflow stops here unless a human signals",
-        states: [
-          { id: "brief", label: "briefing sent", col: 0, row: 0 },
-          { id: "wait", label: "wait_condition", col: 1, row: 0, kind: "gate" },
-          { id: "appr", label: "approved", col: 2, row: 0 },
-          { id: "stage", label: "cart staged + link", col: 3, row: 0, kind: "terminal" },
-          { id: "rej", label: "rejected", col: 1, row: 1, kind: "terminal" },
-          { id: "exp", label: "expired", col: 2, row: 1, kind: "terminal" },
-        ],
-        transitions: [
-          { from: "brief", to: "wait" },
-          { from: "wait", to: "appr", label: "approve signal" },
-          { from: "appr", to: "stage", label: "prepare_checkout" },
-          { from: "wait", to: "rej", label: "reject signal", dashed: true },
-          { from: "wait", to: "exp", label: "timeout", dashed: true },
+          {
+            name: "intents",
+            value: "gates ≥ 0.8",
+            detail: "parse_request / parse_briefing_reply routing accuracy — exact action match against labeled messages.",
+          },
+          {
+            name: "briefings",
+            value: "gates ≥ 0.8",
+            detail: "compose_briefing groundedness via deterministic checks — no judge in the loop.",
+          },
+          {
+            name: "synthesis",
+            value: "gates ≥ 0.8",
+            detail: "synthesize_grocery_history product-set recall + exclusion against known order histories.",
+          },
+          {
+            name: "onboarding",
+            value: "gates ≥ 0.8",
+            detail: "onboarding extraction tool-call recall.",
+          },
+          {
+            name: "briefing_quality",
+            value: "report-only",
+            detail: "tone and groundedness by LLM-as-judge — reported for the trend, never gates.",
+          },
         ],
       },
       {
         kind: "kv",
         items: [
-          { k: "grocery run timer", v: "24h" },
-          { k: "quick-buy timer", v: "6h" },
-          { k: "auto-buy", v: "never", accent: true },
+          { k: "precision", v: "flagged ∩ bought ÷ flagged" },
+          { k: "recall", v: "flagged ∩ bought ÷ bought" },
+          { k: "nightly run", v: "07:00 UTC · github actions" },
+          { k: "gating verdict", v: "any suite < 0.8 → exit 1", accent: true },
         ],
       },
       {
         kind: "note",
-        text: "The wait is durable: kill the worker mid-wait and Temporal replays the workflow into exactly this state, timer intact. Silence is a safe default — an unanswered briefing expires and nothing is staged.",
+        text: "Precision is honest because the snapshot records the predictor's decision for every item — not cart membership — so buying something it never flagged lowers recall, as it should. The $1.00 figure is the per-run cost alert; the money-live gate holds the stricter $0.50 ceiling. Snapshots are best-effort: a telemetry failure never blocks a grocery run.",
       },
     ],
   },
@@ -711,57 +712,28 @@ export const GROCERY_BUDDY: InspectMap = {
               "measured precision from graded prediction snapshots must clear the floor — don't auto-buy off a bad predictor.",
           },
           {
-            name: "scraper_health",
+            name: "scraper_green",
             detail:
               "the synthetic probe must be green — extraction works, so the RIGHT item would be added.",
           },
           {
-            name: "llm_cost",
-            value: "≤ $1.00 / run",
+            name: "cost_under_ceiling",
+            value: "≤ $0.50 / run",
             detail:
-              "recent per-run model spend under the ceiling — catches runaway loops before they spend real money.",
+              "the costliest run of the last 14 days — summed per workflow from the llm_usage ledger — must sit under the ceiling. Catches a runaway loop before it could spend real money.",
           },
           {
             name: "checkout_verified",
             value: "hard stop",
             fail: true,
             detail:
-              "staged cart == approved cart verification is not yet implemented — and fails on purpose. A signed approval bounds intent, not execution; until what landed in the cart is verified, this condition returns false.",
+              "“execution verification (staged cart == approved cart) not yet implemented — hard stop.” A signed approval bounds intent, not execution; until what actually landed in the cart is verified, this condition returns false on purpose.",
           },
         ],
       },
       {
         kind: "note",
-        text: "ready = all(conditions) — the gate is evaluated and logged per user, and the fifth condition keeps it shut regardless of how good the other four look.",
-      },
-    ],
-  },
-
-  probe: {
-    path: "src/grocery_buddy/monitoring.py",
-    note: "known staples must still yield price + asin — silent breakage pages the user",
-    blocks: [
-      {
-        kind: "steps",
-        title: "The synthetic health check",
-        items: [
-          { name: "launch the real browser", tag: "io", detail: "same persistent context the runs use" },
-          { name: "search each staple", tag: "io", detail: "milk · eggs · paper towels — queries that should always return grocery results" },
-          { name: "assert extraction", tag: "gate", detail: "every probe must yield a price AND an ASIN" },
-          { name: "any miss → red", tag: "gate", detail: "status flips red and a notification pages me" },
-        ],
-      },
-      {
-        kind: "kv",
-        items: [
-          { k: "probe queries", v: "milk · eggs · paper towels" },
-          { k: "green requires", v: "price + ASIN extract" },
-          { k: "feeds", v: "money-live gate", accent: true },
-        ],
-      },
-      {
-        kind: "note",
-        text: "Best-effort by design: a thrown error becomes a red status, never an exception to the caller — silent breakage is exactly the failure mode being hunted.",
+        text: "ready = all(conditions) — the gate is evaluated and logged per user, and the fifth condition keeps it shut regardless of how good the other four look. The agent stages carts; it does not spend.",
       },
     ],
   },

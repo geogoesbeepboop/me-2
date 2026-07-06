@@ -1,120 +1,232 @@
 ---
 title: "The Method"
-summary: "I don't use Claude Code bare. It runs inside a harness — a standing contract, 17 skills, a rim of hooks, specialist subagents, and a token meter — built so the way I build is as deliberate as what I build. And since July, the harness verifies itself: every repo gates every commit, evals run nightly while I sleep, and this site files its own morning report."
+summary: "I don't type code into a box; I operate a small fleet. One conductor session writes briefs and reviews diffs; executors run in their own windows; every repo verifies itself on every commit; and the checks run again at 06:17 while I sleep. This page is the day as it actually runs — down to the files that enforce it."
 thesis: "The way we build is as important as what we build."
 status: "ALWAYS ON"
 metrics:
-  - k: "global skills, one pipeline"
-    v: "17"
+  - k: "skills, one ladder"
+    v: "21"
   - k: "hooks on the rim, fail-open"
-    v: "4"
-  - k: "token-accounting lenses"
-    v: "6"
+    v: "5"
   - k: "repos gated on every commit + nightly"
     v: "4"
   - k: "offline eval cases, nightly at $0"
-    v: "88"
+    v: "87"
   - k: "launchd agents running the loop"
     v: "3"
+  - k: "token-accounting lenses"
+    v: "6"
 sections:
-  - { id: "shape", title: "The shape of it" }
-  - { id: "contract", title: "The contract" }
-  - { id: "loop", title: "The loop" }
-  - { id: "context", title: "Context is the scarce resource" }
-  - { id: "rim", title: "The deterministic rim" }
-  - { id: "deep", title: "Paying for certainty" }
-  - { id: "meter", title: "The meter" }
-  - { id: "gate", title: "Verification without me" }
-  - { id: "lanes", title: "Two lanes, then five" }
+  - { id: "slept", title: "While I slept" }
+  - { id: "open", title: "The two-minute open" }
+  - { id: "ladder", title: "The ladder" }
+  - { id: "lanes", title: "Conduct, don't type" }
+  - { id: "verify", title: "Verification without me" }
   - { id: "flywheel", title: "The flywheel" }
+  - { id: "machine", title: "The machine" }
 ---
 
-<Section id="shape" n="00" title="The shape of it">
+<Section id="slept" n="00" title="While I slept">
 
-Every project in this archive was built inside the same machine: Claude Code, wrapped in a harness that took longer to sharpen than most of the projects it has shipped. A standing contract that makes the model argue with me. Seventeen slash-skills that turn vague intent into a repeatable pipeline. A rim of hooks that guard the loop deterministically. Two specialist subagents that do the heavy reading in their own context windows. And a meter that prices every conversation after the fact.
+The day starts before I do. Three launchd agents run the loop overnight — no server, no cloud, just this machine keeping its own house.
 
-The premise is the same one running inside my products: **probabilistic imagination, deterministic execution.** The harness is where I apply my own doctrine to myself.
-
-<ArchitectureDiagram
-  title="the harness — at a glance"
-  caption="The main loop stays small and opinionated; everything heavy happens in someone else's window — and the bottom row runs whether or not I'm awake."
-  nodes={[
-    { id: "me", label: "George", sub: "framing = a hypothesis", col: 0, row: 0 },
-    { id: "contract", label: "CLAUDE.md", sub: "the standing contract", col: 1, row: 0, accent: true },
-    { id: "cc", label: "Claude Code", sub: "the main loop", col: 2, row: 0 },
-    { id: "skills", label: "17 skills", sub: "one pipeline, ideate → wrap", col: 0, row: 1 },
-    { id: "agents", label: "Specialists", sub: "critic · researcher · explore", col: 1, row: 1 },
-    { id: "hooks", label: "Hook rim", sub: "4 gates, fail-open", col: 2, row: 1, accent: true },
-    { id: "handoffs", label: "Handoffs", sub: "state that survives sessions", col: 0, row: 2 },
-    { id: "meter", label: "Token meter", sub: "6 lenses + a ledger", col: 1, row: 2 },
-    { id: "ship", label: "Shipped work", sub: "the rest of this archive", col: 2, row: 2 },
-    { id: "gates", label: "gate.sh × 4", sub: "blocks every red commit", col: 0, row: 3, accent: true },
-    { id: "night", label: "Night watch", sub: "06:17 — gates + evals, digested", col: 1, row: 3 },
-    { id: "board", label: "The city board", sub: "files + curates itself", col: 2, row: 3 }
-  ]}
-  edges={[
-    { from: "me", to: "contract", label: "governs" },
-    { from: "contract", to: "cc" },
-    { from: "skills", to: "cc", label: "front doors" },
-    { from: "agents", to: "cc", label: "conclusions only", dashed: true },
-    { from: "cc", to: "hooks", label: "every tool call" },
-    { from: "skills", to: "handoffs", label: "/end-session" },
-    { from: "handoffs", to: "meter", label: "ledgered", dashed: true },
-    { from: "hooks", to: "ship" },
-    { from: "hooks", to: "gates", label: "guard-commit" },
-    { from: "gates", to: "night", label: "nightly, every repo" },
-    { from: "night", to: "board", label: "the site reads the digest" }
+<TerminalLog
+  title="the night shift — this morning, as it ran"
+  lines={[
+    { t: "06:17", k: "sys", s: "launchd: com.geoandr.nightly-gate-digest — every focus repo's gate.sh + evals.sh" },
+    { t: "06:17", k: "out", s: "jim-agent — ✅ pass (9s) · evals — ✅ pass (2s)" },
+    { t: "06:17", k: "out", s: "grocery-buddy — ✅ pass (3s) · procurement-agent — ✅ pass (2s)" },
+    { t: "06:17", k: "out", s: "dj-agent — ✅ pass (7s)" },
+    { t: "06:45", k: "sys", s: "launchd: me.ops-report — the fleet report measures, sanitizes, commits, pushes; the site redeploys" },
+    { t: "07:15", k: "sys", s: "sundays: me.curator — every entry drift-checked against its repo; publishes only through its own gates" }
   ]}
 />
+
+Drift gets caught within 24 hours instead of at the worst possible moment — and I don't have to remember to check, because the checking isn't mine anymore. The gate lines above are quoted from today's digest file; the first session of the day opens with them already in hand.
+
+</Section>
+
+<Section id="open" n="01" title="The two-minute open">
+
+No dashboard, no status meeting with myself. A SessionStart hook injects three things before I type a word:
+
+<TerminalLog
+  title="a session start — the hook's injection, condensed"
+  lines={[
+    { k: "sys", s: "SessionStart · session-context.sh →" },
+    { k: "out", s: "Git: on 'main', 0 uncommitted change(s). Last commit: 15c85a8 …" },
+    { k: "out", s: "Gate digest (2026-07-06): 4 repos ✅ · evals ✅" },
+    { k: "out", s: "## Next steps — the last handoff's ordered list, yesterday-me briefing today-me" }
+  ]}
+/>
+
+The triage rule, in order: a red gate or a yellow eval regression **is** the first task — you don't build on a broken foundation. Green → start from the handoff's next steps. No handoff → pick a rung below.
+
+</Section>
+
+<Section id="ladder" n="02" title="The ladder">
+
+Ceremony matches stakes. Every piece of work enters through one of these doors — the expensive mistake is over-planning small things and under-planning big ones.
+
+<Ladder
+  title="which door, when"
+  caption="every rung below the first is a real skill on this machine — click the harness below to read them"
+  rungs={[
+    { skill: "just ask", when: "trivial — I know exactly what I want", gets: "no ceremony" },
+    { skill: "/spike", when: "prototype — can this even work?", gets: "one approach, a flat checklist, kill criteria" },
+    { skill: "/plan", when: "a real feature in an existing project", gets: "dense phases, each ending where a human verifies" },
+    { skill: "/challenge", when: "a decision worth attacking before it ships", gets: "an opus critic's ranked case against" },
+    { skill: "/deep-plan · /deep-challenge", when: "architecture on the line — expensive to be wrong", gets: "scripted fan-out: recon, competing designs, a five-lens panel" },
+    { skill: "/new-agent", when: "a brand-new agent project", gets: "the whole convention set — first question: what's the gate?" },
+    { skill: "/hack", when: "a hackathon clock is running", gets: "demo-first scaffold + a T-minus schedule" }
+  ]}
+/>
+
+The deep tier is an economic decision, not a default: the skill frames a self-contained brief and a co-located script runs a bounded fan-out — a few hundred thousand tokens of parallel scrutiny on the decisions that justify it, and nothing on the ones that don't.
+
+</Section>
+
+<Section id="lanes" n="03" title="Conduct, don't type">
+
+The session shape that changes throughput isn't a better prompt — it's **conduct, don't type**. One session writes briefs and reviews diffs; implementation runs in parallel lanes — background agents and git worktrees — that verify themselves against their own gates.
+
+<LaneBoard
+  title="the board while this page was rebuilt"
+  caption="a real morning — the conductor and its two executor lanes, from the session that produced the page you're reading"
+  lanes={[
+    {
+      name: "conductor",
+      role: "conductor",
+      sub: "this session",
+      lines: [
+        { k: "cmd", s: "revamp /method + the project deep dives" },
+        { k: "sys", s: "3 explorers fan out — the site · jim-agent · grocery + dj" },
+        { k: "out", s: "plan approved — two implementation briefs written" },
+        { k: "out", s: "reviewing diffs, not token streams" }
+      ]
+    },
+    {
+      name: "lane: grocery-buddy",
+      role: "executor",
+      sub: "background agent · own context",
+      lines: [
+        { k: "sys", s: "brief: goal · constraints · files it owns · verify command · what done means" },
+        { k: "out", s: "compressing the topology · drawing the real sub-graphs" },
+        { k: "out", s: "verify: tsc ✅ · content check ✅" }
+      ]
+    },
+    {
+      name: "lane: dj-agent",
+      role: "executor",
+      sub: "background agent · own context",
+      lines: [
+        { k: "sys", s: "same brief shape, different territory — lanes can't stomp each other" },
+        { k: "out", s: "ingest transaction · generation loop · critic thresholds" },
+        { k: "out", s: "verify: tsc ✅ · content check ✅" }
+      ]
+    }
+  ]}
+  contract={[
+    { name: "goal", detail: "one sentence, unambiguous — if I can't write it, the work isn't ready to delegate" },
+    { name: "constraints", detail: "what must not change, said out loud" },
+    { name: "files", detail: "the lane's territory, named — so lanes can't collide" },
+    { name: "verify", detail: "the exact command the lane must pass — usually that repo's gate.sh" },
+    { name: "done", detail: "what finished looks like, so the lane can stop itself" }
+  ]}
+/>
+
+The ramp is deliberately boring: one conductor plus one executor, adding a lane only when the current count feels idle. The ceiling isn't the model — it's brief-writing and diff-review bandwidth. A lane gets touched when it pings or at its checkpoint, never watched; if lanes keep blocking on me, the fix is fewer lanes or sharper briefs.
+
+</Section>
+
+<Section id="verify" n="04" title="Verification without me">
+
+The highest-leverage question in the whole system is asked *before* any task starts: **can the agent verify this without me?** If the answer is no — no test to run, no eval case, no seeded data — that gets built first. It feels slower; it's faster by mid-session, because the agent self-corrects instead of queueing on my eyeballs.
+
+<ArchitectureDiagram
+  title="what a commit has to survive"
+  caption="one file per repo, three enforcement points: the commit, the night watch, and — when repos get remotes — CI runs the same script"
+  nodes={[
+    { id: "diff", label: "The diff", sub: "any lane · any repo", col: 0, row: 0 },
+    { id: "commit", label: "git commit", sub: "any session, every time", col: 1, row: 0 },
+    { id: "hook", label: "guard-commit", sub: "global hook · fail-open", col: 2, row: 0, accent: true },
+    { id: "gate", label: "gate.sh", sub: "lint + hermetic suite · <120s", col: 3, row: 0, accent: true },
+    { id: "green", label: "committed", sub: "lint + suite proven", col: 4, row: 0 },
+    { id: "blocked", label: "blocked", sub: "the exact failing check, returned", col: 3, row: 1 },
+    { id: "night", label: "night watch", sub: "same file · 06:17 · digested", col: 4, row: 1 }
+  ]}
+  edges={[
+    { from: "diff", to: "commit" },
+    { from: "commit", to: "hook", label: "PreToolUse" },
+    { from: "hook", to: "gate", label: "runs the repo's own gate" },
+    { from: "gate", to: "green", label: "exit 0" },
+    { from: "gate", to: "blocked", label: "red", dashed: true },
+    { from: "gate", to: "night", label: "runs again nightly" }
+  ]}
+/>
+
+Evals are the same idea for the nondeterministic parts: anything with an LLM decision carries an offline, zero-credential `evals.sh` — JIM's replays 87 cases in about two seconds for $0.00, armed with a baseline so a regression is a verdict, not a feeling. The full harness is drawn inside <a href="/projects/jim">JIM's dossier</a>. And `--no-verify` stays available as the deliberate escape hatch — used rarely, said out loud in the commit message.
+
+</Section>
+
+<Section id="flywheel" n="05" title="The flywheel">
+
+Everything above compounds through one rule and one ritual. The rule: **anything done or explained three times becomes a skill that session.** The ritual: a thirty-minute weekly retro over one question — *where did I babysit this week?*
+
+<ArchitectureDiagram
+  title="the flywheel — friction leaves as an artifact"
+  caption="skip the retro for a month and the setup stays exactly this good; run it weekly and every annoyance is felt approximately once"
+  nodes={[
+    { id: "catch", label: "A babysit moment", sub: "re-explaining · hand-verifying", col: 0, row: 0 },
+    { id: "log", label: "BABYSIT_LOG.md", sub: "one line · ten seconds", col: 1, row: 0 },
+    { id: "retro", label: "/retro — weekly", sub: "conversion, not review", col: 2, row: 0, accent: true },
+    { id: "fix", label: "cheapest fix wins", sub: "hook < gate < instruction < skill", col: 3, row: 0, accent: true },
+    { id: "harness", label: "The harness", sub: "compounds — felt once", col: 4, row: 0 }
+  ]}
+  edges={[
+    { from: "catch", to: "log" },
+    { from: "log", to: "retro", label: "the open list" },
+    { from: "retro", to: "fix", label: "one fix per item" },
+    { from: "fix", to: "harness", label: "applied in-session" },
+    { from: "harness", to: "catch", label: "next week's friction, smaller", dashed: true }
+  ]}
+/>
+
+Instruction files ride the same loop, treated as code: one canonical `AGENTS.md` per repo, containing only what an agent gets wrong without being told. Every re-explanation in a session is a bug in that file, fixed with one line, then — not someday.
+
+The proof is this site. It watches the fleet's transcripts, reads the night's digests, **files its own report every morning**, and syncs its entries against their source repos weekly — gated by its own content check and build rather than by my attention. The archive maintains itself and shows its work in <a href="/v2/ops">the ops room</a>.
+
+</Section>
+
+<Section id="machine" n="06" title="The machine">
+
+The design rule underneath all of it: the main context window is the most expensive real estate in the system, so heavy reading happens in someone else's window and only conclusions come back. Below is the machine itself — every layer clickable down to the file that enforces it.
 
 <SystemDeepDive
   title="The Harness"
   inspect="method"
   subtitle="Claude Code as the engine; the harness as transmission, brakes, and instrumentation. Everything below is real configuration, quoted from the files that enforce it."
   nodes={[
-    { id: "me", label: "George", sub: "decides · verifies · pays", col: 0, row: 0 },
-    { id: "contract", label: "CLAUDE.md", sub: "disagree out loud · decide vs ask", col: 1, row: 0, accent: true },
-    { id: "cc", label: "Claude Code", sub: "main loop · 1M-token ceiling", col: 2, row: 0 },
-    { id: "memory", label: "Memory files", sub: "facts that outlive sessions", col: 3, row: 0 },
-    { id: "light", label: "Light skills", sub: "/brainstorm · /plan · /challenge", col: 0, row: 1 },
-    { id: "deep", label: "Deep skills", sub: "/deep-* · scripted fan-out", col: 1, row: 1, accent: true },
-    { id: "critic", label: "Critic", sub: "opus · xhigh · read-only", col: 2, row: 1 },
-    { id: "researcher", label: "Researcher", sub: "sonnet · cited conclusions", col: 3, row: 1 },
-    { id: "guardbash", label: "guard-bash", sub: "rm-ancestor protection", col: 0, row: 2, accent: true },
-    { id: "guardsec", label: "guard-secrets", sub: "no keys in tracked files", col: 1, row: 2, accent: true },
-    { id: "fmt", label: "format-on-edit", sub: "ruff · prettier · gofmt", col: 2, row: 2 },
-    { id: "sessctx", label: "session-context", sub: "git state + last handoff", col: 3, row: 2 },
-    { id: "handoff", label: "/handoff", sub: "timestamped next steps", col: 0, row: 3 },
-    { id: "onboard", label: "/onboard", sub: "verify claims vs reality", col: 1, row: 3 },
-    { id: "docs", label: "/update-docs", sub: "approval-gated doc changes", col: 2, row: 3 },
-    { id: "ledger", label: "Token ledger", sub: "~/dev/token-breakdowns", col: 3, row: 3 },
-    { id: "gates", label: "gate.sh", sub: "lint + full suite · <120s", col: 0, row: 4, accent: true },
-    { id: "evals", label: "evals.sh", sub: "offline · $0 · baseline-armed", col: 1, row: 4, accent: true },
-    { id: "night", label: "Nightly digest", sub: "launchd 06:17 · dated file", col: 2, row: 4 },
-    { id: "board", label: "The city board", sub: "night watch · self-filing", col: 3, row: 4 }
+    { id: "contract", label: "CLAUDE.md", sub: "framing = a hypothesis · disagree out loud", col: 0, row: 0, accent: true },
+    { id: "cc", label: "Claude Code", sub: "the main loop", col: 1, row: 0 },
+    { id: "skills", label: "The skills", sub: "21 front doors · light → deep", col: 2, row: 0 },
+    { id: "specialists", label: "Specialists", sub: "critic · researcher · explore fleets", col: 0, row: 1 },
+    { id: "rim", label: "Hook rim", sub: "5 guards · deterministic · fail-open", col: 1, row: 1, accent: true },
+    { id: "memory", label: "Memory & handoffs", sub: "state survives on disk", col: 2, row: 1 },
+    { id: "meter", label: "Token meter", sub: "6 lenses + a ledger", col: 0, row: 2 },
+    { id: "fleet", label: "Fleet gates", sub: "gate.sh + evals.sh × 4 repos", col: 1, row: 2, accent: true },
+    { id: "night", label: "Night automation", sub: "06:17 · 06:45 · sun 07:15", col: 2, row: 2 }
   ]}
   edges={[
-    { from: "me", to: "contract", label: "one contract" },
     { from: "contract", to: "cc", label: "governs every turn" },
-    { from: "light", to: "deep", label: "escalate when stakes rise" },
-    { from: "light", to: "critic", label: "/challenge", dashed: true },
-    { from: "light", to: "researcher", label: "/brainstorm", dashed: true },
-    { from: "critic", to: "cc", label: "ranked concerns" },
-    { from: "researcher", to: "cc", label: "conclusions, never raw pages" },
-    { from: "cc", to: "guardbash", label: "pre: bash" },
-    { from: "cc", to: "guardsec", label: "pre: write" },
-    { from: "cc", to: "fmt", label: "post: write" },
-    { from: "sessctx", to: "cc", label: "session start" },
-    { from: "handoff", to: "onboard", label: "next session boots here" },
-    { from: "docs", to: "handoff", label: "/end-session order" },
-    { from: "cc", to: "ledger", label: "every window, priced", dashed: true },
-    { from: "memory", to: "cc", label: "recall", dashed: true },
-    { from: "cc", to: "gates", label: "every git commit" },
-    { from: "gates", to: "night", label: "06:17, all repos" },
-    { from: "evals", to: "night", label: "regressions flagged" },
-    { from: "night", to: "sessctx", label: "the morning banner" },
-    { from: "night", to: "board", label: "the site reads the digest", dashed: true },
-    { from: "board", to: "me", label: "morning triage" }
+    { from: "skills", to: "cc", label: "front doors" },
+    { from: "specialists", to: "cc", label: "conclusions only" },
+    { from: "cc", to: "rim", label: "every tool call" },
+    { from: "cc", to: "memory", label: "handoff · recall" },
+    { from: "cc", to: "meter", label: "every window priced" },
+    { from: "rim", to: "fleet", label: "guard-commit runs the gate" },
+    { from: "fleet", to: "night", label: "re-run nightly" },
+    { from: "night", to: "cc", label: "the morning banner" }
   ]}
   stateMachines={[
     {
@@ -129,7 +241,7 @@ The premise is the same one running inside my products: **probabilistic imaginat
         { id: "handoff", label: "handoff on disk", col: 5, row: 0, kind: "terminal" }
       ],
       transitions: [
-        { from: "boot", to: "inject", label: "git + last handoff" },
+        { from: "boot", to: "inject", label: "git + digest + last handoff" },
         { from: "inject", to: "onboard", label: "lean prefix" },
         { from: "onboard", to: "work", label: "drift flagged first" },
         { from: "work", to: "wrap", label: "docs then handoff" },
@@ -166,21 +278,21 @@ The premise is the same one running inside my products: **probabilistic imaginat
     { name: "design trio", model: "sonnet ×3 stances", shape: "judged", does: "MVP-first vs risk-first vs robustness-first; a judge scores, opus grafts the best of the losers" }
   ]}
   core={[
+    { name: "the gate question", rule: "before any task: can the agent verify this without me? if no — no test, no eval, no seeded data — build that first" },
+    { name: "commit gate", rule: "git commit runs the repo's own gate.sh and blocks on red; --no-verify is the deliberate escape hatch, said out loud in the message" },
+    { name: "lane contract", rule: "a parallel lane starts with a written brief: goal, constraints, files to respect, the verify command it must pass, and what done means" },
     { name: "guard-bash", rule: "recursive deletes are blocked when the target resolves to a protected directory or its ancestor — anything strictly inside stays deletable; fails open" },
     { name: "guard-secrets", rule: "high-confidence keys never land in tracked files; .env, examples, and key files are exempt by design" },
     { name: "plan rules", rule: "no time estimates, ever; phases end exactly where a human verifies; total phases stay in the single digits" },
     { name: "doc discipline", rule: "no new document without explicit approval — update what exists, never sprawl" },
     { name: "deep-skill contract", rule: "the skill frames the brief; a script runs the fan-out — bounded, deterministic, reproducible" },
-    { name: "the meter's honesty", rule: "dollar figures are API-list-price equivalents, not the bill; input counts under-report — trust output and cache-read" },
-    { name: "the gate question", rule: "before any task: can the agent verify this without me? if no — no test, no eval, no seeded data — build that first" },
-    { name: "commit gate", rule: "git commit runs the repo's own gate.sh and blocks on red; --no-verify is the deliberate escape hatch, said out loud in the message" },
-    { name: "lane contract", rule: "a parallel lane starts with a written brief: goal, constraints, files to respect, the verify command it must pass, and what done means" }
+    { name: "the meter's honesty", rule: "dollar figures are API-list-price equivalents, not the bill; input counts under-report — trust output and cache-read" }
   ]}
   layers={[
     { name: "Contract", note: "One global CLAUDE.md: treat my framing as a hypothesis, pressure-test consequential decisions, disagree out loud, resolve trivial choices alone. It makes the default posture adversarial instead of agreeable." },
-    { name: "Skills", note: "Seventeen front doors with one shape: frame a self-contained brief, delegate the heavy work, synthesize back. Light skills run inline; each has a deep sibling that escalates to a scripted workflow when the stakes justify the spend." },
+    { name: "Skills", note: "Twenty-one front doors on one ladder: session bookends, the shaping tier (/spike, /plan, /challenge), scripted deep siblings, project starters (/new-agent, /hack), the weekly /retro, and six token lenses. One shape throughout: frame a self-contained brief, delegate the heavy work, synthesize back." },
     { name: "Specialists", note: "A critic on Opus paid to attack, a researcher on Sonnet paid to read elsewhere, Explore fleets for recon. All of them return conclusions into the main loop — never their raw material." },
-    { name: "Rim", note: "Four hooks wrap every tool call: catastrophic-command guard, secret-write guard, format-on-edit, session-context injection. Deterministic shell, zero model, all fail-open." },
+    { name: "Rim", note: "Five hooks wrap every session: catastrophic-command guard, commit gate, secret-write guard, format-on-edit, session-context injection. Deterministic shell, zero model, all fail-open." },
     { name: "Memory & meter", note: "Handoffs make state survive sessions; memory files make taste survive projects; the token ledger makes cost a number instead of a feeling." },
     { name: "Fleet", note: "The layer that runs without me: every focus repo carries an executable gate.sh (guard-commit blocks red commits) and, where an LLM decides anything, an offline evals.sh; a 06:17 LaunchAgent runs both across the fleet and digests the result; the city board reads that digest, files its own morning report, and curates its own entries — deterministically gated." }
   ]}
@@ -194,128 +306,6 @@ The premise is the same one running inside my products: **probabilistic imaginat
     "The board and I read the same digest — the site is the instrument panel, not a brochure."
   ]}
 />
-
-</Section>
-
-<Section id="contract" n="01" title="The contract">
-
-The global CLAUDE.md is four sentences of posture, and it changes everything downstream. *Treat my framing as a hypothesis, not a spec.* *Pressure-test consequential decisions.* *Disagree out loud — prioritize correctness over agreement.* *Decide vs. ask: resolve trivial choices yourself, surface the ones that matter.*
-
-Most people prompt for compliance and get it, which is the problem. The contract makes the default posture adversarial: the model's job is the best outcome, not fast agreement. Every skill below inherits this — the critic exists because of it, and the challenge step assumes it.
-
-</Section>
-
-<Section id="loop" n="02" title="The loop">
-
-Ideate, plan, build, challenge, wrap. Each stage is a skill with a sharp shape, and the sequence is the same whether the product is a grocery agent or this website.
-
-<TerminalLog
-  title="one feature, end to end — the pipeline as it actually runs"
-  lines={[
-    { t: "09:12", k: "cmd", s: "/brainstorm retry semantics for papertrail settlements" },
-    { t: "09:12", k: "sys", s: "researcher spawned — raw sources stay out of this window" },
-    { t: "09:16", k: "agent", s: "[researcher] 3 viable approaches, cited · 14 sources read elsewhere" },
-    { t: "09:21", k: "cmd", s: "/plan — checkpoints, no time estimates" },
-    { t: "09:23", k: "out", s: "4 dense phases · each ends where a human verifies" },
-    { t: "09:25", k: "sys", s: "build — hooks riding along: guard-bash · guard-secrets · format-on-edit" },
-    { t: "11:31", k: "cmd", s: "/challenge the built webhook path before it ships" },
-    { t: "11:34", k: "agent", s: "[critic · opus] strongest case against: 4 concerns, ranked" },
-    { t: "11:35", k: "out", s: "adjudicated: 2 worth fixing · 1 accepted · 1 not a concern — with reasons" },
-    { t: "11:49", k: "sys", s: "fixes land — same hooks riding along" },
-    { t: "11:58", k: "cmd", s: "/end-session" },
-    { t: "11:59", k: "out", s: "docs updated (approval-gated) · handoff written with ordered next steps" },
-    { t: "11:59", k: "sys", s: "tomorrow's session boots from that file in one prompt" }
-  ]}
-/>
-
-The plan rules are worth quoting because they encode a worldview: **no time estimates, ever** — they're noise. **Phase boundaries are checkpoints, not chapters** — each ends exactly where I should verify something works, or where the model needs my hands. A plan that can't name its checkpoints isn't a plan; it's a vibe with numbered headings.
-
-</Section>
-
-<Section id="context" n="03" title="Context is the scarce resource">
-
-The main context window is the most expensive real estate in the system, and almost everything in the harness exists to protect it.
-
-Research is delegated to a researcher subagent that reads the web in its own window and returns cited conclusions — the brief it receives is self-contained because it cannot see the conversation. Codebase recon goes to Explore agents that return the map, not the territory. The critic reads code read-only in its own window and sends back ranked concerns. The main loop stays small, opinionated, and cheap to keep coherent.
-
-Between sessions, the same discipline: `/handoff` writes a timestamped file — state, decisions with their *why*, ordered next steps — and a SessionStart hook injects just the git state and that file's next-steps section into the new session's first tokens. `/onboard` then loads the handoff and **verifies its claims against reality before trusting them**, flagging drift between what was written and what the repo says. Continuity without dragging a thousand turns of history along.
-
-</Section>
-
-<Section id="rim" n="04" title="The deterministic rim">
-
-Four hooks wrap the loop — deterministic shell, no model, and they fail open, because they guard accidents, not deliberate obfuscation.
-
-The bash guard is the interesting one: it blocks a recursive delete when the target *resolves* to a protected directory or an **ancestor** of one, while anything strictly inside stays deletable — a project's `dist/` dies freely, the dev root never does. The secrets guard refuses to write what looks like a real key into a tracked file, while `.env` and example files stay exempt. Format-on-edit runs ruff or prettier or gofmt after every write, silently. And the session-context hook keeps the boot prefix lean on purpose — orientation in a dozen lines, not a wall.
-
-The same shape as my products' gates: small, pure, auditable, and positioned where the blast radius lives.
-
-</Section>
-
-<Section id="deep" n="05" title="Paying for certainty">
-
-Every light skill has a heavyweight sibling, and the split is an economic decision. `/challenge` sends one Opus critic; `/deep-challenge` runs a **panel** — five lenses (correctness, failure modes, security, scale, simpler alternatives), one to three independent critics per lens depending on an intensity dial, merged, deduped, then steelmanned and ranked by an Opus pass. `/plan` sends one scout; `/deep-plan` fans four to eight explorers in parallel, drafts **three competing designs** — MVP-first, risk-first, robustness-first — scores them with a judge, and grafts the losers' best ideas onto the winner.
-
-The deep family is deliberately *not* an agent swarm. The skill frames a self-contained brief; a co-located `workflow.js` executes a scripted, bounded fan-out. Imagination chooses the question; the script guarantees the coverage.
-
-Certainty has a price, and the dial makes it explicit: spend a few hundred thousand tokens of parallel scrutiny on decisions that are expensive to be wrong about, and nothing on the ones that aren't.
-
-</Section>
-
-<Section id="meter" n="06" title="The meter">
-
-You can't claim "build fast, adapt faster" without knowing what fast costs. Six token-accounting skills read the on-disk transcripts — main thread plus every subagent window, including everything long since evicted from live context — and split usage into fresh input, cache writes, cache reads, and output, per thread, with peak context per window.
-
-One lens prices the current session. One prices just the last skill invocation. Two reach back into any past session without re-ingesting it. Two run a census across *all* sessions and skills — a ranked leaderboard of where the tokens actually went, with grand totals, written to a ledger. Each report opens as an HTML drill-down where every subagent row expands to the exact prompt it was fed and what it read, ran, and fetched.
-
-The meter is also honest about itself: the dollar figures are API-list-price equivalents — a compute yardstick, not the bill — and input counts under-report, so trust output and cache-read. The point isn't accounting theater. It's that **isolation is verifiable**: the census shows the main window staying small while subagents process the bulk of the tokens in their own windows — the context-protection claim from section 03, as a number.
-
-</Section>
-
-<Section id="gate" n="07" title="Verification without me">
-
-The highest-leverage question in the whole system is asked *before* any task starts: **can the agent verify this without me?** If the answer is no — no test to run, no eval case, no seeded data — that gets built first. It feels slower; it's faster by mid-session, because the agent self-corrects instead of queueing on my eyeballs. Every loop where a human must look at the output before the agent can continue is the bottleneck, and this question is how those loops get found and deleted.
-
-The convention that enforces it: every focus repo carries an executable `.claude/gate.sh` — lint plus the full hermetic test suite, target under 120 seconds, 2–13 seconds in practice. A global guard-commit hook runs it on **every `git commit`** and blocks on red; `--no-verify` is the deliberate escape hatch, said out loud in the message. One file, three payoffs: agents self-check before committing, I stop reviewing broken diffs, and CI can run the same script the day a repo gets a remote.
-
-Evals are the same idea for the nondeterministic parts. Anything with an LLM decision gets an offline, zero-credential `.claude/evals.sh` — JIM's runs 88 cases in about two seconds for $0.00, armed with a baseline so a regression is a verdict, not a feeling. And the whole thing runs while I sleep: a LaunchAgent fires at 06:17, runs every repo's gate and evals, and writes a dated digest. The morning session banner reads it; so does this site.
-
-<TerminalLog
-  title="a night's digest — verbatim from ~/dev/docs/gate-digests"
-  lines={[
-    { t: "06:17", k: "sys", s: "launchd: com.geoandr.nightly-gate-digest fires" },
-    { t: "06:17", k: "out", s: "jim-agent — ✅ pass (10s) · evals — ✅ pass (2s)" },
-    { t: "06:17", k: "out", s: "grocery-buddy — ✅ pass (3s)" },
-    { t: "06:17", k: "out", s: "procurement-agent — ✅ pass (4s)" },
-    { t: "06:18", k: "out", s: "dj-agent — ✅ pass (13s)" },
-    { t: "06:45", k: "sys", s: "launchd: me.ops-report files the fleet snapshot → main → redeploy" },
-    { t: "08:02", k: "cmd", s: "first session of the day opens — the banner already says all green" }
-  ]}
-/>
-
-Drift gets caught within 24 hours instead of at the worst possible moment. A red gate or a yellow eval regression **is** the first task of the day — you don't build on a broken foundation, and you don't have to remember to check, because the checking isn't yours anymore.
-
-</Section>
-
-<Section id="lanes" n="08" title="Two lanes, then five">
-
-The session shape that changes throughput isn't a better prompt — it's **conduct, don't type**. One main session plans and reviews; implementation runs in background agents and git worktrees. Serial agentic development is single-threading a multicore machine.
-
-What makes parallel lanes cheap instead of chaotic is the lane contract. Every lane starts with a **written brief**: the goal, the constraints, the files to respect, the exact verify command it must pass — usually that repo's `gate.sh` — and what "done" means. If I can't write the brief, the work isn't ready to delegate; it gets planned in the conductor first. Lanes verify themselves against their gates, so I review *diffs*, not progress. And a lane gets touched only when it pings or at its checkpoint — watching a stream is the anti-pattern the whole setup exists to eliminate.
-
-The ramp is deliberately boring: one conductor plus one executor, adding a lane only when the current count feels idle. The ceiling isn't the model — it's brief-writing and diff-review bandwidth, which plateaus usefully around three to five lanes. If lanes are frequently blocked on me, the diagnosis is too many lanes or too-vague briefs, never "the agent is slow."
-
-</Section>
-
-<Section id="flywheel" n="09" title="The flywheel">
-
-Everything above compounds through one weekly ritual and one rule.
-
-The rule: **anything done or explained three times becomes a skill that session** — a project skill in the repo, global if it's universal. The ritual: a thirty-minute weekly retro over one question — *where did I babysit this week?* Every intervention logged during the week (one line in a babysit file, ten seconds) gets converted to the cheapest permanent fix, in strict order: a hook, then a gate line, then an instruction line, then a skill, then — sometimes — acceptance. Skip the retro for a month and the setup stays exactly as good as it is today; run it weekly and every annoyance is felt approximately once.
-
-Instruction files are part of the same loop, treated as code: one canonical `AGENTS.md` per repo (CLAUDE.md just points at it, so any harness reads the same contract), containing only what an agent gets wrong without being told — run commands, invariants, do-not lists, current phase. Every re-explanation in a session is a bug in that file, fixed with one line, then, not someday.
-
-The proof this flywheel is real is the page you're reading it on. This site watches the fleet's transcripts and repos, reads the nightly digests, **files its own report every morning** — cut, sanitized in code, committed, pushed, redeployed, no hands — and once a week checks every project entry against its source repo and syncs the drift, gated by its own content check and build rather than by my attention. The archive maintains itself and shows its work in <a href="/v2/ops">the ops room</a>: the night watch rows, each agent's gate line, the curator's own sessions on the board.
 
 ---
 

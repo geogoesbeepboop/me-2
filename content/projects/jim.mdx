@@ -22,7 +22,7 @@ reflection: "writing/the-gate-held"
     { k: "product", v: "cited memos — $0.25 fundamentals · $0.50 on-chain · $0.15 macro · $0.10 monitor updates" },
     { k: "engine", v: "langgraph: gather → memo cache → debate → synthesize → gate → judge" },
     { k: "rails", v: "x402 v2 · usdc (eip-3009) · base mainnet · bazaar auto-discovery" },
-    { k: "state", v: "phase 7 agent economy · 172 test fns · 88 offline eval cases · nightly gate + evals" }
+    { k: "state", v: "phase 7 agent economy · 172 test fns · 87 offline eval cases · nightly gate + evals" }
   ]}
 />
 
@@ -35,58 +35,38 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
   inspect="jim"
   subtitle="A buyer pays before the route runs; the engine writes prose it cannot prove false; paid data is cached so the second sale is nearly pure margin."
   nodes={[
-    { id: "buyers", label: "Buyers", sub: "mcp agents · http · human ui", col: 0, row: 0 },
-    { id: "disc", label: "Discovery", sub: "catalog · well-known · bazaar", col: 1, row: 0 },
-    { id: "mw", label: "x402 middleware", sub: "402 → verify → settle", col: 2, row: 0, accent: true },
-    { id: "fac", label: "Facilitator", sub: "base · usdc eip-3009", col: 3, row: 0 },
-    { id: "routes", label: "Paid routes", sub: "$0.25 / $0.50 per call", col: 4, row: 0 },
-    { id: "gather", label: "Gather", sub: "sources → snapshot", col: 0, row: 1 },
+    { id: "buyers", label: "Buyers & discovery", sub: "mcp · http · well-known · bazaar", col: 0, row: 0 },
+    { id: "counter", label: "The x402 counter", sub: "402 → verify → settle", col: 1, row: 0, accent: true },
+    { id: "routes", label: "Paid routes", sub: "$0.25 / $0.50 per call", col: 2, row: 0 },
+    { id: "proof", label: "Proof page", sub: "/proof — receipts · refusals", col: 3, row: 0 },
+    { id: "lf", label: "One run, traced", sub: "langfuse · spans + scores", col: 4, row: 0 },
+    { id: "gather", label: "Gather", sub: "4 sources + peers → snapshot", col: 0, row: 1 },
     { id: "debate", label: "Debate", sub: "bull ∥ bear → judge", col: 1, row: 1 },
     { id: "synth", label: "Synthesize", sub: "sonnet 4.6 · cited memo", col: 2, row: 1 },
     { id: "gate", label: "Sourcing gate", sub: "deterministic · no llm", col: 3, row: 1, accent: true },
     { id: "judge", label: "Faithfulness judge", sub: "haiku · ≥ 0.80", col: 4, row: 1 },
-    { id: "edgar", label: "SEC EDGAR", sub: "free · public domain", col: 0, row: 2 },
-    { id: "graph", label: "The Graph", sub: "paid upstream · x402", col: 1, row: 2 },
-    { id: "budget", label: "Budget cap", sub: "≤ $0.10 data per query", col: 2, row: 2, accent: true },
-    { id: "cache", label: "Cache", sub: "buy once · resell · ttl 1d", col: 3, row: 2 },
-    { id: "ledger", label: "Margin ledger", sub: "price − data − inference", col: 4, row: 2 },
-    { id: "mon", label: "Monitors", sub: "scheduler · 6h cooldown", col: 0, row: 3 },
-    { id: "mat", label: "Materiality gate", sub: "5% price · 10% metric", col: 1, row: 3, accent: true },
-    { id: "imp", label: "Impersonal guard", sub: "no advice · no 2nd person", col: 2, row: 3, accent: true },
-    { id: "map", label: "Live map", sub: "GET /map — config-drawn", col: 3, row: 3 },
-    { id: "lf", label: "Langfuse", sub: "best-effort tracing", col: 4, row: 3 },
-    { id: "peers", label: "Peer sources", sub: "buys from agents · same rails", col: 0, row: 4 },
-    { id: "trust", label: "Trust ledger", sub: "laplace pass-rate · floor 0.4", col: 1, row: 4, accent: true },
-    { id: "chain", label: "Call-chain guard", sub: "loops refused · depth ≤ 4", col: 2, row: 4, accent: true },
-    { id: "proof", label: "Proof page", sub: "/proof — receipts · refusals", col: 3, row: 4 },
-    { id: "evals", label: "Eval harness", sub: "88 offline cases · nightly", col: 4, row: 4 }
+    { id: "peers", label: "Peer economy", sub: "buys from agents · trust floor 0.4", col: 0, row: 2 },
+    { id: "economy", label: "The economics", sub: "margin ledger · memo cache", col: 1, row: 2 },
+    { id: "mon", label: "Monitors", sub: "materiality · tone · 6h cooldown", col: 2, row: 2, accent: true },
+    { id: "evals", label: "Eval harness", sub: "87 offline cases · nightly", col: 3, row: 2 }
   ]}
   edges={[
-    { from: "buyers", to: "disc", label: "find" },
-    { from: "disc", to: "mw" },
-    { from: "mw", to: "fac", label: "verify · settle" },
-    { from: "mw", to: "routes", label: "after settle" },
+    { from: "buyers", to: "counter", label: "find · pay" },
+    { from: "counter", to: "routes", label: "settled" },
+    { from: "counter", to: "proof", label: "receipts" },
     { from: "routes", to: "gather", label: "run" },
-    { from: "gather", to: "debate" },
-    { from: "debate", to: "synth" },
+    { from: "gather", to: "debate", label: "snapshot" },
+    { from: "debate", to: "synth", label: "verdict" },
     { from: "synth", to: "gate", label: "memo" },
-    { from: "gate", to: "judge", label: "pass" },
     { from: "gate", to: "synth", label: "retry ≤2", dashed: true },
-    { from: "gather", to: "edgar" },
-    { from: "gather", to: "graph" },
-    { from: "graph", to: "budget", label: "propose", dashed: true },
-    { from: "budget", to: "cache", label: "record" },
-    { from: "cache", to: "ledger", label: "margin" },
-    { from: "mon", to: "mat", label: "diff" },
-    { from: "mat", to: "synth", label: "only if material" },
-    { from: "synth", to: "imp", label: "updates", dashed: true },
-    { from: "gather", to: "peers", label: "x402" },
-    { from: "peers", to: "budget", label: "propose", dashed: true },
-    { from: "gate", to: "trust", label: "credit · debit" },
-    { from: "trust", to: "peers", label: "refuse < 0.4", dashed: true },
-    { from: "chain", to: "mw", label: "409 pre-payment" },
-    { from: "fac", to: "proof", label: "receipts" },
-    { from: "evals", to: "gate", label: "replays", dashed: true }
+    { from: "gate", to: "judge", label: "0 violations" },
+    { from: "judge", to: "lf", label: "spans + scores" },
+    { from: "peers", to: "gather", label: "cited facts · x402" },
+    { from: "gate", to: "peers", label: "credit · debit" },
+    { from: "gather", to: "economy", label: "data cost" },
+    { from: "judge", to: "economy", label: "margin recorded" },
+    { from: "mon", to: "synth", label: "only if material" },
+    { from: "evals", to: "gate", label: "replays nightly" }
   ]}
   stateMachines={[
     {
@@ -171,7 +151,7 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
     "Everything runs offline — API keys only buy prose.",
     "Settlement before service: the route runs only after x402 verifies payment.",
     "A gate-rejected run is never billed — structurally, not by convention.",
-    "88 offline eval cases run nightly with zero keys; a regression fails the night, not a buyer."
+    "87 offline eval cases run nightly with zero keys; a regression fails the night, not a buyer."
   ]}
 />
 
@@ -181,7 +161,7 @@ Track 0 delivered its verdict: the sourcing gate held. The figure extractor now 
 
 Then the agent economy stopped being a roadmap item. Phase 7 landed peer sources — JIM buying research inputs from *other agents* over the same x402 rails it sells on — with a trust ledger and call-chain safety around them, and a resilience wrapper on the buy path so a degraded peer degrades gracefully instead of taking the memo down with it. Horizon 1 made the selling side public-grade: a proof page, signed receipts, a guarded agent identity, and a mainnet cutover with the facilitator client authenticated by CDP API keys — real settlement failures now surface as themselves instead of hiding behind a bare 402.
 
-The biggest addition is the one that watches all the others (ADR-0009): a persisted eval harness with tiered suites. Offline — 39 gate cases, 40 guard cases, 9 end-to-end scenario cases, 88 in all — runs in about a second and a half with zero keys and zero network, and is the merge gate. Live — held-out tickers through the real pipeline — is rubric-scored and thresholded: a regression verdict fires if gate pass-rate drops more than 5%, rubric more than 2%, cost more than 25%, latency more than 50%. Every run persists to disk; `jim-eval ui` plots the trends and diffs run against run.
+The biggest addition is the one that watches all the others (ADR-0009): a persisted eval harness with tiered suites. Offline — 38 gate cases, 40 guard cases, 9 end-to-end scenario cases, 87 in all — runs in about a second and a half with zero keys and zero network, and is the merge gate. Live — held-out tickers through the real pipeline — is rubric-scored and thresholded: a regression verdict fires if gate pass-rate drops more than 5%, rubric more than 2%, cost more than 25%, latency more than 50%. Every run persists to disk; `jim-eval ui` plots the trends and diffs run against run.
 
 The harness paid for itself immediately. The live suite showed every memo failing the judge — while every offline gate stayed green. The cause wasn't quality: the judge's `max_tokens` was 900, its JSON verdict was truncating mid-array, and unparseable output read as rejection. Only a persisted, trend-tracked eval could tell "the memos got worse" from "the auditor ran out of paper." It's 4096 now, and the nightly digest runs `.claude/gate.sh` (lint + the full offline suite, ~15s) and `.claude/evals.sh` (the offline eval suites vs baseline) against this repo every morning before anyone opens a terminal.
 

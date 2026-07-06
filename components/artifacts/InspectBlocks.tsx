@@ -1,4 +1,5 @@
 import StateFlowSvg from "./StateFlow";
+import { DiagramSvg, DiagramLegend, INSPECT_METRICS } from "./ArchitectureDiagram";
 import type { InspectBlock, SchemaTable } from "@/lib/inspect/types";
 
 /**
@@ -90,7 +91,28 @@ export default function InspectBlocks({ blocks }: { blocks: InspectBlock[] }) {
               </figure>
             );
 
-          case "flow":
+          case "flow": {
+            const hasGate = b.states.some((s) => s.kind === "gate");
+            const hasEnd = b.states.some((s) => s.kind === "terminal");
+            const hasRepair = b.transitions.some((t) => t.dashed);
+            const flowLegend = [
+              hasGate && (
+                <span key="g">
+                  <span className="text-(--accent)">outlined</span> = a gate —
+                  the run stops here unless it passes
+                </span>
+              ),
+              hasEnd && (
+                <span key="e">
+                  <span className="text-ash">dashed box</span> = end state
+                </span>
+              ),
+              hasRepair && (
+                <span key="r">
+                  <span className="text-ash">dashed path</span> = retry / repair
+                </span>
+              ),
+            ].filter(Boolean);
             return (
               <figure key={i} className="border border-line bg-panel-2/40">
                 {(b.title || b.caption) && (
@@ -117,8 +139,57 @@ export default function InspectBlocks({ blocks }: { blocks: InspectBlock[] }) {
                     markerId={`insp-flow-${i}`}
                   />
                 </div>
+                {flowLegend.length > 0 && (
+                  <p className="border-t border-line px-4 py-2 font-mono text-label tracking-[0.12em] text-dim uppercase">
+                    {flowLegend.map((el, j) => (
+                      <span key={j}>
+                        {j > 0 && " · "}
+                        {el}
+                      </span>
+                    ))}
+                  </p>
+                )}
               </figure>
             );
+          }
+
+          case "graph": {
+            const hasLegend =
+              b.nodes.some((n) => n.accent) || b.edges.some((e) => e.dashed);
+            return (
+              <figure key={i} className="border border-line bg-panel-2/40">
+                {(b.title || b.caption) && (
+                  <figcaption className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 border-b border-line px-4 py-2.5">
+                    {b.title && (
+                      <span className="font-mono text-label tracking-[0.18em] text-bone uppercase">
+                        {b.title}
+                      </span>
+                    )}
+                    {b.caption && (
+                      <span className="font-mono text-label tracking-[0.06em] text-dim">
+                        {b.caption}
+                      </span>
+                    )}
+                  </figcaption>
+                )}
+                <div className="overflow-x-auto p-4">
+                  <DiagramSvg
+                    nodes={b.nodes}
+                    edges={b.edges}
+                    ariaLabel={b.title ?? "internal wiring"}
+                    fluid
+                    markerId={`insp-graph-${i}`}
+                    metrics={INSPECT_METRICS}
+                  />
+                </div>
+                {hasLegend && (
+                  <div className="border-t border-line px-4 py-2">
+                    <DiagramLegend nodes={b.nodes} edges={b.edges} />
+                  </div>
+                )}
+              </figure>
+            );
+          }
 
           case "rules":
             return (
