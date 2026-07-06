@@ -133,22 +133,32 @@ explore layer reaches actual implementation depth.
   print|kickstart|bootout gui/$UID/me.ops-report`.
 - **Content curates itself weekly (the autonomy decision, 2026-07-06).**
   `~/Library/LaunchAgents/me.curator.plist` (INSTALLED, Sunday 07:15)
-  runs `scripts/curate.sh`: for each project entry whose source repo has
-  commits newer than the entry's `updated:` date, it runs
-  `/update-project <slug>` headless (`claude -p`) in the
-  `.claude-worktrees/curator` worktree — placed there deliberately so
-  the curator's own sessions appear on the ops board and its commits in
-  the shift log; the board is the notification. George chose **fully
-  autonomous merge to main** over PR review for curator output; the
-  counterweight is deterministic: the result publishes ONLY if the
-  content check passes, the production build passes, and the diff stays
-  inside content/ · lib/inspect/ · lib/ops/profiles.ts. Any gate failing
-  parks the work on a `site/auto-curate-<date>` branch instead. No drift
-  → no model run → $0. Human sessions still work on `site/*` branches
-  for George's review — the autonomy applies to the curator alone.
-  Manual: `scripts/curate.sh --dry-run` (drift report only) or
-  `CURATE_ONLY=<slug> scripts/curate.sh`. Log:
-  `~/Library/Logs/me.curator.log`.
+  runs `scripts/curate.sh` in the `.claude-worktrees/curator` worktree —
+  placed there deliberately so the curator's own sessions appear on the
+  ops board and its commits in the shift log; the board is the
+  notification. Three jobs behind one set of gates:
+  - **Projects** — each entry whose source repo has commits newer than
+    its `updated:` date gets a headless `/update-project <slug>`.
+  - **Method** — a fingerprint of the real harness (~/.claude skills/
+    agents/hooks, LaunchAgents, workflow docs, fleet gate files, state
+    in `~/.local/state/me2-curator/`) is compared to last run's; on
+    change, headless `/update-method` re-measures the harness and fixes
+    every stale number and excerpt on n°000.
+  - **Writing** — when a sync actually PUBLISHED project changes, a
+    drafting run writes one reflection post and opens a **PR**
+    (`site/draft-field-notes-<date>`) — essays are voice, not facts, so
+    they wait for George's one-tap review (`WRITING_AUTOPUBLISH=1`
+    overrides). Existing posts are timeless and never auto-edited.
+  George chose **fully autonomous merge to main** for the fact surfaces
+  (projects + method); the counterweight is deterministic: a result
+  publishes ONLY if the content check passes, the production build
+  passes, and the diff stays inside content/ · lib/inspect/ ·
+  lib/ops/profiles.ts. Any gate failing parks the work on
+  `site/auto-curate-<date>` instead. No drift → no model run → $0.
+  Human sessions still work on `site/*` branches for George's review —
+  the autonomy applies to the curator alone. Manual levers:
+  `scripts/curate.sh --dry-run` · `CURATE_ONLY=<slug|method>
+  scripts/curate.sh`. Log: `~/Library/Logs/me.curator.log`.
 - Steering notes land in `~/.claude/fleet/steering/<repo basename>/`;
   nothing reads them automatically — repos opt in with the SessionStart
   hook shown in /v2/ops under PROTOCOL.
