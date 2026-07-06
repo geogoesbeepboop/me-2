@@ -14,7 +14,8 @@ import {
  * The online-shopping experience with the automation made visible:
  * the cron tick, the one-line prediction, Playwright pricing, the
  * cart assembling toward free shipping, the Telegram briefing, the
- * staged checkout — and the place where it stops dead, by design.
+ * staged cart — and the handoff to your phone, where the only
+ * checkout lives.
  *
  * The RULES are the repo's, verbatim: the prediction arithmetic
  * (days_left = qty ÷ rate, low at ≤ lead + buffer) runs right here on
@@ -138,9 +139,7 @@ export default function PantryConsole({ title }: { title?: string }) {
         <>
           <span className="text-(--accent)">green</span> = operating ·{" "}
           <span className="border border-(--accent) px-1">outline</span> = the
-          model has no say — code or a human decides ·{" "}
-          <span className="text-ember">ember</span> = where spending would
-          start, and doesn&apos;t
+          model has no say — code or a human decides
         </>
       }
       footnote={
@@ -334,7 +333,8 @@ export default function PantryConsole({ title }: { title?: string }) {
 
       {/* the staging scene + where this goes next */}
       <div className="grid border-t border-line md:grid-cols-2">
-        {/* playwright, drawn — items land in the cart; the checkout door stays shut */}
+        {/* playwright, drawn — items land in the cart; the cart hands
+            off to your phone */}
         <div
           className="border-b border-line p-4 md:border-r md:border-b-0 md:p-5"
           style={fade(past("stage"))}
@@ -417,43 +417,39 @@ export default function PantryConsole({ title }: { title?: string }) {
               </text>
             </g>
 
-            {/* the fork: checkout stays shut; the path bends to your phone */}
-            <g style={fade(past("handoff"))}>
+            {/* the handoff: the staged cart travels to your phone — the
+                same items, the same total, your tap */}
+            <g style={fade(past("handoff"))} fontFamily="var(--font-mono)">
               <path
-                d="M 222 74 H 262"
-                stroke="var(--color-ember)"
-                strokeWidth="1.2"
-                strokeDasharray="3 4"
-                fill="none"
-                opacity="0.8"
-              />
-              <rect x={266} y={42} width={30} height={56} fill="none" stroke="var(--color-ember)" strokeWidth="1.2" opacity="0.8" />
-              <path d="M 270 46 l 22 48 M 292 46 l -22 48" stroke="var(--color-ember)" strokeWidth="1" opacity="0.7" />
-              <text x={281} y={110} fontSize="6.5" fontFamily="var(--font-mono)" fill="var(--color-ember)" textAnchor="middle">
-                /gp/buy/spc
-              </text>
-              <text x={281} y={119} fontSize="6.5" fontFamily="var(--font-mono)" fill="var(--color-dim)" textAnchor="middle">
-                never visited
-              </text>
-            </g>
-            <g style={fade(past("handoff"))}>
-              <path
-                d="M 222 90 C 244 90 244 132 266 132 h 38"
+                d="M 224 92 C 254 92 256 116 284 116"
                 stroke="var(--accent)"
                 strokeWidth="1.3"
                 fill="none"
               />
-              <rect x={308} y={112} width={24} height={44} rx={5} fill="var(--color-void)" stroke="var(--accent)" strokeWidth="1.3" />
-              <line x1={314} y1={148} x2={326} y2={148} stroke="var(--accent)" strokeWidth="1.2" />
-              <text x={320} y={167} fontSize="6.5" fontFamily="var(--font-mono)" fill="var(--accent)" textAnchor="middle">
-                your tap
+              <path d="M 288 116 l -7 -4 v 8 z" fill="var(--accent)" />
+              {/* your phone — the cart again, ready for one tap */}
+              <rect x={292} y={84} width={34} height={66} rx={6} fill="var(--color-void)" stroke="var(--accent)" strokeWidth="1.3" />
+              <text x={309} y={100} fontSize="7" fill="var(--color-ash)" textAnchor="middle">
+                cart · {CART.length}
+              </text>
+              <text x={309} y={111} fontSize="7.5" fill="var(--color-bone)" textAnchor="middle">
+                ${CART_TOTAL.toFixed(2)}
+              </text>
+              {/* outline only — this button is the one thing the system
+                  structurally cannot press */}
+              <rect x={297} y={119} width={24} height={10} fill="none" stroke="var(--accent)" strokeWidth="0.8" />
+              <text x={309} y={126} fontSize="5.5" fill="var(--accent)" textAnchor="middle">
+                place order
+              </text>
+              <line x1={303} y1={143} x2={315} y2={143} stroke="var(--accent)" strokeWidth="1.2" />
+              <text x={309} y={163} fontSize="6.5" fill="var(--accent)" textAnchor="middle">
+                your phone
               </text>
             </g>
           </svg>
           <p className="mt-1 font-mono text-[0.6rem] tracking-[0.1em] text-dim uppercase">
-            the cart fills itself · the{" "}
-            <span className="text-ember">checkout door</span> opens only from
-            your phone
+            the cart fills itself · checkout is{" "}
+            <span className="text-ash">your phone, your tap, your card</span>
           </p>
         </div>
 

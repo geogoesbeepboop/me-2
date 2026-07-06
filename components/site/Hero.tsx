@@ -7,18 +7,19 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import AdaptiveHeadline from "@/components/site/AdaptiveHeadline";
+import MaskReveal from "@/components/motion/MaskReveal";
 import HeroFieldLoader from "@/components/three/HeroFieldLoader";
 import HeroTrace from "@/components/site/HeroTrace";
 
 /**
- * The hero states the motto at full scale, the doctrine underneath it,
- * and then PROVES both — the headline itself adapts (variable-width
- * letters that breathe and yield to the pointer), and a method trace
- * built from true facts plays back beside it. On scroll the layers
- * leave at different speeds — a camera move, not a fade. The name
- * lives in the header, permanently visible. Copy here is deliberately
- * durable: no product names, no counts that stale as the archive grows.
+ * The hero states the motto at full scale and PROVES it — a method
+ * trace built from true facts plays back beside the headline. The
+ * type rises once and then holds still (kinetic letters were tried
+ * twice and cut: pointer-following read as lag, idle breathing read
+ * as floating). On scroll the layers leave at different speeds — a
+ * camera move, not a fade. The name lives in the header, permanently
+ * visible. Copy here is deliberately durable: no product names, no
+ * counts that stale as the archive grows.
  */
 export default function Hero() {
   const reduced = useReducedMotion();
@@ -36,7 +37,7 @@ export default function Hero() {
 
   const headline = (
     <h1 className="text-hero font-black uppercase stretch-125">
-      <AdaptiveHeadline lines={["Build fast,", "adapt faster."]} delay={0.45} />
+      <MaskReveal lines={["Build fast,", "adapt faster."]} delay={0.45} />
     </h1>
   );
 

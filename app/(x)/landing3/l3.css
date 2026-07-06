@@ -1,0 +1,346 @@
+/* ════════════════════════════════════════════════════════
+   Nº3 — OPERATIONS FLOOR
+   Night-shift ops room. One mono voice, hairline plate,
+   phosphor-adjacent greys, accents only where systems are.
+   ════════════════════════════════════════════════════════ */
+
+.l3-root {
+  --l3-bg: #05080a;
+  --l3-ink: #ccd6d2;
+  --l3-dim: #5d6a68;
+  --l3-line: rgba(150, 185, 180, 0.16);
+  --l3-line-loud: rgba(150, 185, 180, 0.38);
+  min-height: 100svh;
+  padding: clamp(10px, 1.6vw, 22px);
+  background:
+    radial-gradient(120% 90% at 70% 10%, rgba(40, 70, 75, 0.14), transparent 60%),
+    var(--l3-bg);
+  color: var(--l3-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.l3-frame {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  min-height: calc(100svh - 2 * clamp(10px, 1.6vw, 22px));
+  border: 1px solid var(--l3-line);
+}
+
+/* corner ticks — the plate is mounted, not floated */
+.l3-tick {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--l3-line-loud);
+}
+.l3-tick-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.l3-tick-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.l3-tick-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.l3-tick-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+/* ── status bar ──────────────────────────────────────── */
+.l3-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+  align-items: baseline;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--l3-line);
+  text-transform: uppercase;
+}
+.l3-brand { font-weight: 700; letter-spacing: 0.22em; }
+.l3-clocks { display: flex; gap: 18px; color: var(--l3-dim); }
+.l3-clocks b { color: var(--l3-ink); font-weight: 400; font-variant-numeric: tabular-nums; }
+.l3-count { margin-left: auto; color: var(--l3-dim); }
+
+/* ── main split ──────────────────────────────────────── */
+.l3-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  border-bottom: 1px solid var(--l3-line);
+}
+@media (max-width: 880px) {
+  .l3-main { grid-template-columns: 1fr; }
+}
+
+.l3-left {
+  padding: clamp(20px, 3.4vw, 44px);
+  border-right: 1px solid var(--l3-line);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+@media (max-width: 880px) {
+  .l3-left { border-right: none; border-bottom: 1px solid var(--l3-line); }
+}
+
+.l3-eyebrow {
+  color: var(--l3-dim);
+  letter-spacing: 0.26em;
+  font-size: 10px;
+}
+
+.l3-callsign {
+  font-size: clamp(1.7rem, 4.6vw, 3.4rem);
+  line-height: 1.04;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  animation: l3-reveal 0.9s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+@keyframes l3-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.l3-doctrine { color: var(--l3-dim); line-height: 1.9; }
+.l3-doctrine em { color: var(--l3-ink); font-style: normal; border-bottom: 1px solid var(--l3-line-loud); }
+
+/* dossier — accent enters only here and on contacts */
+.l3-dossier {
+  border: 1px solid var(--l3-line);
+  border-left: 2px solid var(--c, var(--l3-line-loud));
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 460px;
+}
+.l3-dossier header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+.l3-dossier-no { color: var(--l3-dim); }
+.l3-dossier-title { font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.l3-dossier-status {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c);
+  text-transform: uppercase;
+}
+.l3-dossier-domain { color: var(--l3-dim); text-transform: uppercase; font-size: 10px; letter-spacing: 0.2em; }
+.l3-dossier-line { color: var(--l3-ink); line-height: 1.8; letter-spacing: 0.02em; }
+.l3-dossier-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  border-top: 1px solid var(--l3-line);
+  padding-top: 10px;
+}
+.l3-dossier-metrics dd { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.l3-dossier-metrics dt { color: var(--l3-dim); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; }
+.l3-open {
+  align-self: flex-start;
+  color: var(--c);
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s ease;
+}
+.l3-open:hover { border-color: var(--c); }
+
+/* transmissions */
+.l3-tx { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.l3-tx-row {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  color: var(--l3-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 11px;
+  transition: color 0.25s ease;
+}
+.l3-tx-row:hover { color: var(--l3-ink); }
+.l3-tx-title { color: var(--l3-ink); letter-spacing: 0.14em; }
+.l3-tx-row:hover .l3-tx-title { text-decoration: underline; text-underline-offset: 4px; }
+
+/* ── the scope ───────────────────────────────────────── */
+.l3-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: clamp(20px, 3vw, 40px);
+}
+
+.l3-scope {
+  position: relative;
+  width: min(100%, 440px);
+  aspect-ratio: 1;
+  border: 1px solid var(--l3-line);
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, rgba(63, 224, 124, 0.05), transparent 65%),
+    #040608;
+}
+.l3-ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border: 1px solid var(--l3-line);
+  border-radius: 50%;
+}
+.l3-ring-1 { width: 24%; height: 24%; }
+.l3-ring-2 { width: 48%; height: 48%; }
+.l3-ring-3 { width: 76%; height: 76%; }
+.l3-cross {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent calc(50% - 0.5px), var(--l3-line) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--l3-line) 50%, transparent calc(50% + 0.5px));
+}
+.l3-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(63, 224, 124, 0.22) 0deg,
+    rgba(63, 224, 124, 0.05) 38deg,
+    transparent 70deg
+  );
+  animation: l3-sweep 8s linear infinite;
+}
+@keyframes l3-sweep {
+  to { transform: rotate(360deg); }
+}
+
+/* contacts */
+.l3-blip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: none;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.l3-blip-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px var(--c);
+}
+.l3-ping {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--c);
+  opacity: 0;
+  /* fires as the sweep beam crosses this contact's bearing */
+  animation: l3-ping 8s linear infinite;
+  animation-delay: var(--ping-delay);
+}
+@keyframes l3-ping {
+  0% { opacity: 0.9; transform: scale(1); }
+  6% { opacity: 0.5; transform: scale(3.4); }
+  12% { opacity: 0; transform: scale(5.2); }
+  100% { opacity: 0; transform: scale(5.2); }
+}
+.l3-blip-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% - 2px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--l3-dim);
+  transition: color 0.2s ease;
+}
+.l3-blip:hover .l3-blip-label,
+.l3-blip.is-active .l3-blip-label { color: var(--l3-ink); }
+.l3-blip.is-active .l3-blip-dot { outline: 1px solid var(--c); outline-offset: 3px; }
+
+.l3-legend {
+  color: var(--l3-dim);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-align: center;
+  line-height: 1.8;
+  text-transform: uppercase;
+}
+
+/* ── telemetry ───────────────────────────────────────── */
+.l3-table { border-bottom: 1px solid var(--l3-line); }
+.l3-row {
+  display: grid;
+  grid-template-columns: 64px 1.3fr 1fr 0.6fr 1fr 0.8fr;
+  gap: 14px;
+  align-items: baseline;
+  padding: 11px 18px;
+  border-top: 1px solid var(--l3-line);
+  border-left: 2px solid transparent;
+  color: var(--l3-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 11px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.l3-row:first-child { border-top: none; }
+.l3-row-head { color: var(--l3-dim); font-size: 9.5px; letter-spacing: 0.24em; }
+.l3-row:not(.l3-row-head):hover,
+.l3-row.is-active {
+  background: rgba(150, 185, 180, 0.05);
+  border-left-color: var(--c);
+  color: var(--l3-ink);
+}
+.l3-row-title { color: var(--l3-ink); font-weight: 700; letter-spacing: 0.16em; }
+.l3-row-status { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 880px) {
+  .l3-row { grid-template-columns: 56px 1.2fr 1fr 0.9fr; }
+  .l3-hide-sm { display: none; }
+}
+
+.l3-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3fe07c;
+  animation: l3-pulse 2.4s ease-in-out infinite;
+}
+@keyframes l3-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* ── exits ───────────────────────────────────────────── */
+.l3-exits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 26px;
+  padding: 14px 18px;
+}
+.l3-exits a {
+  color: var(--l3-dim);
+  text-decoration: none;
+  letter-spacing: 0.24em;
+  font-size: 10.5px;
+  transition: color 0.2s ease;
+}
+.l3-exits a:hover { color: var(--l3-ink); text-decoration: underline; text-underline-offset: 5px; }
+.l3-exit-home { margin-left: auto; }
+
+/* ── reduced motion: scope goes still, nothing pings ──── */
+@media (prefers-reduced-motion: reduce) {
+  .l3-sweep, .l3-ping, .l3-dot { animation: none; }
+  .l3-sweep { opacity: 0.25; }
+  .l3-callsign { animation: none; }
+}

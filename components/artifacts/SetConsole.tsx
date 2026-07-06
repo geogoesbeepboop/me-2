@@ -15,18 +15,21 @@ import {
  * An animated playback of one set-generation run: brief → arc →
  * candidate pool → proposal → critic → revision → pass → HITL →
  * render. The RULES are the repo's, verbatim — the Camelot legality
- * test, the open genre profile's thresholds, linear arc interpolation,
- * RMSE and jump math all execute right here on the data shown. The SET
- * is representative: a plausible plan generated to exercise those rules.
+ * test, the downtempo genre profile's thresholds (equal to the open
+ * defaults), linear arc interpolation, RMSE and jump math all execute
+ * right here on the data shown. The SET is representative: a plausible
+ * plan generated to exercise those rules.
  * ────────────────────────────────────────────────────────────────────
  */
 
 /* ── the real rules, ported 1:1 from the repo ─────────────────────── */
 
-// The gates this run is graded on. "sunset" in the brief selects the
-// downtempo profile (src/dj/profiles.py), whose jump/harmonic gates
-// equal the open defaults; arc-RMSE and the artist rule are critic-wide
-// constants (src/dj/critic.py).
+// The gates this run is graded on. Profile selection is a keyword
+// table, not a model: profiles.detect() takes the first keyword hit
+// in the brief — "sunset" sits in downtempo's tuple — and --genre
+// overrides it (src/dj/profiles.py, pinned by tests/test_profiles.py).
+// Downtempo's jump/harmonic gates equal the open defaults; arc-RMSE
+// and the artist rule are critic-wide constants (src/dj/critic.py).
 const TH = {
   maxBpmJump: 6.0,
   minHarmonicCompat: 0.7,
@@ -110,52 +113,63 @@ function evaluateSet(slots: Slot[], arc: ArcPoint[]) {
 
 /* ── the representative run ───────────────────────────────────────── */
 
-// a "peak" shaped arc (one of the repo's named shapes), 5 control
-// points — inside the schema's 4–7
+// a "peak"-shaped arc, 5 control points — inside the schema's 4–7,
+// and inside downtempo's seeded bands (100–116 BPM, −22..−12 LUFS).
+// The model authors the points; default_shape only seeds the no-LLM
+// fallback, so the brief's "peak late" bends downtempo's flat default.
 const ARC: ArcPoint[] = [
-  { position: 0.0, bpm: 118, lufs: -16 },
-  { position: 0.35, bpm: 122, lufs: -13 },
-  { position: 0.7, bpm: 126, lufs: -9 },
-  { position: 0.85, bpm: 124, lufs: -10 },
-  { position: 1.0, bpm: 120, lufs: -14 },
+  { position: 0.0, bpm: 104, lufs: -21 },
+  { position: 0.35, bpm: 108, lufs: -18 },
+  { position: 0.7, bpm: 112, lufs: -14 },
+  { position: 0.85, bpm: 110, lufs: -15 },
+  { position: 1.0, bpm: 106, lufs: -19 },
 ];
 
 // proposal nº1 — the selector reads the brief's "slow build" too
 // literally and stays in cold sections straight through the peak.
 // one wrong-key pick at slot 06 costs two transitions.
 const ROUND_1: Slot[] = [
-  { camelot: "7A", bpm: 118, lufs: -16.1, section: "intro" },
-  { camelot: "8A", bpm: 119, lufs: -15.3, section: "chorus" },
-  { camelot: "8B", bpm: 120, lufs: -14.2, section: "chorus" },
-  { camelot: "8B", bpm: 121, lufs: -13.4, section: "bridge" },
-  { camelot: "9B", bpm: 122, lufs: -12.6, section: "chorus" },
-  { camelot: "3A", bpm: 123, lufs: -16.8, section: "break" },
-  { camelot: "9A", bpm: 124, lufs: -17.2, section: "break" },
-  { camelot: "10A", bpm: 126, lufs: -16.4, section: "intro" },
-  { camelot: "10B", bpm: 125, lufs: -15.9, section: "break" },
-  { camelot: "10B", bpm: 124, lufs: -16.2, section: "bridge" },
-  { camelot: "11B", bpm: 122, lufs: -15.4, section: "break" },
-  { camelot: "12B", bpm: 119, lufs: -13.6, section: "outro" },
+  { camelot: "7A", bpm: 104, lufs: -21.1, section: "intro" },
+  { camelot: "8A", bpm: 105, lufs: -20.3, section: "chorus" },
+  { camelot: "8B", bpm: 106, lufs: -19.2, section: "chorus" },
+  { camelot: "8B", bpm: 107, lufs: -18.4, section: "bridge" },
+  { camelot: "9B", bpm: 108, lufs: -17.6, section: "chorus" },
+  { camelot: "3A", bpm: 109, lufs: -21.8, section: "break" },
+  { camelot: "9A", bpm: 110, lufs: -22.2, section: "break" },
+  { camelot: "10A", bpm: 112, lufs: -21.4, section: "intro" },
+  { camelot: "10B", bpm: 111, lufs: -20.9, section: "break" },
+  { camelot: "10B", bpm: 110, lufs: -21.2, section: "bridge" },
+  { camelot: "11B", bpm: 108, lufs: -20.4, section: "break" },
+  { camelot: "12B", bpm: 105, lufs: -18.6, section: "outro" },
 ];
 
 // proposal nº2 — slots 05–10 swapped for peak-energy sections in
 // legal keys; the curve hugs the arc and every transition mixes
 const ROUND_2: Slot[] = [
-  { camelot: "7A", bpm: 118, lufs: -15.8, section: "intro" },
-  { camelot: "8A", bpm: 119, lufs: -13.9, section: "chorus" },
-  { camelot: "8B", bpm: 120, lufs: -13.1, section: "chorus" },
-  { camelot: "8B", bpm: 121, lufs: -12.0, section: "bridge" },
-  { camelot: "9B", bpm: 122, lufs: -11.3, section: "chorus" },
-  { camelot: "9A", bpm: 123, lufs: -9.9, section: "chorus" },
-  { camelot: "9A", bpm: 124, lufs: -9.0, section: "chorus" },
-  { camelot: "10A", bpm: 126, lufs: -8.7, section: "chorus" },
-  { camelot: "10B", bpm: 125, lufs: -10.4, section: "chorus" },
-  { camelot: "10B", bpm: 124, lufs: -11.9, section: "bridge" },
-  { camelot: "11B", bpm: 122, lufs: -13.7, section: "chorus" },
-  { camelot: "12B", bpm: 119, lufs: -15.2, section: "outro" },
+  { camelot: "7A", bpm: 104, lufs: -20.8, section: "intro" },
+  { camelot: "8A", bpm: 105, lufs: -18.9, section: "chorus" },
+  { camelot: "8B", bpm: 106, lufs: -18.1, section: "chorus" },
+  { camelot: "8B", bpm: 107, lufs: -17.0, section: "bridge" },
+  { camelot: "9B", bpm: 108, lufs: -16.3, section: "chorus" },
+  { camelot: "9A", bpm: 109, lufs: -14.9, section: "chorus" },
+  { camelot: "9A", bpm: 110, lufs: -14.0, section: "chorus" },
+  { camelot: "10A", bpm: 112, lufs: -13.7, section: "chorus" },
+  { camelot: "10B", bpm: 111, lufs: -15.4, section: "chorus" },
+  { camelot: "10B", bpm: 110, lufs: -16.9, section: "bridge" },
+  { camelot: "11B", bpm: 108, lufs: -18.7, section: "chorus" },
+  { camelot: "12B", bpm: 105, lufs: -20.2, section: "outro" },
 ];
 
 const SWAPPED = new Set([5, 6, 7, 8, 9, 10]);
+
+// ON AIR runs on one clock: the set's average tempo. Every pulse on
+// the stage is a multiple of this beat, in phase — the whole console
+// nods together, like a room hearing the same kick.
+const AVG_BPM = Math.round(
+  ROUND_2.reduce((s, t) => s + t.bpm, 0) / ROUND_2.length
+);
+const BEAT_S = 60 / AVG_BPM; // one beat
+const BAR_S = BEAT_S * 4; // one bar — the visible hit
 
 const PHASES: readonly ConsolePhase[] = [
   { id: "brief", label: "BRIEF", ms: 3200, who: "human",
@@ -167,7 +181,7 @@ const PHASES: readonly ConsolePhase[] = [
   { id: "propose", label: "PROPOSE", ms: 4400, who: "model",
     note: "the selector orders sections, not tracks — the right part of the right track for each moment of the arc" },
   { id: "critic", label: "CRITIC", ms: 5200, who: "code",
-    note: "no model here — thresholds from the genre profile (“sunset” reads as downtempo), pure math, and the failure becomes the next prompt" },
+    note: "no model here — thresholds from the brief-matched genre profile, pure math, and the failure becomes the next prompt" },
   { id: "revise", label: "REVISE", ms: 4000, who: "model",
     note: "notes appended, revision 1 of a maximum 3 — then the same math runs again" },
   { id: "verify", label: "PASS", ms: 4400, who: "code",
@@ -190,9 +204,10 @@ const PT = 16;
 const PB = 26;
 
 // the canvas plots LUFS (energy); BPM rides along as labels on the
-// control points and in the slot lane
+// control points and in the slot lane. Window = downtempo's seeded
+// −12..−22 LUFS band.
 const x = (pos: number) => PL + pos * (W - PL - PR);
-const yLufs = (l: number) => PT + ((-8 - l) / 10) * (H - PT - PB);
+const yLufs = (l: number) => PT + ((-12 - l) / 10) * (H - PT - PB);
 
 // deterministic pseudo-random — integer LCG, exact in float64, so the
 // server-rendered SVG matches the client bit-for-bit (no Math.sin drift)
@@ -237,7 +252,7 @@ export default function SetConsole({ title }: { title?: string }) {
         return {
           // 2-decimal rounding keeps SSR and client markup identical
           cx: Math.round(x(pos) * 100) / 100,
-          cy: Math.round(yLufs(Math.max(-18, Math.min(-8, t.lufs + off))) * 100) / 100,
+          cy: Math.round(yLufs(Math.max(-22, Math.min(-12, t.lufs + off))) * 100) / 100,
           kept: i % 4 === 0,
         };
       }),
@@ -277,11 +292,14 @@ export default function SetConsole({ title }: { title?: string }) {
         <>
           The rules here are real and running: the Camelot legality test, the
           four thresholds, the arc interpolation and RMSE math execute on this
-          page exactly as coded in the repo. The brief&apos;s “sunset” selects
-          the downtempo genre profile — its jump and harmonic gates equal the
-          open defaults shown; a hip-hop or house brief would swap in different
-          ones. The set itself is representative, built to exercise those
-          rules.
+          page exactly as coded in the repo. Profile selection is a keyword
+          table, not a model — detect() takes the brief&apos;s first keyword
+          hit (“sunset” sits in downtempo&apos;s list) and --genre overrides
+          it. Only the jump and harmonic gates are genre-variable: downtempo&apos;s
+          equal the open defaults shown, hip-hop loosens them to 12.0 / 40%,
+          house tightens to 4.0 / 80%; arc-RMSE and artist repeats are
+          critic-wide constants. The set itself is representative, built to
+          exercise those rules.
         </>
       }
     >
@@ -294,7 +312,8 @@ export default function SetConsole({ title }: { title?: string }) {
         </span>
         <span className="text-dim">
           {" "}
-          → “sunset” · downtempo profile → architect
+          → detect(): first keyword hit, “sunset” → downtempo profile →
+          architect
         </span>
       </div>
 
@@ -320,7 +339,7 @@ export default function SetConsole({ title }: { title?: string }) {
           </defs>
 
           {/* lufs gridlines */}
-          {[-8, -12, -16].map((l) => (
+          {[-12, -16, -20].map((l) => (
             <g key={l}>
               <line
                 x1={PL}
@@ -483,8 +502,10 @@ export default function SetConsole({ title }: { title?: string }) {
                   key={i}
                   className="sc-eq h-full w-[3px] bg-(--accent)"
                   style={{
-                    animationDelay: `${i * 0.17}s`,
-                    animationDuration: `${0.9 + (i % 3) * 0.27}s`,
+                    // quarter-beat offsets on the same clock — a meter
+                    // dancing, not four strangers
+                    animationDelay: `${(i * BEAT_S * 0.25).toFixed(3)}s`,
+                    animationDuration: `${(BEAT_S * 2).toFixed(3)}s`,
                   }}
                 />
               ))}
@@ -508,10 +529,10 @@ export default function SetConsole({ title }: { title?: string }) {
                   transitionDelay: !past("critic") ? `${i * 90}ms` : "0ms",
                   opacity: past("propose") ? 1 : 0,
                   transform: past("propose") ? "none" : "translateY(6px)",
-                  // one nod per bar, at this slot's own tempo
+                  // every tile takes the same hit, on the same downbeat
                   animation:
                     onAir && !reduced
-                      ? `sc-beat ${(240 / s.bpm).toFixed(3)}s ease-in-out ${(i * 0.13).toFixed(2)}s infinite`
+                      ? `sc-beat ${BAR_S.toFixed(3)}s ease-out infinite`
                       : undefined,
                 }}
               >
@@ -538,7 +559,6 @@ export default function SetConsole({ title }: { title?: string }) {
                       : "var(--accent)",
                     opacity: past("propose") ? 1 : 0,
                     transition: "background 700ms, opacity 700ms",
-                    animationDelay: `${(i * 0.13).toFixed(2)}s`,
                   }}
                 />
               )}
@@ -688,33 +708,35 @@ export default function SetConsole({ title }: { title?: string }) {
           to { transform: translateX(${W - PL - PR}px); }
         }
         .sc-playhead { animation: sc-playhead-x 22s linear infinite; }
+        /* the ON AIR clock — every duration below is beats of the same
+           tempo (the set's average), every hit lands on the downbeat */
         @keyframes sc-breathe-o {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
+          50% { opacity: 0.75; }
         }
-        .sc-breathe { animation: sc-breathe-o 1.9s ease-in-out infinite; }
+        .sc-breathe { animation: sc-breathe-o ${(BAR_S * 2).toFixed(3)}s ease-in-out infinite; }
         @keyframes sc-beat {
-          0%, 35%, 100% { translate: 0 0; filter: brightness(1); }
-          12% { translate: 0 -2px; filter: brightness(1.45); }
+          0%, 28%, 100% { translate: 0 0; filter: brightness(1); }
+          6% { translate: 0 -2.5px; filter: brightness(1.5); }
         }
         @keyframes sc-splice-p {
-          0%, 100% { scale: 1; opacity: 1; }
-          50% { scale: 1.45; opacity: 0.55; }
+          0%, 28%, 100% { scale: 1; opacity: 1; }
+          6% { scale: 1.5; opacity: 0.55; }
         }
-        .sc-splice-live { animation: sc-splice-p 1.9s ease-in-out infinite; }
+        .sc-splice-live { animation: sc-splice-p ${BAR_S.toFixed(3)}s ease-out infinite; }
         @keyframes sc-eq-y {
           0%, 100% { scale: 1 0.2; }
           50% { scale: 1 1; }
         }
         .sc-eq {
           transform-origin: bottom;
-          animation: sc-eq-y 1s ease-in-out infinite;
+          animation: sc-eq-y ${(BEAT_S * 2).toFixed(3)}s ease-in-out infinite;
         }
         @keyframes sc-ping-k {
           0% { scale: 1; opacity: 0.6; }
           80%, 100% { scale: 2.4; opacity: 0; }
         }
-        .sc-ping { animation: sc-ping-k 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        .sc-ping { animation: sc-ping-k ${BAR_S.toFixed(3)}s cubic-bezier(0, 0, 0.2, 1) infinite; }
         @media (prefers-reduced-motion: reduce) {
           .sc-sweep, .sc-playhead, .sc-breathe, .sc-splice-live, .sc-eq, .sc-ping {
             animation: none;

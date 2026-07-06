@@ -14,9 +14,11 @@ import Link from "next/link";
  * full-bleed wipe (see app/template.tsx). The same reveal runs on
  * "/", /projects and /writing — it IS the navigation.
  *
- * The wdth axis carries exactly two pointer meanings on this site:
- * index titles WIDEN on touch (here), and the hero motto YIELDS under
- * the pointer (AdaptiveHeadline). Don't add a third.
+ * The wdth axis carries exactly one pointer meaning on this site:
+ * titles WIDEN on touch (here, and in landing2's mega index and
+ * method band). Kinetic hero type was tried twice and cut —
+ * pointer-following read as lag, idle breathing read as floating.
+ * Display type holds still; only touch moves it.
  * ────────────────────────────────────────────────────────────────────
  */
 export interface IndexRowProps {

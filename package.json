@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "new": "node scripts/new.mjs",
-    "check": "node scripts/check-content.mjs"
+    "check": "node scripts/check-content.mjs",
+    "ops:snapshot": "tsx scripts/ops-snapshot.ts",
+    "ops:digest": "tsx scripts/ops-digest.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -32,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

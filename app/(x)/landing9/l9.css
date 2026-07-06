@@ -1,0 +1,170 @@
+/* ════════════════════════════════════════════════════════
+   Nº9 — THE FLOORPLAN
+   A technical drawing of the household. Thin bone lines on
+   dark stock; rooms light up when you stand in the doorway.
+   ════════════════════════════════════════════════════════ */
+
+.l9-site {
+  --l9-ink: #d6deeb;
+  --l9-dim: #5d6878;
+  --l9-line: rgba(214, 222, 235, 0.34);
+  --l9-faint: rgba(214, 222, 235, 0.14);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: #0a0c10;
+  color: var(--l9-ink);
+  font-family: var(--font-mono);
+  padding: 0 clamp(12px, 2.5vw, 40px);
+}
+
+/* ── bar ─────────────────────────────────────────────── */
+.l9-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 28px;
+  padding: 20px 4px 14px;
+  border-bottom: 1px solid var(--l9-faint);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.l9-brand { font-weight: 700; }
+.l9-bar-dim { color: var(--l9-dim); font-size: 9.5px; }
+.l9-bar-right { margin-left: auto; }
+
+/* ── sheet: plan + panel ─────────────────────────────── */
+.l9-sheet {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: clamp(14px, 2.5vw, 34px);
+  align-items: stretch;
+  padding: clamp(14px, 2.5vh, 28px) 0;
+}
+@media (max-width: 920px) {
+  .l9-sheet { grid-template-columns: 1fr; }
+}
+
+.l9-plan {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* line weights — a real pen set */
+.l9-wall-heavy { fill: none; stroke: var(--l9-line); stroke-width: 2.5; }
+.l9-wall { fill: none; stroke: var(--l9-line); stroke-width: 1.2; }
+.l9-door { fill: none; stroke: var(--l9-dim); stroke-width: 0.8; stroke-dasharray: 3 3; }
+
+/* rooms */
+.l9-room { cursor: pointer; outline: none; }
+.l9-room-fill {
+  fill: transparent;
+  stroke: none;
+  transition: fill 0.4s ease;
+}
+.l9-room.is-hot .l9-room-fill,
+.l9-room:hover .l9-room-fill {
+  fill: color-mix(in srgb, var(--c) 7%, transparent);
+}
+.l9-room:focus-visible .l9-room-fill {
+  fill: color-mix(in srgb, var(--c) 10%, transparent);
+}
+.l9-room-label {
+  fill: var(--l9-ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  transition: fill 0.3s ease;
+}
+.l9-room.is-hot .l9-room-label,
+.l9-room:hover .l9-room-label { fill: var(--c); }
+.l9-room-sub {
+  fill: var(--l9-dim);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+/* furniture */
+.l9-furn line, .l9-furn rect, .l9-furn circle, .l9-furn-line, .l9-furn ellipse {
+  fill: none;
+  stroke: var(--l9-dim);
+  stroke-width: 1;
+}
+.l9-furn-note {
+  fill: var(--l9-dim);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  stroke: none;
+}
+.l9-hook { fill: none; stroke: var(--l9-dim); stroke-width: 1; }
+.l9-room.is-hot .l9-hook { stroke: var(--c); }
+.l9-book { fill: none; stroke: var(--l9-dim); stroke-width: 1; }
+.l9-nook { stroke: var(--l9-faint); stroke-width: 1; stroke-dasharray: 5 4; }
+
+/* annotations */
+.l9-dim line { stroke: var(--l9-dim); stroke-width: 0.8; }
+.l9-dim text { fill: var(--l9-dim); font-size: 9.5px; letter-spacing: 0.24em; }
+.l9-compass circle { fill: none; stroke: var(--l9-dim); stroke-width: 1; }
+.l9-compass path { fill: none; stroke: var(--l9-ink); stroke-width: 1.2; }
+.l9-compass text { fill: var(--l9-dim); font-size: 9px; letter-spacing: 0.2em; }
+
+/* ── the placard panel ───────────────────────────────── */
+.l9-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--l9-faint);
+  border-left: 3px solid var(--c);
+  padding: clamp(16px, 2vw, 26px);
+  background: rgba(214, 222, 235, 0.02);
+}
+.l9-panel-tag { font-size: 9.5px; letter-spacing: 0.3em; color: var(--c); }
+.l9-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+.l9-panel-meta { font-size: 9.5px; letter-spacing: 0.18em; color: var(--l9-dim); text-transform: uppercase; line-height: 1.8; }
+.l9-panel-line { font-size: 12.5px; line-height: 1.85; letter-spacing: 0.03em; }
+.l9-panel-open {
+  align-self: flex-start;
+  margin-top: 4px;
+  color: var(--c);
+  text-decoration: none;
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s ease;
+}
+.l9-panel-open:hover { border-color: var(--c); }
+
+.l9-titleblock {
+  margin-top: auto;
+  border: 1px solid var(--l9-faint);
+  padding: 12px 14px;
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  color: var(--l9-dim);
+  line-height: 2.1;
+  text-transform: uppercase;
+}
+
+/* ── exits ───────────────────────────────────────────── */
+.l9-exits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 26px;
+  padding: 14px 4px 18px;
+  border-top: 1px solid var(--l9-faint);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.l9-exits a { color: var(--l9-dim); text-decoration: none; transition: color 0.25s ease; }
+.l9-exits a:hover { color: var(--l9-ink); }
+.l9-exit-main { margin-left: auto; color: var(--l9-ink) !important; font-weight: 700; }

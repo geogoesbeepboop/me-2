@@ -1,0 +1,184 @@
+/* ════════════════════════════════════════════════════════
+   Nº6 — TERMINUS
+   A night station. Split-flap cells on a black hall wall,
+   one amber lamp of a clock, the PA murmuring doctrine.
+   ════════════════════════════════════════════════════════ */
+
+.l6-hall {
+  --l6-ink: #e6e4da;
+  --l6-dim: #6b6f6a;
+  --l6-cell: #141619;
+  --l6-cell-edge: #1f2227;
+  --l6-line: rgba(230, 228, 218, 0.1);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(80, 90, 110, 0.12), transparent 60%),
+    #07080a;
+  color: var(--l6-ink);
+  font-family: var(--font-mono);
+  padding: 0 clamp(10px, 3vw, 48px);
+}
+
+/* ── head ────────────────────────────────────────────── */
+.l6-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 30px;
+  padding: 22px 4px 16px;
+  border-bottom: 2px solid var(--l6-ink);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+.l6-brand { font-weight: 700; font-size: 13px; }
+.l6-head-mid { color: var(--l6-dim); }
+.l6-clock { margin-left: auto; color: var(--l6-dim); }
+.l6-clock b {
+  color: #f5c451; /* the one amber lamp in the hall */
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── the board ───────────────────────────────────────── */
+.l6-board {
+  margin-top: clamp(20px, 4vh, 44px);
+}
+.l6-row {
+  display: grid;
+  grid-template-columns: 5ch 6ch minmax(0, 1fr) 13ch 5ch;
+  gap: clamp(8px, 1.6vw, 26px);
+  align-items: center;
+  padding: clamp(7px, 1.1vh, 12px) 4px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--l6-line);
+}
+.l6-row-head {
+  font-size: 9.5px;
+  letter-spacing: 0.3em;
+  color: var(--l6-dim);
+  border-bottom: 1px solid var(--l6-ink);
+  padding-bottom: 8px;
+}
+.l6-row.is-hot { background: rgba(230, 228, 218, 0.04); }
+
+.l6-cell {
+  display: inline-flex;
+  gap: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* one flap — a little dark drum with its split line */
+.l6-flap {
+  display: inline-grid;
+  place-items: center;
+  width: 1.18ch;
+  height: 1.85em;
+  background: linear-gradient(180deg, #181b1f 0%, var(--l6-cell) 48%, #101215 52%, #15181c 100%);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0, 0, 0, 0.5);
+  font-size: clamp(11px, 1.5vw, 16px);
+  font-weight: 700;
+  position: relative;
+}
+.l6-flap::after {
+  /* the split */
+  content: "";
+  position: absolute;
+  inset: calc(50% - 0.5px) 0 auto;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.65);
+}
+.l6-flap.is-spin { color: var(--l6-dim); }
+.l6-flap.is-set { color: var(--l6-ink); }
+
+/* settled remarks take the service's semantic color */
+.l6-col-remarks .l6-flap.is-set { color: var(--c, var(--l6-ink)); }
+.l6-col-time .l6-flap.is-set,
+.l6-col-service .l6-flap.is-set { color: #b9b6a8; }
+
+@media (max-width: 760px) {
+  .l6-row { grid-template-columns: 5ch minmax(0, 1fr) 13ch; }
+  .l6-col-service, .l6-col-platform { display: none; }
+}
+
+/* ── now boarding ────────────────────────────────────── */
+.l6-boarding {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 22px;
+  margin-top: clamp(18px, 3vh, 34px);
+  padding: 14px 16px;
+  border: 1px solid var(--l6-line);
+  border-left: 3px solid var(--c, var(--l6-ink));
+}
+.l6-boarding-tag {
+  font-size: 9.5px;
+  letter-spacing: 0.3em;
+  color: var(--c);
+}
+.l6-boarding-dest { font-weight: 700; letter-spacing: 0.18em; font-size: 13px; }
+.l6-boarding-line {
+  flex: 1 1 280px;
+  color: var(--l6-dim);
+  font-size: 11.5px;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+}
+.l6-boarding-go {
+  font: inherit;
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  color: var(--l6-ink);
+  background: none;
+  border: 1px solid var(--l6-line);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+.l6-boarding-go:hover { background: var(--c); color: #07080a; border-color: var(--c); }
+
+/* ── PA ticker ───────────────────────────────────────── */
+.l6-pa {
+  margin-top: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  border-top: 1px solid var(--l6-line);
+  padding: 12px 0;
+  font-size: 10.5px;
+  letter-spacing: 0.3em;
+  color: var(--l6-dim);
+  text-transform: uppercase;
+}
+.l6-pa-track {
+  display: inline-flex;
+  animation: l6-pa 60s linear infinite;
+}
+.l6-pa-track:hover { animation-play-state: paused; }
+@keyframes l6-pa {
+  to { transform: translateX(-50%); }
+}
+
+/* ── exits ───────────────────────────────────────────── */
+.l6-exits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+  padding: 14px 4px 20px;
+  border-top: 1px solid var(--l6-line);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.l6-exits a { color: var(--l6-dim); text-decoration: none; transition: color 0.25s ease; }
+.l6-exits a:hover { color: var(--l6-ink); }
+.l6-exit-main { margin-left: auto; color: var(--l6-ink) !important; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .l6-pa { display: none; }
+}

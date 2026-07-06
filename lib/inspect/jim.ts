@@ -718,4 +718,212 @@ export const JIM: InspectMap = {
         "score names are exactly what engine.py pushes; figures from the 14:02:11 AAPL call logged above",
     },
   },
+
+  peers: {
+    path: "src/jim/sources/peer.py",
+    note: "buying research inputs from other agents over the same x402 rails jim sells on — no carve-out, no special path",
+    blocks: [
+      {
+        kind: "flow",
+        title: "One peer purchase",
+        caption: "identical pipeline to The Graph — trust checked before any money moves",
+        states: [
+          { id: "want", label: "gather wants a fact", col: 0, row: 0 },
+          { id: "trust", label: "trust ≥ 0.4?", col: 1, row: 0, kind: "gate" },
+          { id: "budget", label: "budget propose", col: 2, row: 0, kind: "gate" },
+          { id: "cache", label: "cache?", col: 3, row: 0 },
+          { id: "buy", label: "resilient x402 buy", col: 4, row: 0 },
+          { id: "record", label: "recorded", col: 4, row: 1, kind: "terminal" },
+          { id: "refused", label: "refused · $0", col: 1, row: 1, kind: "terminal" },
+        ],
+        transitions: [
+          { from: "want", to: "trust" },
+          { from: "trust", to: "refused", label: "below floor" },
+          { from: "trust", to: "budget", label: "ok" },
+          { from: "budget", to: "cache", label: "approved" },
+          { from: "cache", to: "buy", label: "miss" },
+          { from: "cache", to: "record", label: "hit — $0", dashed: true },
+          { from: "buy", to: "record" },
+        ],
+      },
+      {
+        kind: "rules",
+        items: [
+          {
+            name: "degrade, don't die",
+            detail:
+              "a failing peer is skipped with a note (CompositeSource catches budget, procurement, breaker and transport errors) — jim gates what it could verify instead of failing the run.",
+          },
+          {
+            name: "debit before failing",
+            detail:
+              "an unusable peer payload debits that peer's trust score before the error surfaces — bad behavior is remembered even when the run survives it.",
+          },
+          {
+            name: "transport retries only",
+            detail:
+              "the resilience wrapper retries timeouts and connection drops with backoff + jitter; 4xx/5xx are semantic and surface immediately. Five straight transport failures open a circuit breaker for 30s.",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "trust floor", v: "0.4 after ≥3 events", accent: true },
+          { k: "timeout / attempt", v: "20s" },
+          { k: "retries", v: "2 (3 attempts)" },
+          { k: "breaker", v: "5 fails → open 30s" },
+        ],
+      },
+    ],
+  },
+
+  trust: {
+    path: "src/jim/interop/trust.py",
+    note: "reputation as an append-only ledger of gate outcomes — deterministic, auditable row by row",
+    blocks: [
+      {
+        kind: "quote",
+        text: "Smoothed pass-rate: (ok+1)/(ok+fail+2). A new source starts at 0.5.",
+        cite: "src/jim/interop/trust.py — laplace_score",
+      },
+      {
+        kind: "rules",
+        items: [
+          {
+            name: "credit on pass",
+            detail: "when the sourcing gate passes a memo, every source that contributed a fact is credited ok=true.",
+          },
+          {
+            name: "debit only the guilty",
+            detail:
+              "when the gate fails, only sources actually cited in the violations are debited — a synthesizer hallucination with no citation punishes no source.",
+            fail: true,
+          },
+          {
+            name: "refusal before payment",
+            detail:
+              "a peer below the 0.4 floor (after at least 3 recorded events) is refused before any USDC moves.",
+            value: "floor 0.4",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "ledger row", v: "source · ok · context · created_at" },
+          { k: "new source starts at", v: "0.5" },
+          { k: "astroturf resistance", v: "smoothing, not volume", accent: true },
+        ],
+      },
+    ],
+  },
+
+  chain: {
+    path: "src/jim/interop/callchain.py",
+    note: "composition safety for agents buying from agents — loops and runaway depth refused before the 402 ever fires",
+    blocks: [
+      {
+        kind: "rules",
+        items: [
+          {
+            name: "loop refused",
+            detail:
+              "if jim's own address already appears in the inbound X-Jim-Call-Chain header, the request is refused with a 409 — before payment, so a cycle can't bill anyone.",
+            fail: true,
+          },
+          {
+            name: "depth capped",
+            detail: "four hops is the ceiling; the sell side refuses deeper chains, the buy side refuses to extend past it.",
+            value: "≤ 4",
+          },
+          {
+            name: "chain extends on buy",
+            detail: "every outbound peer purchase appends jim's address to the chain header it forwards.",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "header", v: "X-Jim-Call-Chain" },
+          { k: "max depth", v: "4", accent: true },
+          { k: "refusal", v: "409, pre-payment", accent: true },
+        ],
+      },
+    ],
+  },
+
+  proof: {
+    path: "src/jim/marketplace/proof.py",
+    note: "the public receipt drawer — settlements, refusals and trust scores, plus offline-verifiable signed attestations",
+    blocks: [
+      {
+        kind: "kv",
+        title: "what GET /proof shows",
+        items: [
+          { k: "settlements", v: "count · total USDC · 15 most recent receipts" },
+          { k: "verification", v: "gate pass-rate · refused runs · refused-not-billed $" },
+          { k: "refusals", v: "recent gate rejections, last 500 runs" },
+          { k: "trust", v: "per-source laplace scores, sorted" },
+        ],
+      },
+      {
+        kind: "rules",
+        items: [
+          {
+            name: "receipts come from the facilitator",
+            detail:
+              "the x402 PAYMENT-RESPONSE header the facilitator emits after settlement is decoded and persisted verbatim — jim reports settlements, it doesn't author them.",
+          },
+          {
+            name: "attestations verify offline",
+            detail:
+              "each signed receipt covers memo sha256 + snapshot fingerprint + gate verdict + settlement tx, EIP-191-signed with jim's key — any EVM stack can recover the signer with no server in the loop.",
+          },
+        ],
+      },
+    ],
+  },
+
+  evals: {
+    path: "src/jim/eval/dataset.py",
+    note: "ADR-0009 — tiered suites with persisted runs and thresholded regression verdicts; offline is the merge gate, live is the trend",
+    blocks: [
+      {
+        kind: "kv",
+        title: "the suites",
+        items: [
+          { k: "gate", v: "39 labeled memos — truthful + planted-lie pairs" },
+          { k: "guards", v: "40 cases — impersonal · identifiers · completeness · materiality" },
+          { k: "scenarios", v: "9 end-to-end langgraph runs" },
+          { k: "live", v: "held-out tickers · real pipeline · rubric-scored" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "regression verdicts",
+        items: [
+          { name: "offline", detail: "zero tolerance — any failed case fails the run.", value: "88 cases · ~1.5s", fail: true },
+          {
+            name: "live",
+            detail:
+              "stochastic, so thresholded: fails on a gate pass-rate drop over 5%, rubric over 2%, cost over 25%, latency over 50% vs baseline.",
+          },
+          {
+            name: "every run persists",
+            detail:
+              "runs land in eval_runs/ and jim-eval ui plots the trends — which is how a judge max_tokens of 900 (JSON truncating mid-array, every live memo 'rejected') was told apart from a real quality drop. It's 4096 now.",
+          },
+        ],
+      },
+      {
+        kind: "kv",
+        items: [
+          { k: "nightly", v: ".claude/evals.sh — offline vs baseline, zero keys" },
+          { k: "merge gate", v: ".claude/gate.sh — ruff + full offline suite, ~15s", accent: true },
+        ],
+      },
+    ],
+  },
 };
