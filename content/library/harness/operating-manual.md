@@ -2,14 +2,14 @@
 title: Operating Manual — a day in the new workflow
 collection: harness
 source: ~/dev/agentic-harness/docs/OPERATING_MANUAL.md
-sourceMtime: '2026-07-09T19:40:53.084Z'
+sourceMtime: '2026-07-09T21:02:14.983Z'
 sourceCommit: c48ce56
 syncedAt: '2026-07-09'
 summary: >-
   Companion to TOPPERCENTWORKFLOW.md (the why) and CLAUDECODEBIBLE.md (the
   reference). This is the hour-by-hour how, written 2026-07-05 against what is
   actually installed. Everything named here exist…
-contentHash: 'sha256:31d1d99cd98c694fe802178e3e9351de26b0760109f8b9c2847aebb0efee92f3'
+contentHash: 'sha256:8909dad8289dc506da34f0b05cfd9cf006ee02d909e44411e6bfc9fd1772ccf4'
 ---
 # Operating Manual — a day in the new workflow
 
@@ -331,3 +331,33 @@ same repo before merge.
 shapes, gate signature, and `AGENTS.md` invariants are what keep three people (or three fresh
 sessions) coherent. That is why the anatomy checklist and instruction files are load-bearing for a
 team in a way they aren't solo: they are the team's shared memory.
+
+## 14. The site is the library (added 2026-07-09)
+
+The personal site (`~/dev/me-2`) is the workflow's public face AND your own reading surface —
+stop searching Finder; hit ⌘K on the site. Docs stay where they live; the site mirrors them
+with provenance, deterministically (no model in the loop).
+
+**What mirrors, daily at 07:00** (`me.library-sync` LaunchAgent → `me-2/scripts/library-sync.sh`,
+after the 06:17 digest and the 06:45 ops report): `~/dev/hackathons/*.md`,
+`~/dev/docs/{enterprise,personal}/*.md`, `~/dev/multi-agent-docs/` (+ `portfolio/`),
+`~/dev/agentic-harness/docs/*.md`, and every fleet repo's `docs/adr/*.md` (derived from the
+site's `repo:` registry — a new project entry auto-onboards its ADRs). Everything is
+**default-PUBLIC**; the mirror publishes to main behind the curator-grade triple gate
+(content check + production build + `content/library/**` scope), parking failures on
+`site/library-sync-<date>`.
+
+**Three ways to hide a doc** (precedence: deny wall > in-doc marker > private list):
+1. In-doc: `<!-- me2: private -->` in the first 10 lines (or `site: private` frontmatter) —
+   travels with the file, beats everything except deny.
+2. `cd ~/dev/me-2 && npm run library -- private "~/dev/path/to/doc.md"` (then
+   `scripts/publish-visibility.sh` or the ops toggle publishes the takedown).
+3. The operator panel at the bottom of `/library` on your machine — PUBLIC/PRIVATE chips and
+   the hidden-shelf list; flips commit + push automatically (2026-07-09 flip-autonomy grant).
+Hard walls live in `me-2/config/library.manifest.json` `deny[]` (career-prep, resumes,
+BABYSIT_LOG, M-Clone). A secrets/PII deny-scan skips hot docs loudly at sync time.
+
+**Autonomy grants (2026-07-09):** the daily sync and the visibility flip both push to main
+under deterministic gates — the third and fourth autonomous publishers after the ops report
+and the weekly curator. The curator also gained job 4: `/update-about` refreshes the resume
+surface's `auto:now` zone on fleet drift, always via PR (voice waits for George).
