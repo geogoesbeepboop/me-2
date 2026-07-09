@@ -12,6 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { checkLibrary } from "./check-library.mjs";
 
 const ROOT = path.join(process.cwd(), "content");
 const KINDS = ["projects", "writing"];
@@ -99,10 +100,18 @@ if (fs.existsSync(inspectDir)) {
   }
 }
 
+// the library's mirror integrity rides the same check — one command, one gate
+const lib = checkLibrary(process.cwd());
+warn.push(...lib.warns);
+errors.push(...lib.errors);
+
 for (const w of warn) console.warn(`warn  ${w}`);
 if (errors.length) {
   for (const e of errors) console.error(`ERROR ${e}`);
   console.error(`\n${errors.length} content error(s).`);
   process.exit(1);
 }
-console.log(`archive ok — ${nodes.size} entries, refs graph resolves.`);
+console.log(
+  `archive ok — ${nodes.size} entries, refs graph resolves.` +
+    (lib.count > 0 ? ` library ok — ${lib.count} mirrors.` : "")
+);

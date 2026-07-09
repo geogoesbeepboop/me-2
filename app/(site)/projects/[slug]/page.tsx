@@ -5,6 +5,7 @@ import MaskReveal from "@/components/motion/MaskReveal";
 import AgentStrip from "@/components/dossier/AgentStrip";
 import Toc from "@/components/dossier/Toc";
 import CrossLinks from "@/components/dossier/CrossLinks";
+import DecisionNotes from "@/components/dossier/DecisionNotes";
 import ProjectBackdrop, { hasBackdrop } from "@/components/projects/ProjectBackdrop";
 import { Mdx } from "@/lib/mdx";
 import { accentOf, getNode, nodesOf, resolveRef, stamp } from "@/lib/content";
@@ -143,6 +144,7 @@ export default async function ProjectDossier({ params }: Props) {
       {bench ? (
         <div className="mx-auto mt-16 w-full max-w-[880px] px-5 md:px-10">
           <Mdx source={node.body} />
+          <DecisionNotes node={node} />
           <CrossLinks node={node} n="--" />
         </div>
       ) : (
@@ -154,6 +156,7 @@ export default async function ProjectDossier({ params }: Props) {
           </aside>
           <div className="min-w-0">
             <Mdx source={node.body} />
+            <DecisionNotes node={node} />
           </div>
         </div>
       )}

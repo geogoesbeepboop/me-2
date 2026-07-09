@@ -142,6 +142,9 @@ export interface NightlyRun {
   /** fleet slug when the repo maps to an agent on the board */
   slug?: string;
   gate: "pass" | "fail" | "missing";
+  /** passing but over the digest's runtime budget — spelled out in plain
+   *  ink ("slow"), never a hue; only failure carries ember */
+  slow?: boolean;
   gateSeconds?: number;
   /** absent = the repo has no evals.sh (absent ≠ pass) */
   evals?: "pass" | "regression";

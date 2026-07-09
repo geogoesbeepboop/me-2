@@ -22,6 +22,7 @@ const NAV = [
   { n: "02", label: "WRITING", href: "/writing" },
   { n: "03", label: "METHOD", href: "/method" },
   { n: "04", label: "ABOUT", href: "/about" },
+  { n: "05", label: "LIBRARY", href: "/library" },
 ] as const;
 
 export default function CityBar({
@@ -49,6 +50,15 @@ export default function CityBar({
             </Link>
           );
         })}
+        <button
+          type="button"
+          className="city-nav-search"
+          onClick={() => window.dispatchEvent(new Event("me2:search"))}
+          aria-label="Search the archive and library (⌘K)"
+        >
+          <span className="city-nav-n">⌘K</span>
+          SEARCH
+        </button>
       </nav>
       <span className="v2-clock">
         SAN FRANCISCO <b suppressHydrationWarning>{clock}</b>

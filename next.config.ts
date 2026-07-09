@@ -8,7 +8,11 @@ const nextConfig: NextConfig = {
     "/v2/ops": ["./data/**"],
     "/api/ops": ["./data/**"],
     // dossiers read the filed report for their agent strip (revalidates 15m)
-    "/projects/[slug]": ["./data/**"],
+    // + the mirrored ADRs their decision-notes strip lists
+    "/projects/[slug]": ["./data/**", "./content/library/**", "./config/**"],
+    // the library reads its committed mirrors + the manifest (group labels)
+    "/library": ["./content/library/**", "./config/**"],
+    "/library/[...slug]": ["./content/library/**", "./config/**"],
   },
   async redirects() {
     return [

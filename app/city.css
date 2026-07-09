@@ -1465,6 +1465,19 @@ a.v2-needs[data-tone="blocked"]:hover { background: rgba(255, 90, 31, 0.1); }
 }
 .city-nav a:hover { color: var(--color-bone); }
 .city-nav-n { color: var(--color-dim); margin-right: 5px; }
+/* the ⌘K affordance — dressed exactly like a nav link, but it opens the
+   search overlay instead of navigating (unnumbered on purpose) */
+.city-nav-search {
+  color: var(--color-ash);
+  letter-spacing: 0.14em;
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.city-nav-search:hover { color: var(--color-bone); }
 .city-nav a[data-active="true"] {
   color: var(--color-bone);
   text-decoration: underline;

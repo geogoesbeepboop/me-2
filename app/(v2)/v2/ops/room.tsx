@@ -225,7 +225,7 @@ function AgentCard({ a, live }: { a: AgentOps; live: boolean }) {
         <p className="v2-nightly" data-bad={a.nightly.gate === "fail" || a.nightly.evals === "regression"}>
           <i aria-hidden>☾</i> nightly gate{" "}
           {a.nightly.gate === "pass"
-            ? `green${a.nightly.gateSeconds !== undefined ? ` (${a.nightly.gateSeconds}s)` : ""}`
+            ? `green${a.nightly.gateSeconds !== undefined ? ` (${a.nightly.gateSeconds}s)` : ""}${a.nightly.slow ? " — slow" : ""}`
             : a.nightly.gate === "fail"
               ? "FAILED"
               : "not installed"}
