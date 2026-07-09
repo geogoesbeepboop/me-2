@@ -17,7 +17,7 @@ export interface SfWeather {
   cloudCover: number; // %
   visibilityM: number;
   windKmh: number;
-  tempC: number;
+  tempF: number;
   code: number; // WMO
   /** a short, real, human label: "fog · 13°", "overcast · 12° · windy" */
   label: string;
@@ -25,7 +25,8 @@ export interface SfWeather {
 
 const URL =
   "https://api.open-meteo.com/v1/forecast?latitude=37.7749&longitude=-122.4194" +
-  "&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m,visibility&timezone=America/Los_Angeles";
+  "&current=temperature_2m,weather_code,cloud_cover,wind_speed_10m,visibility" +
+  "&temperature_unit=fahrenheit&wind_speed_unit=kmh&timezone=America/Los_Angeles";
 
 function condition(code: number, cloud: number, visibility: number): SfCondition {
   // precipitation: drizzle 51-57, rain 61-67, showers 80-82, thunder 95-99
@@ -60,15 +61,15 @@ export async function getSfWeather(): Promise<SfWeather | null> {
     const c = j.current;
     if (!c || typeof c.weather_code !== "number") return null;
     const cond = condition(c.weather_code, c.cloud_cover ?? 0, c.visibility ?? 99999);
-    const tempC = Math.round(c.temperature_2m ?? 0);
+    const tempF = Math.round(c.temperature_2m ?? 0);
     const windKmh = Math.round(c.wind_speed_10m ?? 0);
-    const label = `${WORD[cond]} · ${tempC}°${windKmh >= 32 ? " · windy" : ""}`;
+    const label = `${WORD[cond]} · ${tempF}°${windKmh >= 32 ? " · windy" : ""}`;
     return {
       condition: cond,
       cloudCover: Math.round(c.cloud_cover ?? 0),
       visibilityM: Math.round(c.visibility ?? 99999),
       windKmh,
-      tempC,
+      tempF,
       code: c.weather_code,
       label,
     };

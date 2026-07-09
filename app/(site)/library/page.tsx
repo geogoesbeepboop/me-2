@@ -82,12 +82,9 @@ export default function LibraryPage() {
         <SearchEntry />
       </header>
 
-      {/* ── START HERE — the editor's picks ── */}
+      {/* ── the editor's picks ── */}
       {featured.length > 0 && (
         <section className="mb-4">
-          <p className="border-t border-line px-5 pt-6 pb-4 font-mono text-label tracking-[0.2em] text-dim uppercase md:px-10">
-            Start here
-          </p>
           <div className="grid gap-px border-y border-line bg-line/40 sm:grid-cols-3">
             {featured.map((d) => (
               <Link
@@ -213,14 +210,6 @@ export default function LibraryPage() {
           ))}
         </details>
       )}
-
-      <div className="mt-14 border-t border-line px-5 pt-8 md:px-10">
-        <p className="max-w-xl font-mono text-mono-sm text-dim">
-          Mirrored daily by a deterministic sync — no model in the loop. Every document names
-          its source; the mirror changes only when the source does. The deep stacks (idea
-          dossiers, reference material) stay off the shelf on purpose — search reaches them.
-        </p>
-      </div>
 
       {/* the hidden shelf — renders only where the operator API answers */}
       <OperatorPanel />

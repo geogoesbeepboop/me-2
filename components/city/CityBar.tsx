@@ -38,7 +38,7 @@ export default function CityBar({
   return (
     <header className="v2-bar city-bar" data-scene={scene}>
       <Link href="/" className="v2-brand" aria-label="George Andrade-Muñoz — the city">
-        ANDRADE-MUÑOZ
+        GEORGE ANDRADE-MUÑOZ
       </Link>
       <nav className="city-nav" aria-label="Sections">
         {NAV.map((item) => {
