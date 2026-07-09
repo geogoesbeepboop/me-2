@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+// shared with the sync/gate scripts — one glob dialect everywhere
+import { globToRegExp } from "../scripts/lib/deny-scan.mjs";
 
 /**
  * THE LIBRARY — read side of the mirrored-document stacks.
@@ -10,6 +12,11 @@ import matter from "gray-matter";
  * the library is the raw shelf behind it. Library docs carry NO archive
  * numbers and are invisible to allNodes()/backlinks — links may point INTO
  * the library, never out of it into curated refs.
+ *
+ * Presentation (2026-07-09): the manifest is also the shelf plan —
+ * `display: "unlisted"` keeps a collection mirrored + searchable but off
+ * the index page; `series` folds versioned lenses into one entry with a
+ * history trail; `featured` is the START HERE strip.
  */
 
 export interface LibraryDoc {
@@ -32,10 +39,34 @@ export interface LibraryDoc {
   body: string;
 }
 
-export interface LibraryGroup {
+export interface ShelfEntry {
+  doc: LibraryDoc;
+  /** present when this entry fronts a versioned series — doc is the
+   *  current lens, history the earlier ones, oldest first */
+  series?: { label: string; history: LibraryDoc[] };
+}
+
+export interface Shelf {
   id: string;
   label: string;
+  entries: ShelfEntry[];
+}
+
+export interface DecisionShelf {
+  /** repo basename, e.g. "jim-agent" */
+  repo: string;
   docs: LibraryDoc[];
+}
+
+interface ManifestCollection {
+  id: string;
+  label: string;
+  display?: "listed" | "unlisted";
+  series?: { label: string; members: string[] }[];
+}
+interface ManifestView {
+  featured: string[];
+  collections: ManifestCollection[];
 }
 
 const LIB_DIR = path.join(process.cwd(), "content", "library");
@@ -83,50 +114,80 @@ export function getLibraryDoc(segments: string[]): LibraryDoc | undefined {
   return allLibraryDocs().find((d) => d.urlPath === urlPath);
 }
 
-/** collections in manifest order, decisions/* after, each internally sorted —
- *  decision records read in ADR order, everything else freshest-first */
-export function libraryGroups(): LibraryGroup[] {
-  const docs = allLibraryDocs();
-  let manifestOrder: { id: string; label: string }[] = [];
+function readManifest(): ManifestView {
   try {
-    const m = JSON.parse(fs.readFileSync(MANIFEST, "utf8")) as {
-      collections: { id: string; label: string }[];
-    };
-    manifestOrder = m.collections;
+    const m = JSON.parse(fs.readFileSync(MANIFEST, "utf8")) as Partial<ManifestView>;
+    return { featured: m.featured ?? [], collections: m.collections ?? [] };
   } catch {
-    /* deployed without the manifest → derive groups from the docs alone */
+    /* deployed without the manifest → no shelves, docs still resolvable */
+    return { featured: [], collections: [] };
   }
-
-  const byId = new Map<string, LibraryDoc[]>();
-  for (const d of docs) {
-    (byId.get(d.collection) ?? byId.set(d.collection, []).get(d.collection)!).push(d);
-  }
-
-  const groups: LibraryGroup[] = [];
-  for (const { id, label } of manifestOrder) {
-    const g = byId.get(id);
-    if (g) {
-      groups.push({ id, label, docs: sortDocs(id, g) });
-      byId.delete(id);
-    }
-  }
-  for (const id of [...byId.keys()].sort()) {
-    const label = id.startsWith("decisions/")
-      ? `Decisions — ${id.slice("decisions/".length)}`
-      : id;
-    groups.push({ id, label, docs: sortDocs(id, byId.get(id)!) });
-  }
-  return groups;
 }
 
-function sortDocs(id: string, docs: LibraryDoc[]): LibraryDoc[] {
-  return id.startsWith("decisions/")
-    ? [...docs].sort((a, b) => a.slug.localeCompare(b.slug))
-    : [...docs].sort((a, b) => b.sourceMtime.localeCompare(a.sourceMtime));
+/** the START HERE strip — manifest order, mirrored docs only */
+export function featuredDocs(): LibraryDoc[] {
+  const docs = allLibraryDocs();
+  return readManifest()
+    .featured.map((src) => docs.find((d) => d.source === src))
+    .filter((d): d is LibraryDoc => d !== undefined);
+}
+
+/** listed collections in manifest order, series folded, freshest first */
+export function libraryShelves(): Shelf[] {
+  const docs = allLibraryDocs();
+  const shelves: Shelf[] = [];
+  for (const col of readManifest().collections) {
+    if (col.display === "unlisted") continue;
+    let pool = docs.filter((d) => d.collection === col.id);
+    if (pool.length === 0) continue;
+    const entries: ShelfEntry[] = [];
+    for (const s of col.series ?? []) {
+      const res = s.members.map((m) => globToRegExp(m) as RegExp);
+      const members = pool.filter((d) =>
+        res.some((re) => re.test(path.basename(d.source)))
+      );
+      if (members.length === 0) continue;
+      pool = pool.filter((d) => !members.includes(d));
+      const ordered = [...members].sort((a, b) => a.sourceMtime.localeCompare(b.sourceMtime));
+      const current = ordered[ordered.length - 1];
+      entries.push({ doc: current, series: { label: s.label, history: ordered.slice(0, -1) } });
+    }
+    entries.push(...pool.map((doc) => ({ doc })));
+    entries.sort((a, b) => b.doc.sourceMtime.localeCompare(a.doc.sourceMtime));
+    shelves.push({ id: col.id, label: col.label, entries });
+  }
+  return shelves;
+}
+
+/** every decisions/<repo> group, repo-alphabetical, docs in ADR order —
+ *  the /library page renders these as ONE collapsed shelf */
+export function decisionShelves(): DecisionShelf[] {
+  const byRepo = new Map<string, LibraryDoc[]>();
+  for (const d of allLibraryDocs()) {
+    if (!d.collection.startsWith("decisions/")) continue;
+    const repo = d.collection.slice("decisions/".length);
+    (byRepo.get(repo) ?? byRepo.set(repo, []).get(repo)!).push(d);
+  }
+  return [...byRepo.keys()].sort().map((repo) => ({
+    repo,
+    docs: byRepo.get(repo)!.sort((a, b) => a.slug.localeCompare(b.slug)),
+  }));
+}
+
+/** docs mirrored but deliberately off the shelf — the deep stacks count */
+export function unlistedCount(): number {
+  const unlistedIds = new Set(
+    readManifest()
+      .collections.filter((c) => c.display === "unlisted")
+      .map((c) => c.id)
+  );
+  return allLibraryDocs().filter((d) => unlistedIds.has(d.collection)).length;
 }
 
 /** this repo's mirrored ADRs — the dossier's decision-notes strip */
 export function decisionsFor(repoPath: string): LibraryDoc[] {
   const id = `decisions/${path.basename(repoPath)}`;
-  return sortDocs(id, allLibraryDocs().filter((d) => d.collection === id));
+  return allLibraryDocs()
+    .filter((d) => d.collection === id)
+    .sort((a, b) => a.slug.localeCompare(b.slug));
 }

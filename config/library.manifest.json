@@ -1,46 +1,49 @@
 {
-  "$comment": "THE LIBRARY's single visibility authority. Precedence: deny > in-doc marker (site: private / <!-- me2: private -->) > private[] > public. deny is a hard wall — matched sources never enter the pipeline. private[] is the flip list the ops toggle and `npm run library` edit. scanAllow[] lets a named source publish past the soft PII scan (emails/phones). Collections mirror ~-relative roots; decisions/<repo> collections derive automatically from each content/projects/*.mdx `repo:` field.",
+  "$comment": "THE LIBRARY's single authority — visibility AND presentation. Visibility precedence: deny > in-doc marker (site: private / <!-- me2: private -->) > private[] > public. deny is a hard wall — matched sources never enter the pipeline. private[] is the flip list the ops toggle and `npm run library` edit. scanAllow[] lets a named source publish past the soft PII scan. Presentation: display 'unlisted' keeps a collection mirrored + searchable + URL-addressable but off the /library index (lowest visibility ≠ private); series folds versioned lenses into one shelf entry with a history trail; featured[] is the START HERE strip. decisions/<repo> collections derive automatically from each content/projects/*.mdx `repo:` field.",
+  "featured": [
+    "~/dev/hackathons/ideas_3.0.md",
+    "~/dev/agentic-harness/docs/OPERATING_MANUAL.md",
+    "~/dev/agentic-harness/docs/TOP_PERCENT_WORKFLOW.md"
+  ],
   "collections": [
     {
       "id": "hackathons",
       "label": "Hackathon lenses",
       "root": "~/dev/hackathons",
-      "include": [
-        "*.md"
+      "include": ["*.md"],
+      "series": [
+        {
+          "label": "IDEAS — the lenses",
+          "members": ["IDEAS.md", "IDEAS-2.0.md", "ideas_3.0.md"]
+        }
       ]
     },
     {
       "id": "dossiers/enterprise",
       "label": "Enterprise dossiers",
       "root": "~/dev/docs/enterprise",
-      "include": [
-        "*.md"
-      ]
+      "include": ["*.md"],
+      "display": "unlisted"
     },
     {
       "id": "dossiers/personal",
       "label": "Personal dossiers",
       "root": "~/dev/docs/personal",
-      "include": [
-        "*.md"
-      ]
+      "include": ["*.md"],
+      "display": "unlisted"
     },
     {
       "id": "multi-agent",
       "label": "Multi-agent reference",
       "root": "~/dev/multi-agent-docs",
-      "include": [
-        "*.md",
-        "portfolio/*.md"
-      ]
+      "include": ["*.md", "portfolio/*.md"],
+      "display": "unlisted"
     },
     {
       "id": "harness",
-      "label": "The harness",
+      "label": "How I work",
       "root": "~/dev/agentic-harness/docs",
-      "include": [
-        "*.md"
-      ]
+      "include": ["*.md"]
     }
   ],
   "adrCollections": "auto",
