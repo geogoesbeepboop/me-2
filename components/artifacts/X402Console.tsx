@@ -105,23 +105,23 @@ function runGate(lines: MemoLine[]) {
 /* ── playback ─────────────────────────────────────────────────────── */
 
 const PHASES: readonly ConsolePhase[] = [
-  { id: "request", label: "REQUEST", ms: 3200, who: "code",
+  { id: "request", label: "REQUEST", ms: 2133, who: "code",
     note: "another agent wants research — a plain GET, no account, no API key, no sales call" },
-  { id: "pay402", label: "402", ms: 4200, who: "code",
+  { id: "pay402", label: "402", ms: 2800, who: "code",
     note: "the middleware answers 402 PAYMENT REQUIRED — the payment-required header carries the exact scheme, the network, and the USDC amount in base units" },
-  { id: "pay", label: "PAY", ms: 4000, who: "code",
+  { id: "pay", label: "PAY", ms: 2667, who: "code",
     note: "the buyer signs an EIP-3009 transferWithAuthorization and retries; the facilitator verifies before the route handler ever runs" },
-  { id: "source", label: "SOURCE", ms: 4600, who: "code",
+  { id: "source", label: "SOURCE", ms: 3067, who: "code",
     note: "jim is a buyer too: an unpaid pre-flight reads the upstream price from its 402, budget.propose checks it against the $0.10-per-query ceiling, then jim pays the same way it gets paid" },
-  { id: "draft", label: "DRAFT", ms: 3800, who: "model",
+  { id: "draft", label: "DRAFT", ms: 2533, who: "model",
     note: "sonnet writes the memo — every claim against the snapshot, every figure expected to carry a [C#] citation" },
-  { id: "gate", label: "GATE", ms: 5200, who: "code",
+  { id: "gate", label: "GATE", ms: 3467, who: "code",
     note: "no model — regex pulls every dollar figure, percentage and multiple; each must match a cited fact within max(2%, 0.05). a hallucinated number has no fact to match" },
-  { id: "pass", label: "PASS", ms: 4200, who: "model",
+  { id: "pass", label: "PASS", ms: 2800, who: "model",
     note: "the rejection text is the next prompt — attempt 2 of a hard maximum 2. exhausted attempts mean no memo and no charge, never a lowered bar" },
-  { id: "deliver", label: "DELIVER", ms: 4400, who: "code",
+  { id: "deliver", label: "DELIVER", ms: 2933, who: "code",
     note: "settle on-chain, receipt in the payment-response header, memo in the body — research that proves itself, $0.25 at a time" },
-  { id: "open", label: "OPEN", ms: 4000, who: "code",
+  { id: "open", label: "OPEN", ms: 2667, who: "code",
     note: "the storefront stays up — no signup, no invoice, the next buyer pays the same way. monitors poll quietly for free and bill $0.10 only when something material ships" },
 ];
 
@@ -153,7 +153,7 @@ const MSGS: Msg[] = [
   { y: 184, from: LX.jim, to: LX.up, phase: "source",
     label: "pre-flight GET — the price read from upstream's own 402",
     sub: "budget.propose($0.01 ≤ $0.10 ceiling) ✓" },
-  { y: 226, from: LX.up, to: LX.jim, phase: "source", accent: true, delay: 1800,
+  { y: 226, from: LX.up, to: LX.jim, phase: "source", accent: true, delay: 1200,
     label: "data + payment-response (tx hash)",
     sub: "cost_in $0.01 · cached 24 h — the next query is free" },
   { y: 268, from: LX.jim, to: LX.buyer, phase: "deliver", accent: true,
@@ -252,7 +252,7 @@ export default function X402Console({ title }: { title?: string }) {
                   r={2.5}
                   fill="var(--accent)"
                   className="x4-flow"
-                  style={{ animationDelay: `${(x / LX.up) * 2.2}s` }}
+                  style={{ animationDelay: `${(x / LX.up) * 1.467}s` }}
                 />
               )}
             </g>
@@ -281,7 +281,7 @@ export default function X402Console({ title }: { title?: string }) {
                   filter={m.hero ? "url(#x4-glow)" : undefined}
                   style={{
                     strokeDashoffset: on ? 0 : len,
-                    transition: `stroke-dashoffset 1100ms var(--ease-cine) ${dly}ms, opacity 400ms`,
+                    transition: `stroke-dashoffset 733ms var(--ease-cine) ${dly}ms, opacity 267ms`,
                     opacity: on ? 1 : 0,
                   }}
                 />
@@ -294,7 +294,7 @@ export default function X402Console({ title }: { title?: string }) {
                   fill={color}
                   style={{
                     opacity: on ? 1 : 0,
-                    transition: `opacity 500ms var(--ease-cine) ${dly + 800}ms`,
+                    transition: `opacity 333ms var(--ease-cine) ${dly + 533}ms`,
                   }}
                 />
                 <text
@@ -311,7 +311,7 @@ export default function X402Console({ title }: { title?: string }) {
                   className={m.hero && at("open") && !reduced ? "x4-breathe" : undefined}
                   style={{
                     opacity: on ? 1 : 0,
-                    transition: `opacity 700ms var(--ease-cine) ${dly + 200}ms`,
+                    transition: `opacity 467ms var(--ease-cine) ${dly + 133}ms`,
                   }}
                 >
                   {m.label}
@@ -328,7 +328,7 @@ export default function X402Console({ title }: { title?: string }) {
                     paintOrder="stroke"
                     style={{
                       opacity: on ? 1 : 0,
-                      transition: `opacity 700ms var(--ease-cine) ${dly + 500}ms`,
+                      transition: `opacity 467ms var(--ease-cine) ${dly + 333}ms`,
                     }}
                   >
                     {m.sub}
@@ -354,7 +354,7 @@ export default function X402Console({ title }: { title?: string }) {
                   : `translate(${c.from + 18}px, ${c.y}px)`,
                 opacity: c.on ? 1 : 0,
                 transition:
-                  "transform 1600ms var(--ease-cine) 200ms, opacity 500ms var(--ease-cine) 200ms",
+                  "transform 1067ms var(--ease-cine) 133ms, opacity 333ms var(--ease-cine) 133ms",
               }}
             >
               <circle r={7} fill="var(--color-void)" stroke="var(--accent)" strokeWidth="1.3" filter="url(#x4-glow)" />
@@ -368,7 +368,7 @@ export default function X402Console({ title }: { title?: string }) {
 
       {/* the memo under the gate */}
       <div className="grid border-t border-line md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-        <div className="border-b border-line p-4 md:border-r md:border-b-0 md:p-5" style={fade(past("draft"))}>
+        <div className="border-b border-line p-4 md:border-r md:border-b-0 md:p-5" style={fade(past("draft"), 467)}>
           <p className="mb-2 font-mono text-label tracking-[0.2em] text-dim uppercase">
             the memo — draft {past("pass") ? 2 : 1} of max 2
           </p>
@@ -392,7 +392,7 @@ export default function X402Console({ title }: { title?: string }) {
         </div>
 
         {/* the sourcing gate — outlined: code decides */}
-        <div className="p-4 md:p-5" style={fade(past("gate"))}>
+        <div className="p-4 md:p-5" style={fade(past("gate"), 467)}>
           <div className="flex h-full flex-col border border-(--accent) p-3">
             <p className="mb-2 flex items-baseline justify-between font-mono text-label tracking-[0.2em] uppercase">
               <span className="text-(--accent)">sourcing gate</span>
@@ -435,7 +435,7 @@ export default function X402Console({ title }: { title?: string }) {
                 </>
               )}
             </p>
-            <p className="mt-auto pt-2 font-mono text-[0.62rem] text-dim" style={fade(at("gate") || past("pass"))}>
+            <p className="mt-auto pt-2 font-mono text-[0.62rem] text-dim" style={fade(at("gate") || past("pass"), 467)}>
               a hallucinated number has no fact it matches — it structurally
               cannot pass
             </p>
@@ -444,7 +444,7 @@ export default function X402Console({ title }: { title?: string }) {
       </div>
 
       {/* settlement + the economics of one sale */}
-      <div className="border-t border-line px-4 py-3 md:px-5" style={fade(past("deliver"))}>
+      <div className="border-t border-line px-4 py-3 md:px-5" style={fade(past("deliver"), 467)}>
         <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 font-mono text-[0.7rem]">
           <span className="text-dim">facilitator /settle →</span>
           <span className="text-ash">200 OK · payment-response: tx 0x…receipt</span>
@@ -465,7 +465,7 @@ export default function X402Console({ title }: { title?: string }) {
           </p>
           <span
             className="flex items-center gap-1.5 font-mono text-[0.62rem]"
-            style={fade(past("open"))}
+            style={fade(past("open"), 467)}
           >
             <span className="relative flex h-1.5 w-1.5" aria-hidden>
               {past("open") && !reduced && (
@@ -486,18 +486,18 @@ export default function X402Console({ title }: { title?: string }) {
           88% { opacity: 0.9; }
           100% { transform: translateY(284px); opacity: 0; }
         }
-        .x4-flow { animation: x4-flow-y 3.2s linear infinite; }
+        .x4-flow { animation: x4-flow-y 2.133s linear infinite; }
         @keyframes x4-breathe-o {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.6; }
         }
-        .x4-breathe { animation: x4-breathe-o 2.2s ease-in-out infinite; }
-        .x4-margin { animation: x4-breathe-o 2.2s ease-in-out infinite; }
+        .x4-breathe { animation: x4-breathe-o 1.467s ease-in-out infinite; }
+        .x4-margin { animation: x4-breathe-o 1.467s ease-in-out infinite; }
         @keyframes x4-ping-k {
           0% { scale: 1; opacity: 0.6; }
           80%, 100% { scale: 2.6; opacity: 0; }
         }
-        .x4-ping { animation: x4-ping-k 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        .x4-ping { animation: x4-ping-k 1.2s cubic-bezier(0, 0, 0.2, 1) infinite; }
         @media (prefers-reduced-motion: reduce) {
           .x4-flow, .x4-breathe, .x4-margin, .x4-ping { animation: none; }
         }
