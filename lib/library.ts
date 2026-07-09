@@ -184,6 +184,28 @@ export function unlistedCount(): number {
   return allLibraryDocs().filter((d) => unlistedIds.has(d.collection)).length;
 }
 
+/** library churn grouped by sync day, newest first — the shift log's ⇄
+ *  rows (structurally a MirrorDay[]; the app layer owns that type) */
+export function libraryMirrorDays(limit = 14) {
+  const byDay = new Map<string, { title: string; urlPath: string; source: string }[]>();
+  for (const d of allLibraryDocs()) {
+    if (!d.syncedAt) continue;
+    (byDay.get(d.syncedAt) ?? byDay.set(d.syncedAt, []).get(d.syncedAt)!).push({
+      title: d.title,
+      urlPath: d.urlPath,
+      source: d.source,
+    });
+  }
+  return [...byDay.keys()]
+    .sort()
+    .reverse()
+    .slice(0, limit)
+    .map((day) => ({
+      day,
+      docs: byDay.get(day)!.sort((a, b) => a.title.localeCompare(b.title)),
+    }));
+}
+
 /** this repo's mirrored ADRs — the dossier's decision-notes strip */
 export function decisionsFor(repoPath: string): LibraryDoc[] {
   const id = `decisions/${path.basename(repoPath)}`;

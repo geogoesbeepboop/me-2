@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { allNodes, accentOf } from "@/lib/content";
+import { libraryMirrorDays } from "@/lib/library";
 import { loadFleet } from "@/lib/ops/fleet";
 import { getSfWeather } from "@/lib/ops/weather";
 import { sceneFor, sfHour } from "@/lib/ops/time";
@@ -46,6 +47,7 @@ export default async function Home() {
     <CityLanding
       initialFleet={fleet}
       writes={writes}
+      mirrors={libraryMirrorDays()}
       weather={weather}
       initialScene={sceneFor(sfHour(new Date()))}
     />

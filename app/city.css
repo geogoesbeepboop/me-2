@@ -940,6 +940,18 @@ a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
 }
 .v2-shift[data-open="true"] .v2-shift-line { white-space: normal; }
 .v2-shift-caret { color: var(--v2-faint); font-size: 12px; }
+/* the caret brightens on hover so "rows open" stops being a secret */
+.v2-shift-row:hover .v2-shift-caret { color: var(--color-ash); }
+/* day dividers — the timeline gets calendar seams */
+.v2-shift-day {
+  padding: 16px 0 4px;
+  font-family: var(--font-jb), monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--v2-faint);
+  text-align: center;
+}
 @media (max-width: 760px) {
   /* the agent column stays — it is the colored dot's only visible label */
   .v2-shift-row { grid-template-columns: 74px 86px minmax(0, 1fr) 14px; gap: 8px; }

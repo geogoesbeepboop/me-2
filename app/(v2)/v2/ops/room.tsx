@@ -27,6 +27,7 @@ import {
   sortByAttention,
   useCityTime,
   useFleet,
+  type MirrorDay,
   type WriteRow,
 } from "../shared";
 import CityBar from "@/components/city/CityBar";
@@ -280,12 +281,14 @@ function AgentCard({ a, live }: { a: AgentOps; live: boolean }) {
 export default function OpsRoom({
   initialFleet,
   writes,
+  mirrors,
   weather,
   hookSnippet,
   initialScene,
 }: {
   initialFleet: FleetSnapshot;
   writes: WriteRow[];
+  mirrors: MirrorDay[];
   weather: SfWeather | null;
   hookSnippet: string;
   initialScene: SceneName;
@@ -364,6 +367,7 @@ export default function OpsRoom({
           <ShiftLog
             fleet={fleet}
             writes={writes}
+            mirrors={mirrors}
             live={live}
             cap={80}
             filterable
@@ -371,7 +375,8 @@ export default function OpsRoom({
           />
           <div className="v2-panel-foot">
             <p className="v2-note">
-              ▸ the agent ran · ▫ built · ✓ checked · ✎ archive write · ☾ the night ran the gates
+              ▸ the agent ran · ▫ built · ✓ checked · ✎ archive write · ⇄ the stacks re-mirrored ·
+              ☾ the night ran the gates
             </p>
           </div>
         </section>
