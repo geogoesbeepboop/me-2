@@ -22,6 +22,7 @@ const NAV = [
   { n: "02", label: "WRITING", href: "/writing" },
   { n: "03", label: "METHOD", href: "/method" },
   { n: "04", label: "ABOUT", href: "/about" },
+  { n: "05", label: "LIBRARY", href: "/library" },
 ] as const;
 
 export default function CityBar({

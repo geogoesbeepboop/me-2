@@ -29,6 +29,35 @@ explore layer reaches actual implementation depth.
 - Click-to-inspect: `SystemDeepDive inspect="<slug>"` resolves through
   `lib/inspect/index.ts` to per-project maps keyed by topology node id.
 
+## The library (mirrored docs) — added 2026-07-09
+
+- **The stacks, not the collection.** `content/library/<collection>/*.md`
+  holds committed mirrors of documents that live elsewhere on disk (idea
+  lenses in `~/dev/hackathons`, dossiers in `~/dev/docs/{enterprise,personal}`,
+  per-repo `docs/adr`, the harness manuals). Written ONLY by
+  `scripts/sync-library.ts` (deterministic, no LLM, idempotent) — **never
+  hand-edit a mirror**; edit the source and re-run `npm run sync:library`.
+  Provenance frontmatter (`source`, `sourceMtime`, `sourceCommit`,
+  `syncedAt`, `contentHash`) is generated; `check-library.mjs` (inside
+  `npm run check`) fails on hand-edits, deny violations, or misplacement.
+- **Visibility is `config/library.manifest.json`**, precedence
+  `deny > in-doc marker > private[] > public (default)`. The in-doc marker
+  is `site: private` frontmatter or `<!-- me2: private -->` in the source's
+  first 10 lines. An excluded doc never enters `content/library`, so it can
+  never reach git or a deploy. The deny-scan (guard-secrets patterns + soft
+  PII) skips hot docs loudly.
+- **Outside the graph.** Library docs carry no archive numbers and are
+  invisible to `allNodes()`/backlinks. Curated `refs:` must never point
+  into `library/` (the check enforces resolution); linking INTO the library
+  from prose/dossiers is fine. Dossiers list their repo's mirrored ADRs via
+  `DecisionNotes` (derived from `repo:` — the registry rule holds).
+- **Rendering:** mirrors are foreign text — they render through
+  `lib/markdown.tsx` (react-markdown, no raw HTML), never through
+  `lib/mdx.tsx` (trusted-content-only). Decision records show their
+  `sourceMeta.status` in plain ink.
+- **Nav doctrine amendment (2026-07-09):** the CityBar's instrument row
+  gained `05 LIBRARY`; the one-row rule stands.
+
 ## The ops layer ("the city") — and one product
 
 - **The city is the front door.** `/` (route group `app/(city)/`) is a
