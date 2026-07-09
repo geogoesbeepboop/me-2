@@ -13,10 +13,10 @@ import {
 } from "@/lib/ops/types";
 import type { SfWeather } from "@/lib/ops/weather";
 import {
-  CopyButton,
   FeedChip,
   LaborStrip,
   Legend,
+  SessionFacts,
   ShiftLog,
   WindowPicker,
   agentWork,
@@ -27,10 +27,12 @@ import {
   sortByAttention,
   useCityTime,
   useFleet,
+  type MirrorDay,
   type WriteRow,
 } from "../shared";
 import CityBar from "@/components/city/CityBar";
 import CityFooter from "@/components/city/CityFooter";
+import FleetRail from "./FleetRail";
 
 /* ── the status ribbon — "what needs me?" in one second ──────── */
 
@@ -79,7 +81,19 @@ function StatRow({ metrics, accent }: { metrics: AgentMetric[]; accent: string }
   return (
     <div className="v2-stats" style={{ "--c": accent } as React.CSSProperties}>
       {metrics.map((m) => (
-        <div key={m.k} className="v2-stat" data-gate={!!m.gate} data-money={!!m.money}>
+        <div
+          key={m.k}
+          className="v2-stat"
+          data-gate={!!m.gate}
+          data-money={!!m.money}
+          title={
+            m.gate
+              ? "outlined = a cap enforced in code — the model has no say here"
+              : m.money
+                ? "gold = a real money figure"
+                : "a real headline fact, sourced from the repo"
+          }
+        >
           <span className="v2-stat-v">{m.absent ? "—" : m.v}</span>
           <span className="v2-stat-k">{m.absent ?? m.k}</span>
         </div>
@@ -104,11 +118,15 @@ function SessionRow({
   const name = sessionName(s);
   const active = s.work?.activeMinutes ?? 0;
   const w = Math.round((active / Math.max(1, maxActive)) * 100);
-  return (
-    <li className="v2-session" title={s.stateDetail}>
+  const row = (
+    <>
       <span className="v2-dot" data-state={s.state} aria-hidden />
       <span className="v2-session-name">{name ?? `session ·${s.id.slice(0, 4)}`}</span>
-      <span className="v2-session-bar" aria-hidden>
+      <span
+        className="v2-session-bar"
+        aria-hidden
+        title="active minutes vs this card's longest session"
+      >
         <span style={{ width: `${active === 0 ? 0 : Math.max(4, w)}%` }} />
       </span>
       {s.prUrl && (
@@ -116,10 +134,29 @@ function SessionRow({
           PR #{s.prNumber}
         </a>
       )}
-      {live && agent.repoPath && (
-        <CopyButton text={`cd ${agent.repoPath} && claude --resume ${s.id}`} label="resume" />
-      )}
       <time suppressHydrationWarning>{relTime(s.lastActiveAt)}</time>
+    </>
+  );
+  // recorded mode stays a plain row — the snapshot holds nothing more to
+  // show; on the operator's machine the row opens into the full facts
+  if (!live) {
+    return (
+      <li className="v2-session" title={s.stateDetail}>
+        {row}
+      </li>
+    );
+  }
+  return (
+    <li className="v2-session-item">
+      <details className="v2-session-drawer">
+        <summary className="v2-session" title={s.stateDetail}>
+          {row}
+          <span className="v2-session-caret" aria-hidden />
+        </summary>
+        <div className="v2-detail">
+          <SessionFacts s={s} live repoPath={agent.repoPath} />
+        </div>
+      </details>
     </li>
   );
 }
@@ -280,12 +317,14 @@ function AgentCard({ a, live }: { a: AgentOps; live: boolean }) {
 export default function OpsRoom({
   initialFleet,
   writes,
+  mirrors,
   weather,
   hookSnippet,
   initialScene,
 }: {
   initialFleet: FleetSnapshot;
   writes: WriteRow[];
+  mirrors: MirrorDay[];
   weather: SfWeather | null;
   hookSnippet: string;
   initialScene: SceneName;
@@ -307,6 +346,9 @@ export default function OpsRoom({
       <div className="v2-room-strip" aria-hidden>
         <SfScene scene={scene} condition={weather?.condition} />
       </div>
+
+      {/* the room's map — sticky, so an anchor jump never strands you */}
+      <FleetRail agents={shown} />
 
       <main className="v2-room">
         {/* ── the fleet ── */}
@@ -364,6 +406,7 @@ export default function OpsRoom({
           <ShiftLog
             fleet={fleet}
             writes={writes}
+            mirrors={mirrors}
             live={live}
             cap={80}
             filterable
@@ -371,7 +414,8 @@ export default function OpsRoom({
           />
           <div className="v2-panel-foot">
             <p className="v2-note">
-              ▸ the agent ran · ▫ built · ✓ checked · ✎ archive write · ☾ the night ran the gates
+              ▸ the agent ran · ▫ built · ✓ checked · ✎ archive write · ⇄ the stacks re-mirrored ·
+              ☾ the night ran the gates
             </p>
           </div>
         </section>

@@ -10,7 +10,7 @@
  * session states and active time — are labeled as such where they appear.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { SceneName } from "@/components/city/SfScene";
 import { dayStamp, sceneFor, sfClock, sfHour, sfStamp } from "@/lib/ops/time";
@@ -321,10 +321,16 @@ export function LaborStrip({ lanes }: { lanes: Lanes }) {
     },
     { key: "verify", label: "VERIFY", v: lanes.verify, count: lanes.verify > 0 ? n(lanes.verify, "check") : "—" },
   ];
+  // the answer to "what does this bar mean", where the question arises
+  const titles: Record<string, string> = {
+    build: "BUILD — development done TO the agent: edits to its source. Bars are √-scaled; the count is the truth.",
+    operate: "OPERATE — the agent running its OWN job; counts are invocations, not shipped artifacts.",
+    verify: "VERIFY — the agent checking itself: tests, gates, evals.",
+  };
   return (
     <div className="v2-lanes" aria-label="Build, operate and verify work">
       {rows.map((r) => (
-        <div key={r.key} className="v2-lane" data-lane={r.key} data-empty={r.v === 0}>
+        <div key={r.key} className="v2-lane" data-lane={r.key} data-empty={r.v === 0} title={titles[r.key]}>
           <span className="v2-lane-label">{r.label}</span>
           <span className="v2-lane-track">
             <span className="v2-lane-fill" style={{ width: `${pct(r.v)}%` }} />
@@ -380,6 +386,14 @@ export interface WriteRow {
   href: string;
 }
 
+/** one day of library re-mirrors, aggregated — a sync day is one event,
+ *  never 72 rows (the docs list lives in the opened detail) */
+export interface MirrorDay {
+  /** YYYY-MM-DD — the sync stamps a date, not a clock */
+  day: string;
+  docs: { title: string; urlPath: string; source: string }[];
+}
+
 export interface ShiftEvent {
   id: string;
   at: string;
@@ -387,7 +401,7 @@ export interface ShiftEvent {
   accent: string;
   agent: string;
   slug: string;
-  kind: "commit" | "session" | "pr" | "entry" | "gate";
+  kind: "commit" | "session" | "pr" | "entry" | "gate" | "mirror";
   /** which labor band a session leant into — drives the row glyph */
   band?: "operate" | "build" | "verify";
   line: string;
@@ -398,6 +412,22 @@ export interface ShiftEvent {
   prUrl?: string;
   prNumber?: number;
   digest?: NightlyDigest;
+  mirror?: MirrorDay;
+}
+
+/** an event's calendar day, for the timeline's dividers — date-only rows
+ *  read their date literally; timed rows resolve to the SF calendar day */
+function shiftDay(e: ShiftEvent): string {
+  if (e.dateOnly) return dayStamp(e.at);
+  const t = Date.parse(e.at);
+  if (Number.isNaN(t)) return "—";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "America/Los_Angeles",
+  })
+    .format(t)
+    .toLowerCase();
 }
 
 /** a session's dominant labor band — operate beats verify beats build */
@@ -442,6 +472,7 @@ export function shiftGlyph(e: ShiftEvent): { mark: string; cls: string; title: s
   if (e.kind === "commit") return { mark: "▫", cls: "g-build", title: "commit" };
   if (e.kind === "pr") return { mark: "⇡", cls: "g-build", title: "pull request" };
   if (e.kind === "entry") return { mark: "✎", cls: "g-build", title: "archive write" };
+  if (e.kind === "mirror") return { mark: "⇄", cls: "g-build", title: "library mirror" };
   // session — shaped by the band it leant into
   if (e.band === "operate") return { mark: "▸", cls: "g-operate", title: "session — the agent ran its job" };
   if (e.band === "verify") return { mark: "✓", cls: "g-verify", title: "session — checks ran" };
@@ -457,7 +488,9 @@ export function buildShiftLog(
   fleet: FleetSnapshot,
   writes: WriteRow[],
   /** epoch ms — events older than this stay out (honors a windowed header) */
-  cutoffMs?: number
+  cutoffMs?: number,
+  /** library sync days — the site's own document churn, one row per day */
+  mirrors: MirrorDay[] = []
 ): ShiftEvent[] {
   const events: ShiftEvent[] = [];
   for (const a of fleet.agents) {
@@ -514,6 +547,21 @@ export function buildShiftLog(
       entry: w,
     });
   }
+  // the site's own churn: one row per library sync day — which documents
+  // in the stacks moved (the mirror only changes when a source does)
+  for (const m of mirrors) {
+    events.push({
+      id: `m-${m.day}`,
+      at: m.day,
+      dateOnly: true,
+      accent: "var(--color-ember)",
+      agent: "The Library",
+      slug: "the-archive",
+      kind: "mirror",
+      line: `${m.docs.length} ${m.docs.length === 1 ? "document" : "documents"} re-mirrored in the stacks`,
+      mirror: m,
+    });
+  }
   // the system's own heartbeat: one row per nightly gate digest — the
   // suites that ran against the whole fleet while nobody watched
   for (const d of fleet.gateDigests ?? []) {
@@ -528,10 +576,15 @@ export function buildShiftLog(
       digest: d,
     });
   }
+  // a bare date (frontmatter dates, sync days) parses as UTC midnight —
+  // 5pm PT the evening BEFORE — which shuffles it into the wrong SF day.
+  // Anchor date-only events to SF noon so the timeline's days stay whole.
+  const eventMs = (e: ShiftEvent) =>
+    Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(e.at) ? `${e.at}T19:00:00Z` : e.at);
   return events
-    .filter((e) => !Number.isNaN(Date.parse(e.at)))
-    .filter((e) => cutoffMs === undefined || Date.parse(e.at) >= cutoffMs)
-    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+    .filter((e) => !Number.isNaN(eventMs(e)))
+    .filter((e) => cutoffMs === undefined || eventMs(e) >= cutoffMs)
+    .sort((a, b) => eventMs(b) - eventMs(a));
 }
 
 /* ── detail views — what actually got done, per kind ─────── */
@@ -625,12 +678,22 @@ function CommitDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
   );
 }
 
-function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
-  const s = e.session!;
+/** everything the machine knows about one session — shared by the shift
+ *  log's opened row and the agent card's live drawer, so the two views
+ *  can never drift apart */
+export function SessionFacts({
+  s,
+  live,
+  repoPath,
+}: {
+  s: OpsSession;
+  live: boolean;
+  repoPath?: string;
+}) {
   const name = sessionName(s);
   const w = s.work;
   return (
-    <div className="v2-detail">
+    <>
       <p className="v2-detail-title">
         <span className="v2-dot" data-state={s.state} aria-hidden /> {STATE_WORDS[s.state]} —{" "}
         {s.stateDetail}
@@ -680,9 +743,17 @@ function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
       {live && !name && s.lastPrompt && (
         <p className="v2-detail-note">operator&apos;s last ask (this machine only): «{s.lastPrompt}»</p>
       )}
-      {live && e.repoPath && (
-        <CopyButton text={`cd ${e.repoPath} && claude --resume ${s.id}`} label="copy resume command" />
+      {live && repoPath && (
+        <CopyButton text={`cd ${repoPath} && claude --resume ${s.id}`} label="copy resume command" />
       )}
+    </>
+  );
+}
+
+function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
+  return (
+    <div className="v2-detail">
+      <SessionFacts s={e.session!} live={live} repoPath={e.repoPath} />
     </div>
   );
 }
@@ -774,6 +845,35 @@ function GateDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
   );
 }
 
+function MirrorDetail({ e }: { e: ShiftEvent }) {
+  const m = e.mirror!;
+  const shown = m.docs.slice(0, 12);
+  return (
+    <div className="v2-detail">
+      <div className="v2-facts">
+        <Fact label="day" value={<span suppressHydrationWarning>{dayStamp(m.day)}</span>} />
+        <Fact label="documents" value={m.docs.length} />
+      </div>
+      <ul className="v2-gate-runs">
+        {shown.map((d) => (
+          <li key={d.urlPath}>
+            <Link className="v2-copy" href={`/library/${d.urlPath}`}>
+              {d.title}
+            </Link>
+            {" — "}
+            {d.source}
+          </li>
+        ))}
+        {m.docs.length > shown.length && <li>… and {m.docs.length - shown.length} more</li>}
+      </ul>
+      <p className="v2-detail-note">
+        the daily library sync (07:00) re-mirrored these sources into /library — a mirror
+        changes only when its source document does
+      </p>
+    </div>
+  );
+}
+
 /* ── the rows ────────────────────────────────────────────── */
 
 export function ShiftRow({
@@ -819,6 +919,8 @@ export function ShiftRow({
           <EntryDetail e={e} />
         ) : e.kind === "gate" ? (
           <GateDetail e={e} live={live} />
+        ) : e.kind === "mirror" ? (
+          <MirrorDetail e={e} />
         ) : (
           <PrDetail e={e} />
         ))}
@@ -835,6 +937,7 @@ export function ShiftLog({
   cap,
   filterable = false,
   cutoffMs,
+  mirrors,
 }: {
   fleet: FleetSnapshot;
   writes: WriteRow[];
@@ -843,13 +946,14 @@ export function ShiftLog({
   filterable?: boolean;
   /** when the header claims a window, the rows honor it */
   cutoffMs?: number;
+  mirrors?: MirrorDay[];
 }) {
   const [muted, setMuted] = useState<Set<string>>(new Set());
   const [openIds, setOpenIds] = useState<Set<string> | null>(null);
 
   const events = useMemo(
-    () => buildShiftLog(fleet, writes, cutoffMs),
-    [fleet, writes, cutoffMs]
+    () => buildShiftLog(fleet, writes, cutoffMs, mirrors),
+    [fleet, writes, cutoffMs, mirrors]
   );
   const shown = useMemo(
     () => events.filter((e) => !muted.has(e.slug)).slice(0, cap),
@@ -893,15 +997,20 @@ export function ShiftLog({
         </span>
       )}
       <div className="v2-shiftlog">
-        {shown.map((e) => (
-          <ShiftRow
-            key={e.id}
-            e={e}
-            live={live}
-            open={effectiveOpen.has(e.id)}
-            onToggle={() => toggle(e.id)}
-          />
-        ))}
+        {shown.map((e, i) => {
+          const day = shiftDay(e);
+          const divided = i > 0 && day !== shiftDay(shown[i - 1]);
+          return (
+            <Fragment key={e.id}>
+              {divided && (
+                <p className="v2-shift-day" aria-hidden suppressHydrationWarning>
+                  {day}
+                </p>
+              )}
+              <ShiftRow e={e} live={live} open={effectiveOpen.has(e.id)} onToggle={() => toggle(e.id)} />
+            </Fragment>
+          );
+        })}
         {shown.length === 0 && <p className="v2-detail-note">nothing in the log for this window</p>}
       </div>
     </>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { allNodes, accentOf } from "@/lib/content";
+import { libraryMirrorDays } from "@/lib/library";
 import { loadFleet } from "@/lib/ops/fleet";
 import { getSfWeather } from "@/lib/ops/weather";
 import { STEERING_HOOK_SNIPPET } from "@/lib/ops/steer";
@@ -45,6 +46,7 @@ export default async function OpsPage() {
     <OpsRoom
       initialFleet={fleet}
       writes={writes}
+      mirrors={libraryMirrorDays()}
       weather={weather}
       hookSnippet={STEERING_HOOK_SNIPPET}
       initialScene={sceneFor(sfHour(new Date()))}

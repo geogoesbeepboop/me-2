@@ -17,6 +17,7 @@ import {
   useCityTime,
   useFleet,
   windowWorkLine,
+  type MirrorDay,
   type WriteRow,
 } from "./shared";
 import { shiftDigest, fmtUnits } from "@/lib/ops/digest";
@@ -51,11 +52,13 @@ const HERO: Record<SceneName, { eyebrow: string; h1: [string, string]; sub: stri
 export default function CityLanding({
   initialFleet,
   writes,
+  mirrors,
   weather,
   initialScene,
 }: {
   initialFleet: FleetSnapshot;
   writes: WriteRow[];
+  mirrors: MirrorDay[];
   weather: SfWeather | null;
   initialScene: SceneName;
 }) {
@@ -121,7 +124,7 @@ export default function CityLanding({
             <h2>THE SHIFT LOG</h2>
             <span className="v2-panel-sub">every row opens — full log in the ops room</span>
           </div>
-          <ShiftLog fleet={fleet} writes={writes} live={live} cap={12} />
+          <ShiftLog fleet={fleet} writes={writes} mirrors={mirrors} live={live} cap={12} />
           <div className="v2-panel-foot">
             <p className="v2-note">
               sessions, commits and archive writes, newest first — all of it real

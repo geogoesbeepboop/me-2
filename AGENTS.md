@@ -57,6 +57,20 @@ explore layer reaches actual implementation depth.
   `sourceMeta.status` in plain ink.
 - **Nav doctrine amendment (2026-07-09):** the CityBar's instrument row
   gained `05 LIBRARY`; the one-row rule stands.
+- **Presentation tiers (2026-07-09, round 2):** the manifest is also the
+  shelf plan. Per-collection `display: "unlisted"` keeps a collection
+  mirrored, ⌘K-searchable and URL-addressable but OFF the /library index —
+  **unlisted ≠ private**; the dossier corpora (enterprise/personal/
+  multi-agent) sit here as "the deep stacks". `series` folds versioned
+  lenses (IDEAS v1→v3) into one shelf entry with a history trail;
+  top-level `featured[]` is the START HERE strip. Decision records render
+  as ONE collapsed shelf grouped per agent (and on each dossier via
+  `DecisionNotes`). The search index covers everything mirrored,
+  including unlisted.
+- **The shift log shows library churn:** one aggregated ⇄ row per sync
+  day (built from `libraryMirrorDays()` in both floor pages), expanding
+  to the docs that moved. Date-only events anchor to SF noon in the
+  timeline sort so frontmatter dates can't shuffle into the wrong day.
 
 ## The ops layer ("the city") — and one product
 

@@ -2,14 +2,14 @@
 title: Operating Manual — a day in the new workflow
 collection: harness
 source: ~/dev/agentic-harness/docs/OPERATING_MANUAL.md
-sourceMtime: '2026-07-09T21:02:14.983Z'
+sourceMtime: '2026-07-09T23:06:34.405Z'
 sourceCommit: c48ce56
 syncedAt: '2026-07-09'
 summary: >-
   Companion to TOPPERCENTWORKFLOW.md (the why) and CLAUDECODEBIBLE.md (the
   reference). This is the hour-by-hour how, written 2026-07-05 against what is
   actually installed. Everything named here exist…
-contentHash: 'sha256:8909dad8289dc506da34f0b05cfd9cf006ee02d909e44411e6bfc9fd1772ccf4'
+contentHash: 'sha256:fc623ccdcd42bec5d3dcd4a1c3fef05a4274e5c27c2de1078685297154a24509'
 ---
 # Operating Manual — a day in the new workflow
 
@@ -356,6 +356,10 @@ site's `repo:` registry — a new project entry auto-onboards its ADRs). Everyth
    the hidden-shelf list; flips commit + push automatically (2026-07-09 flip-autonomy grant).
 Hard walls live in `me-2/config/library.manifest.json` `deny[]` (career-prep, resumes,
 BABYSIT_LOG, M-Clone). A secrets/PII deny-scan skips hot docs loudly at sync time.
+
+**No settle window, by choice (2026-07-09):** a save publishes at the next 07:00 —
+including a half-written one. Mark drafts `<!-- me2: private -->` while they cook; remove
+the marker when they're ready to be read.
 
 **Autonomy grants (2026-07-09):** the daily sync and the visibility flip both push to main
 under deterministic gates — the third and fourth autonomous publishers after the ops report

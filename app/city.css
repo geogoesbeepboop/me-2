@@ -586,6 +586,41 @@
   background: var(--v2-panel);
   border-bottom: 1px solid var(--v2-line);
 }
+/* the fleet rail — the ops room's always-visible map (sits under the bar) */
+.v2-fleetrail {
+  position: sticky;
+  top: 47px;
+  z-index: 29;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  padding: 9px 24px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: var(--v2-panel);
+  border-bottom: 1px solid var(--v2-line);
+}
+.v2-fleetrail a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--v2-dim);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.v2-fleetrail a:hover { color: var(--v2-ink); }
+.v2-fleetrail-home { font-weight: 700; }
+.v2-fleetrail-spacer { flex: 1; }
+/* anchored jumps land clear of the bar + rail */
+.v2-card, #fleet, #shift, #protocol { scroll-margin-top: 96px; }
+@media (max-width: 760px) {
+  /* the wrapped bar's height varies on phones — the rail rides inline */
+  .v2-fleetrail { position: static; }
+}
+
 .v2-brand { color: var(--v2-ink); font-weight: 700; text-decoration: none; }
 a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
 .v2-clock { margin-left: auto; }
@@ -940,6 +975,18 @@ a.v2-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
 }
 .v2-shift[data-open="true"] .v2-shift-line { white-space: normal; }
 .v2-shift-caret { color: var(--v2-faint); font-size: 12px; }
+/* the caret brightens on hover so "rows open" stops being a secret */
+.v2-shift-row:hover .v2-shift-caret { color: var(--color-ash); }
+/* day dividers — the timeline gets calendar seams */
+.v2-shift-day {
+  padding: 16px 0 4px;
+  font-family: var(--font-jb), monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--v2-faint);
+  text-align: center;
+}
 @media (max-width: 760px) {
   /* the agent column stays — it is the colored dot's only visible label */
   .v2-shift-row { grid-template-columns: 74px 86px minmax(0, 1fr) 14px; gap: 8px; }
@@ -1204,6 +1251,15 @@ a.v2-needs[data-tone="blocked"]:hover { background: rgba(255, 90, 31, 0.1); }
 
 /* ZONE 4 — sessions: a dot, a name, a labor micro-bar, a time */
 .v2-sessions { margin-top: 14px; border-top: 1px solid var(--v2-line); }
+/* a live session row opens into the full facts — recorded rows stay flat */
+.v2-session-drawer > summary { list-style: none; cursor: pointer; }
+.v2-session-drawer > summary::-webkit-details-marker { display: none; }
+.v2-session-caret { color: var(--v2-faint); font-size: 12px; margin-left: 4px; }
+.v2-session-caret::before { content: "+"; }
+.v2-session-drawer[open] .v2-session-caret::before { content: "−"; }
+.v2-session-drawer:hover .v2-session-caret { color: var(--color-ash); }
+.v2-session-drawer > .v2-detail { margin: 4px 0 10px 21px; }
+
 .v2-session {
   display: flex;
   align-items: center;
