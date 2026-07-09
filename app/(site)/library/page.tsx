@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SearchEntry from "@/components/search/SearchEntry";
+import OperatorPanel from "@/components/library/OperatorPanel";
 import { libraryGroups } from "@/lib/library";
 import { fullStamp } from "@/lib/content";
 
@@ -89,6 +90,9 @@ export default function LibraryPage() {
           names its source; the mirror changes only when the source does.
         </p>
       </div>
+
+      {/* the hidden shelf — renders only where the operator API answers */}
+      <OperatorPanel />
     </div>
   );
 }

@@ -2,14 +2,14 @@
 title: Top-1% Agentic Development Workflow
 collection: harness
 source: ~/dev/agentic-harness/docs/TOP_PERCENT_WORKFLOW.md
-sourceMtime: '2026-07-09T20:02:32.841Z'
+sourceMtime: '2026-07-09T20:33:15.065Z'
 sourceCommit: c48ce56
 syncedAt: '2026-07-09'
 summary: >-
   Companion to CLAUDECODEBIBLE.md. Written 2026-07-05 from a full audit of the
   current setup. The Bible says how to build the harness; this says how to
   operate like the people who ship fastest with i…
-contentHash: 'sha256:23aff7d8a45e60106ca5edda2f5289ec64f5a9cfc62039aeb09ae4cbc5178e53'
+contentHash: 'sha256:b1b7bbc9af59a5c1ff96a03412600aafd47034805c5900d688ebb8320abed646'
 ---
 # Top-1% Agentic Development Workflow
 
@@ -97,7 +97,7 @@ like `injected_source_cannot_bypass_gate_or_billing`, added 2026-07-08, is the t
 - **Mirror gates in CI.** Hooks only guard *interactive* sessions — cloud agents, Codex, and
   teammates bypass them. `gate.sh` doubles as the CI job so the gate holds everywhere.
 
-## The agent anatomy — twelve questions in four buckets (2026-07-08; bucketed + memory/latency added 2026-07-09)
+## The agent anatomy — twelve questions in four buckets (2026-07-08; bucketed + memory/latency added 2026-07-09; egress, model-as-dependency, concurrency + compensation woven in 2026-07-09 pm)
 
 The rest of this doc is *operating* discipline: how you build. This section is *design*
 discipline: what has to be in the box before you start. It exists because the fleet audit kept
@@ -111,7 +111,8 @@ They fall into four buckets. **A · Correctness** (make it work, right) is the p
 do instinctively. **B · Trust & safety**, **C · Economics**, and **D · Operability** are the ones
 builds skip and pay for later — the whole reason this checklist exists. Note that every concern
 which has ever tried to join this list pulled *toward* an existing bucket rather than starting a
-fifth (latency → C, blast-radius → B, termination → D, memory → B): the sign the spine holds is
+fifth (latency → C, blast-radius → B, termination → D, memory → B, egress → B, model-drift → A,
+concurrency/compensation → D): the sign the spine holds is
 that **the gate (A2) owns the irreversible action, and everything else feeds or constrains it.**
 
 ### A · Correctness — make it work, right
@@ -120,19 +121,29 @@ that **the gate (A2) owns the irreversible action, and everything else feeds or 
 2. **Verification — the gate.** The ONE irreversible action (money / publication / deletion /
    consent / external message) and the *deterministic, no-LLM* code that owns it — "the model
    proposes, code disposes." Can't name it? Stop and design it first; it's the nucleus of every
-   agent in this portfolio.
+   agent in this portfolio. "One" is the forcing function, not a license to ignore a second
+   (2026-07-09): if honest accounting finds more — an agent that *sends* and *spends* — each gets
+   the same deterministic owner, and three or more says the project wants splitting (#1).
 3. **Eval layers** — which of L0–L3 (§1) this needs and the first five cases; any LLM decision
-   gets ≥5 cases day one, planted failure included.
+   gets ≥5 cases day one, planted failure included. The model + prompt are *pinned, versioned
+   dependencies* (2026-07-09): provider drift and deprecation-forced upgrades are real, so the
+   same baseline that catches your regressions is the gate a model swap or prompt change must
+   pass before it ships — an unpinned model is an unreviewed dependency bump.
 4. **The loop** — the steps (gather → decide → act) and *where the gates sit in the flow*. Fail
    closed on the gated paths.
 
 ### B · Trust & safety — make it safe to point at the world
 
-5. **Trust of inputs** *(the gap most builds skip)* — is any input hostile-capable (filings, web
-   pages, peer agents, user chat)? If yes, an injection case proving instruction-shaped content
-   *cannot* move the gated outcome ships day one (a scenario like
+5. **Trust of inputs & egress** *(the gap most builds skip)* — is any input hostile-capable
+   (filings, web pages, peer agents, user chat)? If yes, an injection case proving
+   instruction-shaped content *cannot* move the gated outcome ships day one (a scenario like
    `injected_source_cannot_bypass_gate_or_billing`). If no, write "closed input set" — but decide
-   it on purpose.
+   it on purpose. And moving the gate is not the only harm (2026-07-09): an agent that holds
+   private data, reads hostile content, and has *any* outbound channel — a web request, a
+   message, a commit, a URL embedded in a citation — can be made to exfiltrate without ever
+   touching the gate (the "lethal trifecta"). Gate-safety proofs say nothing about this path. So
+   enumerate the egress channels next to the input list; if all three legs are present, the
+   sibling case `injected_source_cannot_exfiltrate_via_any_egress` ships day one too.
 6. **Memory — agent-facing, and an input like any other.** What the agent writes to itself and
    reads back to reason: working (in-context), episodic (past runs), semantic (facts/prefs),
    procedural (learned steps). Two rules it inherits from elsewhere in this list. It's a *trust
@@ -141,14 +152,20 @@ that **the gate (A2) owns the irreversible action, and everything else feeds or 
    have written it and **cannot move the gated outcome** (#2); a day-one case like
    `poisoned_memory_cannot_move_gate` is the sibling of the injection case. And it's *stale by
    default*: every memory reflects a point in time, so name a write policy (what persists, when,
-   decay) and verify-on-read for anything load-bearing. Distinct from Observability (#10 —
+   decay) and verify-on-read for anything load-bearing. The write policy is also a data policy
+   (2026-07-09): PII persisted today is PII exfiltrated later (#5), so retention is a decision,
+   not a default. Distinct from Observability (#10 —
    operator-facing, read-only, after-the-fact) and Durability (#11 — crash-recovery of in-flight
    state, not accumulated knowledge that shapes future decisions).
 7. **Tools** — the functions / MCP servers / peer-agent calls that extend it. Trust runs two
    directions: *can I believe this output* (a peer agent is an untrusted input — see #5), and
    *what can this tool's credentials touch if the agent is compromised* — least privilege /
    blast-radius containment is the agent's own authz boundary, bigger than any single input and
-   worth naming even when every input is trusted.
+   worth naming even when every input is trusted. Three riders (2026-07-09): a tool's own
+   metadata is input — a hostile MCP server injects through tool *descriptions*, not just
+   results; least privilege is *enforced*, not aspired to (sandbox, allowlist, scoped token —
+   name the mechanism); and authority flows downward only — a sub-agent spawned mid-task
+   inherits the parent's gates, budgets, and trust tier or narrower, never wider.
 8. **HITL & autonomy graduation** — who approves what today, and the rule *in deterministic
    policy code* that graduates an action approval-required → notify-after →
    autonomous-within-budget as its eval streak earns it (or demotes it after an incident).
@@ -162,14 +179,17 @@ that **the gate (A2) owns the irreversible action, and everything else feeds or 
    ceilings because a cheap model can still hang. For money-movers both are enforced in code
    *before* the act (a dynamic-price cap guard is the spend model), and a gate that blows its
    latency budget fails *closed*, not through. No spend ceiling = a runaway loop with your credit
-   card; no latency ceiling = a hung lane you find at the retro.
+   card; no latency ceiling = a hung lane you find at the retro. Ceilings bind the whole tree
+   (2026-07-09): sub-agents draw down the parent's budget, not fresh ones — a fan-out that mints
+   per-child budgets is a multiplier wearing a cap's clothes.
 
 ### D · Operability — make it survivable at 3am
 
 10. **Observability — memory for you, not the agent.** The receipts / append-only ledger / trace
     that reconstructs what it did and why, after the fact (a settlement-receipt ledger or a signed
     mandate record are the models). For the operator at 3am — distinct from #6 (agent-facing) and
-    #11.
+    #11. The trace records *which version* of model / prompt / policy acted (2026-07-09), or
+    "why did it do that" becomes unanswerable after the next upgrade (#3).
 11. **Durability** — how it resumes after a kill: what state persists, where, and what a fresh
     process reads to know what it was mid-doing. Handoffs are the harness-level version; the agent
     needs its own.
@@ -177,7 +197,11 @@ that **the gate (A2) owns the irreversible action, and everything else feeds or 
     the explicit *definition of done / max-iteration cap / escalate-on-give-up* so "the loop won't
     converge" has a defined exit rather than an infinite leash; and, for any side effect, the
     idempotency key/mandate that makes a retry safe (never double-spend, double-send,
-    double-publish).
+    double-publish). Two more from the same family (2026-07-09): *concurrency* — idempotency
+    makes a retry safe but not two live instances racing (cron overlap, a user double-firing, a
+    stuck run restarted while the original limps on); anything single-writer takes a lease/lock.
+    And *compensation* — for every gated action, name the undo (refund, retraction, takedown) or
+    write "none": "none" is the confession that explains why the gate exists.
 
 *The test: a teammate can answer all twelve for your repo from its `AGENTS.md` + gate + eval files
 without asking you. Blanks are backlog, named on purpose — not surprises found on stage.*
@@ -222,7 +246,7 @@ them independently. This is §2's "brief quality is the multiplier" with the bri
 the integrator reviews *diffs*, not *correctness by hand*.
 
 Three moves make it work:
-1. **Agree the anatomy and the contracts before splitting** — the eleven questions above, plus the
+1. **Agree the anatomy and the contracts before splitting** — the twelve questions above, plus the
    data shapes and the gate signature. If you can't write the contract, the work isn't ready to
    split; plan it together first. This is the team-scale form of "can the agent verify this
    without me?"
@@ -334,6 +358,7 @@ close it for any agent:
 | 2026-07-08 | harness-literature review (Weng 2026-07-04 + refs) folded in: scoping invariant + eval-layer taxonomy + reward-hacking hygiene (§1), bounded lanes + artifacts-not-chat (§2), delta-updates (§3), agent-core scaffold-first decision (§4) · one repo's adversarial/injection eval block: 10 gate cases (unicode evasion, injection preambles, fake citations) + `injected_source_cannot_bypass_gate_or_billing` scenario — ~100 offline cases, baseline FLAT · `/hack` gained gate-stub + micro-eval step · OPERATING_MANUAL §12 (hackathon mode) | ✅ done |
 | 2026-07-08 | agent-anatomy checklist — 11 questions, adding trust-of-inputs, budget ceiling, observability, failure+idempotency, and HITL graduation as first-class (this doc) — wired into `/new-agent` (forces the eleven) + `/hack` (compressed anatomy) · "using this as a team" added to both manuals (this doc + OPERATING_MANUAL §13) | ✅ done |
 | 2026-07-09 | agent anatomy revised — 11 flat questions → 12 in four named buckets (A Correctness / B Trust & safety / C Economics / D Operability) · **Memory** added as a first-class question (agent-facing input, trust surface, `poisoned_memory_cannot_move_gate` case) · latency folded into the budget ceiling (spend + wall-clock, 🟡 SLOW) · blast-radius/least-privilege woven into Tools, termination into Failure · `/new-agent` + `/hack` prompts to re-sync to twelve | ✅ done |
+| 2026-07-09 pm | anatomy pressure-tested vs. mid-2026 practice, still twelve questions — every addition folded into an existing one: #5 widened to **egress/exfiltration** (lethal trifecta; sibling case `injected_source_cannot_exfiltrate_via_any_egress`) · model + prompt as pinned, eval-gated dependencies (#3) · tool-description injection + enforced least-privilege + sub-agent authority inheritance (#7) · tree-wide budgets (#9) · model/prompt version provenance in the trace (#10) · concurrency leases + compensating actions (#12) · retention-as-decision (#6) · multi-irreversible-action honesty (#2) · stale "eleven" fixed in the team section · re-sync `/new-agent` + `/hack` to revised text (chip filed) | ✅ done |
 | This week | first real worktree run (1 conductor + 1 executor) — HABIT, yours · one project's predictor evals need an offline replay mode (chip filed — this is the L1 layer) | pending |
 | Next 2 weeks | first weekly `/retro` (calendar it) · another project's evals: wrap its deterministic scoring/critic logic in a small JSONL + `evals.sh` NOW — only its LLM-selector cases wait for a later phase (a third project: N/A — no LLM on hot path) · understudy-lite (v2 item 4, promoted to front — see v2 intro): transcript-mining retro intake | pending |
 | This month | token-skill consolidation (at a retro) · shared-memory-tool decision (yours) · agent-core template repo (scaffold-first, see §4) seeded from the mandate pattern, the receipts/eval-runner pattern, and the hermetic-conftest pattern already built across the fleet · weekly re-gate audit of real shipped outputs on the money-moving project (L3) | pending |

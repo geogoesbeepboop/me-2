@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import VisibilityChip from "@/components/library/VisibilityChip";
 import { MirroredDoc, stripLeadingH1 } from "@/lib/markdown";
 import { allLibraryDocs, getLibraryDoc } from "@/lib/library";
 import { fullStamp } from "@/lib/content";
@@ -50,6 +51,10 @@ export default async function LibraryDoc({ params }: Props) {
                 {doc.status}
               </span>
             )}
+            {/* operator-only takedown — invisible off this machine */}
+            <span className="ml-4">
+              <VisibilityChip source={doc.source} />
+            </span>
           </p>
         </header>
 

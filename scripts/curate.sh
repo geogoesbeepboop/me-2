@@ -26,6 +26,12 @@
 #   they wait for George's one-tap review — set WRITING_AUTOPUBLISH=1 to
 #   override and merge drafts straight to main like everything else.
 #
+#   ABOUT (added 2026-07-09) — a fingerprint of fleet reality (each entry's
+#   status/stage/updated, the roster, the method metrics) is compared to
+#   the last run's; on change, /update-about refreshes the auto:now zone
+#   of content/about.mdx. About is voice-adjacent → PR
+#   (site/auto-about-<date>), never auto-merge.
+#
 # The worktree lives at .claude-worktrees/curator so the curator's own
 # sessions appear on the ops board like any other agent labor. The board
 # is the notification.
@@ -35,6 +41,7 @@
 #   scripts/curate.sh --dry-run      # report drift and exit; no model, $0
 #   CURATE_ONLY=dj-agent scripts/curate.sh   # force one entry
 #   CURATE_ONLY=method scripts/curate.sh     # force the method sync
+#   CURATE_ONLY=about scripts/curate.sh      # force the about refresh
 #
 # Log: ~/Library/Logs/me.curator.log
 set -uo pipefail
@@ -98,13 +105,32 @@ if [ "$ONLY" = "method" ] || { [ -z "$ONLY" ] && [ "$FP_NOW" != "$FP_OLD" ]; }; 
   log "method: harness fingerprint moved (${FP_OLD:0:8}… → ${FP_NOW:0:8}…)"
 fi
 
-if [ "${#DRIFTED[@]}" -eq 0 ] && [ "$METHOD_DRIFT" -eq 0 ]; then
-  log "no drift anywhere — entries and the method page are current. nothing ran, nothing spent."
+# ── ABOUT drift: fingerprint fleet reality against the resume surface ──
+about_fingerprint() {
+  {
+    for f in content/projects/*.mdx; do
+      basename "$f"
+      sed -n 's/^\(status\|stage\|updated\): *//p' "$f"
+    done
+    sed -n '/^metrics:/,/^sections:/p' content/method.mdx 2>/dev/null
+  } | shasum | awk '{print $1}'
+}
+AB_FP_NOW="$(about_fingerprint)"
+AB_FP_OLD="$(cat "$STATE_DIR/about.fingerprint" 2>/dev/null || true)"
+ABOUT_DRIFT=0
+if [ "$ONLY" = "about" ] || { [ -z "$ONLY" ] && [ "$AB_FP_NOW" != "$AB_FP_OLD" ]; }; then
+  ABOUT_DRIFT=1
+  log "about: fleet reality moved (${AB_FP_OLD:0:8}… → ${AB_FP_NOW:0:8}…)"
+fi
+
+if [ "${#DRIFTED[@]}" -eq 0 ] && [ "$METHOD_DRIFT" -eq 0 ] && [ "$ABOUT_DRIFT" -eq 0 ]; then
+  log "no drift anywhere — entries, the method page and /about are current. nothing ran, nothing spent."
   exit 0
 fi
 if [ "$DRY" -eq 1 ]; then
   [ "${#DRIFTED[@]}" -gt 0 ] && log "dry run — would curate projects: ${DRIFTED[*]}"
   [ "$METHOD_DRIFT" -eq 1 ] && log "dry run — would re-measure the method page"
+  [ "$ABOUT_DRIFT" -eq 1 ] && log "dry run — would refresh /about's now zone"
   exit 0
 fi
 
@@ -149,14 +175,17 @@ $HEADLESS_RULES" --permission-mode acceptEdits --allowedTools "Bash") 2>&1 | tai
 fi
 
 cd "$WT"
+FACTS_CHANGED=1
+PUBLISHED=0
 if [ -z "$(git status --porcelain)" ]; then
-  log "curator made no changes — everything already truthful. nothing to publish."
+  log "no fact changes — entries and the method page already truthful."
   # a no-op still proves the fingerprint was checked against reality
   [ "$METHOD_RAN" -eq 1 ] && echo "$FP_NOW" > "$STATE_DIR/method.fingerprint"
-  exit 0
+  FACTS_CHANGED=0
 fi
 
 # ── deterministic gates — the code decides what ships ──
+if [ "$FACTS_CHANGED" -eq 1 ]; then
 SCOPE_OK=1
 while IFS= read -r p; do
   case "$p" in
@@ -180,7 +209,6 @@ allowlist; merged to main per the 2026-07-06 autonomy decision.
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
-PUBLISHED=0
 if [ "$SCOPE_OK" -eq 1 ] && [ "$GATES_OK" -eq 1 ]; then
   if git push origin HEAD:main; then
     PUBLISHED=1
@@ -195,6 +223,7 @@ else
   branch="site/auto-curate-$(date +%Y%m%d)"
   git push -f origin "HEAD:refs/heads/$branch"
   log "gates failed (scope=$SCOPE_OK checks=$GATES_OK) — parked on $branch for review."
+fi
 fi
 
 # ── WRITING: draft a field-note when a sync actually shipped ──
@@ -232,5 +261,45 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
     fi
   else
     log "no publishable draft produced (missing file or gates red) — skipped."
+  fi
+fi
+
+# ── ABOUT: refresh the resume surface when fleet reality moved ──
+# About is voice-adjacent → always a PR, never auto-merge. Runs last so
+# it can't be swept into the facts commit; skipped when facts got parked
+# (a parked base would drag unreviewed changes into the PR).
+if [ "$ABOUT_DRIFT" -eq 1 ] && { [ "$FACTS_CHANGED" -eq 0 ] || [ "$PUBLISHED" -eq 1 ]; }; then
+  if [ -d "$WT/.claude/skills/update-about" ]; then
+    log "about: running /update-about headless…"
+    (cd "$WT" && claude -p "/update-about
+
+Headless curator run — no human is watching. Constraints on top of the skill:
+- Touch ONLY content/about.mdx: the {/* auto:now */} fenced zone, and factual frontmatter only when reality clearly moved.
+- Never rewrite the voice prose outside the fence.
+- Verify with 'node scripts/check-content.mjs'. Do NOT commit." --permission-mode acceptEdits --allowedTools "Bash") 2>&1 | tail -3
+    if [ -n "$(git status --porcelain content/about.mdx)" ] \
+       && [ -z "$(git status --porcelain | grep -v 'content/about.mdx')" ] \
+       && node scripts/check-content.mjs && npm run build >/dev/null 2>&1; then
+      git add content/about.mdx
+      git commit --quiet -m "curator draft: refresh /about from fleet reality
+
+Drafted autonomously from measured drift (roster/status/method metrics).
+Voice-adjacent surface — publishes via review, never autonomy.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+      abranch="site/auto-about-$(date +%Y%m%d)"
+      git push -f origin "HEAD:refs/heads/$abranch"
+      gh pr create --base main --head "$abranch" \
+        --title "curator: refresh /about's now zone" \
+        --body "The fleet's reality moved (roster, statuses, or method metrics) — the curator refreshed the auto:now zone of /about to match. The zone is measured facts; the voice around it is untouched. Merge to publish, close to discard." \
+        2>&1 | tail -1
+      echo "$AB_FP_NOW" > "$STATE_DIR/about.fingerprint"
+      log "about refreshed → PR opened ($abranch) for review."
+    else
+      git checkout -- content/about.mdx 2>/dev/null || true
+      log "about: no clean change produced (wrong files or gates red) — skipped."
+    fi
+  else
+    log "about: /update-about not on main yet — skipping until it merges"
   fi
 fi

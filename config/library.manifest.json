@@ -1,11 +1,47 @@
 {
   "$comment": "THE LIBRARY's single visibility authority. Precedence: deny > in-doc marker (site: private / <!-- me2: private -->) > private[] > public. deny is a hard wall — matched sources never enter the pipeline. private[] is the flip list the ops toggle and `npm run library` edit. scanAllow[] lets a named source publish past the soft PII scan (emails/phones). Collections mirror ~-relative roots; decisions/<repo> collections derive automatically from each content/projects/*.mdx `repo:` field.",
   "collections": [
-    { "id": "hackathons", "label": "Hackathon lenses", "root": "~/dev/hackathons", "include": ["*.md"] },
-    { "id": "dossiers/enterprise", "label": "Enterprise dossiers", "root": "~/dev/docs/enterprise", "include": ["*.md"] },
-    { "id": "dossiers/personal", "label": "Personal dossiers", "root": "~/dev/docs/personal", "include": ["*.md"] },
-    { "id": "multi-agent", "label": "Multi-agent reference", "root": "~/dev/multi-agent-docs", "include": ["*.md", "portfolio/*.md"] },
-    { "id": "harness", "label": "The harness", "root": "~/dev/agentic-harness/docs", "include": ["*.md"] }
+    {
+      "id": "hackathons",
+      "label": "Hackathon lenses",
+      "root": "~/dev/hackathons",
+      "include": [
+        "*.md"
+      ]
+    },
+    {
+      "id": "dossiers/enterprise",
+      "label": "Enterprise dossiers",
+      "root": "~/dev/docs/enterprise",
+      "include": [
+        "*.md"
+      ]
+    },
+    {
+      "id": "dossiers/personal",
+      "label": "Personal dossiers",
+      "root": "~/dev/docs/personal",
+      "include": [
+        "*.md"
+      ]
+    },
+    {
+      "id": "multi-agent",
+      "label": "Multi-agent reference",
+      "root": "~/dev/multi-agent-docs",
+      "include": [
+        "*.md",
+        "portfolio/*.md"
+      ]
+    },
+    {
+      "id": "harness",
+      "label": "The harness",
+      "root": "~/dev/agentic-harness/docs",
+      "include": [
+        "*.md"
+      ]
+    }
   ],
   "adrCollections": "auto",
   "deny": [

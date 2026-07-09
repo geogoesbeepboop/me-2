@@ -17,14 +17,13 @@
  * derived title/summary actually moved; `syncedAt` records the last CHANGE).
  */
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import matter from "gray-matter";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore — plain-JS module shared with check-library.mjs
+// plain-JS modules shared with check-library.mjs and lib/library-admin.ts
 import { scanDoc, globToRegExp } from "./lib/deny-scan.mjs";
+import { loadManifest, allCollections, expandInclude, expand, tildify, slugFor, inDocPrivate } from "./lib/manifest.mjs";
 
 interface Collection {
   id: string;
@@ -32,94 +31,13 @@ interface Collection {
   root: string;
   include: string[];
 }
-interface Manifest {
-  collections: Collection[];
-  adrCollections?: "auto";
-  deny: string[];
-  private: string[];
-  scanAllow: string[];
-}
 
-const HOME = os.homedir();
 const ROOT = process.cwd();
 const LIB_DIR = process.env.LIBRARY_DIR ?? path.join(ROOT, "content", "library");
-const MANIFEST_PATH = path.join(ROOT, "config", "library.manifest.json");
 
 const CHECK = process.argv.includes("--check");
 const onlyIx = process.argv.indexOf("--only");
 const ONLY = onlyIx > -1 ? process.argv[onlyIx + 1] : undefined;
-
-const expand = (p: string) => (p.startsWith("~") ? path.join(HOME, p.slice(1)) : p);
-const tildify = (p: string) => (p.startsWith(HOME) ? `~${p.slice(HOME.length)}` : p);
-
-function loadManifest(): Manifest {
-  const m = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8")) as Manifest;
-  m.private ??= [];
-  m.scanAllow ??= [];
-  m.deny ??= [];
-  return m;
-}
-
-/** decisions/<repo-basename> collections derive from the projects registry —
- *  `repo:` frontmatter is the registry; never hardcode repo paths (AGENTS.md) */
-function adrCollections(): Collection[] {
-  const dir = path.join(ROOT, "content", "projects");
-  if (!fs.existsSync(dir)) return [];
-  const out: Collection[] = [];
-  for (const f of fs.readdirSync(dir).filter((f) => f.endsWith(".mdx")).sort()) {
-    const { data } = matter(fs.readFileSync(path.join(dir, f), "utf8"));
-    const repo = data.repo as string | undefined;
-    if (!repo) continue;
-    const adrDir = path.join(repo, "docs", "adr");
-    if (!fs.existsSync(adrDir)) continue;
-    const base = path.basename(repo);
-    out.push({
-      id: `decisions/${base}`,
-      label: `Decisions — ${base}`,
-      root: tildify(adrDir),
-      include: ["*.md"],
-    });
-  }
-  return out;
-}
-
-/** expand one include pattern (segments; `*` within a segment) under root */
-function expandInclude(rootAbs: string, pattern: string): string[] {
-  const segs = pattern.split("/");
-  let dirs = [rootAbs];
-  for (const seg of segs.slice(0, -1)) {
-    const next: string[] = [];
-    if (!seg.includes("*")) {
-      for (const d of dirs) {
-        const p = path.join(d, seg);
-        if (fs.existsSync(p) && fs.statSync(p).isDirectory()) next.push(p);
-      }
-    } else {
-      const re = globToRegExp(seg);
-      for (const d of dirs) {
-        for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-          if (e.isDirectory() && re.test(e.name)) next.push(path.join(d, e.name));
-        }
-      }
-    }
-    dirs = next;
-  }
-  const fileRe = globToRegExp(segs[segs.length - 1]);
-  const out: string[] = [];
-  for (const d of dirs) {
-    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      if (e.isFile() && fileRe.test(e.name)) out.push(path.join(d, e.name));
-    }
-  }
-  return out.sort();
-}
-
-const kebab = (name: string) =>
-  name
-    .replace(/\.mdx?$/, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 
 /** first heading outside a code fence — the doc's own title */
 function firstHeading(body: string): string | undefined {
@@ -190,11 +108,6 @@ function gitCommitOf(abs: string): string | undefined {
   }
 }
 
-function inDocPrivate(raw: string, fm: Record<string, unknown>): boolean {
-  if (fm.site === "private") return true;
-  return raw.split("\n").slice(0, 10).some((l) => l.includes("<!-- me2: private -->"));
-}
-
 interface MirrorData {
   title: string;
   collection: string;
@@ -210,16 +123,15 @@ interface MirrorData {
 const sha256 = (s: string) => `sha256:${crypto.createHash("sha256").update(s).digest("hex")}`;
 
 function main() {
-  const manifest = loadManifest();
-  const denyRes = manifest.deny.map(globToRegExp);
-  const denied = (tildeSrc: string) => denyRes.some((re) => re.test(tildeSrc));
+  const manifest = loadManifest(ROOT);
+  const denyRes = (manifest.deny as string[]).map(globToRegExp);
+  const denied = (tildeSrc: string) => denyRes.some((re: RegExp) => re.test(tildeSrc));
 
-  let collections = [...manifest.collections];
-  if (manifest.adrCollections === "auto") collections.push(...adrCollections());
+  let collections: Collection[] = allCollections(ROOT, manifest);
   if (ONLY) {
     collections = collections.filter((c) => c.id === ONLY);
     if (collections.length === 0) {
-      console.error(`no collection "${ONLY}" — manifest ids: ${manifest.collections.map((c) => c.id).join(", ")} + decisions/*`);
+      console.error(`no collection "${ONLY}" — manifest ids: ${(manifest.collections as Collection[]).map((c) => c.id).join(", ")} + decisions/*`);
       process.exit(1);
     }
   }
@@ -244,7 +156,7 @@ function main() {
         }
         const raw = fs.readFileSync(abs, "utf8");
         const parsed = matter(raw);
-        if (inDocPrivate(raw, parsed.data) || manifest.private.includes(tildeSrc)) {
+        if (inDocPrivate(raw, parsed.data) || (manifest.private as string[]).includes(tildeSrc)) {
           counts.private++;
           continue;
         }
@@ -254,15 +166,13 @@ function main() {
           counts.scan++;
           continue;
         }
-        if (scan.soft.length > 0 && !manifest.scanAllow.includes(tildeSrc)) {
+        if (scan.soft.length > 0 && !(manifest.scanAllow as string[]).includes(tildeSrc)) {
           console.error(`SKIP  ${tildeSrc} — deny-scan: ${scan.soft.join(", ")} (add to scanAllow to publish anyway)`);
           counts.scan++;
           continue;
         }
 
-        // slug from the path relative to the collection root, so nested
-        // includes (portfolio/README.md vs README.md) can't collide
-        const slug = kebab(path.relative(rootAbs, abs));
+        const slug = slugFor(rootAbs, abs);
         if (slugs.has(slug)) {
           console.error(`SKIP  ${tildeSrc} — slug "${slug}" collides with ${slugs.get(slug)} in ${col.id}`);
           counts.scan++;

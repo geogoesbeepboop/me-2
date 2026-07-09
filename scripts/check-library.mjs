@@ -17,6 +17,7 @@ import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
 import matter from "gray-matter";
 import { scanDoc, globToRegExp } from "./lib/deny-scan.mjs";
+import { loadManifest, allCollections } from "./lib/manifest.mjs";
 
 export function checkLibrary(root = process.cwd()) {
   const errors = [];
@@ -24,22 +25,15 @@ export function checkLibrary(root = process.cwd()) {
   const libDir = path.join(root, "content", "library");
   if (!fs.existsSync(libDir)) return { errors, warns, count: 0 };
 
-  const manifestPath = path.join(root, "config", "library.manifest.json");
-  if (!fs.existsSync(manifestPath)) {
-    errors.push("content/library exists but config/library.manifest.json is missing");
+  let manifest;
+  try {
+    manifest = loadManifest(root);
+  } catch {
+    errors.push("content/library exists but config/library.manifest.json is missing/unreadable");
     return { errors, warns, count: 0 };
   }
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  const denyRes = (manifest.deny ?? []).map(globToRegExp);
-
-  const collectionIds = new Set(manifest.collections.map((c) => c.id));
-  const projDir = path.join(root, "content", "projects");
-  if (manifest.adrCollections === "auto" && fs.existsSync(projDir)) {
-    for (const f of fs.readdirSync(projDir).filter((f) => f.endsWith(".mdx"))) {
-      const { data } = matter(fs.readFileSync(path.join(projDir, f), "utf8"));
-      if (data.repo) collectionIds.add(`decisions/${path.basename(data.repo)}`);
-    }
-  }
+  const denyRes = manifest.deny.map(globToRegExp);
+  const collectionIds = new Set(allCollections(root, manifest).map((c) => c.id));
 
   const walk = (dir) =>
     fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>

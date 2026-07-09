@@ -162,13 +162,21 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
 
   "the-archive": {
     mandate:
-      "The site you're reading — a living archive that measures its own fleet and files the report.",
+      "The site you're reading — a living archive that measures its own fleet, files the report, and mirrors the stacks.",
     operate: [
       { token: "ops:snapshot", unit: "report" },
+      { token: "sync:library", unit: "mirror pass" },
       { token: "run new", unit: "entry scaffold" },
     ],
     verify: ["run check", "run lint"],
-    metrics: [],
+    // sources: content/library count (sync-library.ts summary line), the
+    // three me.* LaunchAgents (ops-report daily, library-sync daily,
+    // curator weekly), and the curator/sync publish gate
+    metrics: [
+      { k: "mirrored docs", v: "72" },
+      { k: "automations", v: "3" },
+      { k: "publish gate", v: "check+build+scope", gate: true },
+    ],
   },
 };
 

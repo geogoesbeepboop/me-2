@@ -53,6 +53,7 @@ export default function SearchOverlay() {
   const [hits, setHits] = useState<Hit[]>([]);
   const [active, setActive] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false);
   const indexRef = useRef<MiniSearch<SearchDoc> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -90,6 +91,7 @@ export default function SearchOverlay() {
     if (!indexRef.current) {
       loadIndex().then((mini) => {
         indexRef.current = mini;
+        setReady(mini !== null);
         setFailed(mini === null);
       });
     }
@@ -184,7 +186,7 @@ export default function SearchOverlay() {
             <li className="border-t border-line/60 px-5 py-6 font-mono text-mono-sm text-dim">
               {failed
                 ? "no index on this build — run npm run build once"
-                : indexRef.current
+                : ready
                   ? "nothing in the stacks matches"
                   : "opening the stacks…"}
             </li>
