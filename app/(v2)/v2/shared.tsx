@@ -426,6 +426,8 @@ export function nightlyLine(d: NightlyDigest): string {
   if (green > 0) parts.push(`${green} ${green === 1 ? "gate" : "gates"} green`);
   if (regressions.length > 0) parts.push(`eval regression — ${regressions.map((r) => r.repo).join(", ")}`);
   else if (evalCount > 0) parts.push("evals green");
+  const slow = d.runs.filter((r) => r.slow);
+  if (slow.length > 0) parts.push(`${slow.length} slow`);
   if (missing.length > 0) parts.push(`${missing.length} without a gate`);
   return `the night ran the gates — ${parts.join(" · ")}`;
 }
@@ -717,7 +719,10 @@ function nightlyRunLine(r: NightlyRun): React.ReactNode {
       <b>{r.repo}</b>
       {" · gate "}
       {r.gate === "pass" ? (
-        <>green{r.gateSeconds !== undefined && ` (${r.gateSeconds}s)`}</>
+        <>
+          green{r.gateSeconds !== undefined && ` (${r.gateSeconds}s)`}
+          {r.slow && " — slow"}
+        </>
       ) : r.gate === "fail" ? (
         <em className="v2-gate-bad">failed{r.gateSeconds !== undefined && ` (${r.gateSeconds}s)`}</em>
       ) : (

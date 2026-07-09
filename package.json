@@ -9,6 +9,7 @@
     "lint": "eslint",
     "new": "node scripts/new.mjs",
     "check": "node scripts/check-content.mjs",
+    "sync:library": "tsx scripts/sync-library.ts",
     "ops:snapshot": "tsx scripts/ops-snapshot.ts",
     "ops:digest": "tsx scripts/ops-digest.ts"
   },

@@ -1,0 +1,57 @@
+---
+title: ADR 0001 — pgvector over a dedicated vector DB
+collection: decisions/dj-agent
+source: ~/dev/dj-agent/docs/adr/0001-pgvector-over-pinecone.md
+sourceMtime: '2026-06-02T00:53:10.829Z'
+sourceCommit: 11c7cf2
+syncedAt: '2026-07-09'
+summary: >-
+  The vibe vector store needs approximate nearest-neighbor search over ~10k
+  512-d CLAP track embeddings. Dedicated vector DBs (Pinecone, Weaviate, Qdrant)
+  are purpose-built for this. We also use Supa…
+sourceMeta:
+  status: Accepted
+contentHash: 'sha256:153f1fa6f9366e753bbf138467c65b5e78c20a80368e3306dc9ae69ee3aaaf3b'
+---
+# ADR 0001 — pgvector over a dedicated vector DB
+
+**Status:** Accepted  
+**Date:** 2026-06-01
+
+## Context
+
+The vibe vector store needs approximate nearest-neighbor search over ~10k
+512-d CLAP track embeddings. Dedicated vector DBs (Pinecone, Weaviate, Qdrant)
+are purpose-built for this. We also use Supabase for general storage (the
+tracks table). Reaffirmed at 512-d when the project went CLAP-first; the
+dimension change does not alter the scale math.
+
+## Decision
+
+Use **pgvector** (Postgres extension in Supabase) rather than adding a
+dedicated vector DB.
+
+## Rationale
+
+- **Zero new infra.** We already have Supabase. A second service (Pinecone
+  free tier, self-hosted Qdrant, etc.) adds auth surface, another connection
+  to manage, and another thing to break.
+- **Scale fits.** A 10k-track library at 512-d CLAP vectors is ~20 MB of
+  vector data. HNSW in pgvector handles sub-millisecond ANN at this scale.
+  The "pgvector doesn't scale" argument applies at 100M+ vectors, not here.
+- **Transactional consistency.** Track metadata and embedding live in the same
+  row, same transaction. No sync lag between a metadata DB and a separate
+  vector store.
+- **Phase 5 migration is localized.** Switching from 28-d to 512-d only
+  touches `schema.sql` (one ALTER TABLE) and `config.VIBE_DIM`. The rest of
+  the stack is unaffected.
+
+## Trade-offs accepted
+
+- pgvector's HNSW is slightly less recall-accurate than Pinecone at extreme
+  scale. Irrelevant at library scale.
+- No out-of-the-box hybrid search (vector + metadata filter in one query).
+  We layer the Camelot/BPM filter as a WHERE clause — adds a millisecond,
+  acceptable.
+- If we ever need multi-modal search across millions of users' libraries,
+  we'd revisit. That's not this product.

@@ -29,7 +29,11 @@ const DIGEST_DIR =
   process.env.GATE_DIGEST_DIR ?? path.join(os.homedir(), "dev", "docs", "gate-digests");
 
 const HEADER_RE = /^# Gate digest — (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/;
-const GATE_RE = /^## (\S+) — (✅ pass|❌ FAIL|⚠ no gate\.sh)(?: \((\d+)s\))?/;
+// the digest decorates some statuses — "🟡 pass — SLOW (budget 120s)" and
+// "❌ FAIL (timed out after 900s)" — before the trailing duration; both
+// decorations are swallowed so the duration still parses
+const GATE_RE =
+  /^## (\S+) — (✅ pass|🟡 pass — SLOW|❌ FAIL|⚠ no gate\.sh)(?: \((?:budget \d+s|timed out after \d+s)\))?(?: \((\d+)s\))?/;
 const EVAL_RE = /^### (\S+) evals — (✅ evals pass|🟡 EVAL REGRESSION)(?: \((\d+)s\))?/;
 
 export function parseDigest(text: string): NightlyDigest | null {
@@ -58,7 +62,8 @@ export function parseDigest(text: string): NightlyDigest | null {
     if (g) {
       current = {
         repo: g[1],
-        gate: g[2] === "✅ pass" ? "pass" : g[2] === "❌ FAIL" ? "fail" : "missing",
+        gate: g[2].startsWith("❌") ? "fail" : g[2].startsWith("⚠") ? "missing" : "pass",
+        slow: g[2].startsWith("🟡") || undefined,
         gateSeconds: g[3] !== undefined ? Number(g[3]) : undefined,
       };
       runs.push(current);
