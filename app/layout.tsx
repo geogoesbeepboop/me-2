@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
+import SearchOverlay from "@/components/search/SearchOverlay";
 import "./globals.css";
 // the city's chrome + scene styles are now site-wide — one product
 import "./city.css";
@@ -34,7 +35,11 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${jetbrains.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-void text-bone">{children}</body>
+      <body className="min-h-full bg-void text-bone">
+        {children}
+        {/* ⌘K — one search on every floor; renders nothing until opened */}
+        <SearchOverlay />
+      </body>
     </html>
   );
 }

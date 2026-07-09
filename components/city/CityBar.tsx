@@ -50,6 +50,15 @@ export default function CityBar({
             </Link>
           );
         })}
+        <button
+          type="button"
+          className="city-nav-search"
+          onClick={() => window.dispatchEvent(new Event("me2:search"))}
+          aria-label="Search the archive and library (⌘K)"
+        >
+          <span className="city-nav-n">⌘K</span>
+          SEARCH
+        </button>
       </nav>
       <span className="v2-clock">
         SAN FRANCISCO <b suppressHydrationWarning>{clock}</b>

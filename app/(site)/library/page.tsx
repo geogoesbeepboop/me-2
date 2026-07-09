@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SearchEntry from "@/components/search/SearchEntry";
 import { libraryGroups } from "@/lib/library";
 import { fullStamp } from "@/lib/content";
 
@@ -36,6 +37,7 @@ export default function LibraryPage() {
             UPDATED — changed in the last {FRESH_DAYS} days
           </p>
         </div>
+        <SearchEntry />
       </header>
 
       {groups.map((g) => (

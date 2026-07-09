@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/build-search-index.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/build-search-index.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -18,6 +20,7 @@
     "@react-three/fiber": "^9.6.1",
     "framer-motion": "^12.40.0",
     "gray-matter": "^4.0.3",
+    "minisearch": "^7.2.0",
     "next": "16.2.9",
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.4",
