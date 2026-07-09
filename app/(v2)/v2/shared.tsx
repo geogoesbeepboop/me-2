@@ -321,10 +321,16 @@ export function LaborStrip({ lanes }: { lanes: Lanes }) {
     },
     { key: "verify", label: "VERIFY", v: lanes.verify, count: lanes.verify > 0 ? n(lanes.verify, "check") : "—" },
   ];
+  // the answer to "what does this bar mean", where the question arises
+  const titles: Record<string, string> = {
+    build: "BUILD — development done TO the agent: edits to its source. Bars are √-scaled; the count is the truth.",
+    operate: "OPERATE — the agent running its OWN job; counts are invocations, not shipped artifacts.",
+    verify: "VERIFY — the agent checking itself: tests, gates, evals.",
+  };
   return (
     <div className="v2-lanes" aria-label="Build, operate and verify work">
       {rows.map((r) => (
-        <div key={r.key} className="v2-lane" data-lane={r.key} data-empty={r.v === 0}>
+        <div key={r.key} className="v2-lane" data-lane={r.key} data-empty={r.v === 0} title={titles[r.key]}>
           <span className="v2-lane-label">{r.label}</span>
           <span className="v2-lane-track">
             <span className="v2-lane-fill" style={{ width: `${pct(r.v)}%` }} />
@@ -672,12 +678,22 @@ function CommitDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
   );
 }
 
-function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
-  const s = e.session!;
+/** everything the machine knows about one session — shared by the shift
+ *  log's opened row and the agent card's live drawer, so the two views
+ *  can never drift apart */
+export function SessionFacts({
+  s,
+  live,
+  repoPath,
+}: {
+  s: OpsSession;
+  live: boolean;
+  repoPath?: string;
+}) {
   const name = sessionName(s);
   const w = s.work;
   return (
-    <div className="v2-detail">
+    <>
       <p className="v2-detail-title">
         <span className="v2-dot" data-state={s.state} aria-hidden /> {STATE_WORDS[s.state]} —{" "}
         {s.stateDetail}
@@ -727,9 +743,17 @@ function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
       {live && !name && s.lastPrompt && (
         <p className="v2-detail-note">operator&apos;s last ask (this machine only): «{s.lastPrompt}»</p>
       )}
-      {live && e.repoPath && (
-        <CopyButton text={`cd ${e.repoPath} && claude --resume ${s.id}`} label="copy resume command" />
+      {live && repoPath && (
+        <CopyButton text={`cd ${repoPath} && claude --resume ${s.id}`} label="copy resume command" />
       )}
+    </>
+  );
+}
+
+function SessionDetail({ e, live }: { e: ShiftEvent; live: boolean }) {
+  return (
+    <div className="v2-detail">
+      <SessionFacts s={e.session!} live={live} repoPath={e.repoPath} />
     </div>
   );
 }
