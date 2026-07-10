@@ -2,14 +2,14 @@
 title: The Claude Code Bible — George's Power-User Operating Manual
 collection: harness
 source: ~/dev/agentic-harness/docs/CLAUDE_CODE_BIBLE.md
-sourceMtime: '2026-06-05T22:44:20.222Z'
+sourceMtime: '2026-07-10T10:03:35.463Z'
 sourceCommit: 20ea825
-syncedAt: '2026-07-09'
+syncedAt: '2026-07-10'
 summary: >-
   This is written specifically for your situation: a 16-agent portfolio built on
   one architectural theorem (a deterministic, unit-testable gate owns every
   irreversible action), a shared agent-core ha…
-contentHash: 'sha256:643605a9580dfeecdb80132b27c89593015f719e8331c69fcb75ebdf25e4adff'
+contentHash: 'sha256:e38175edfa2929b6a8d79e9e23bfeaa2f2696efbc38ac01dd576250cd010500a'
 ---
 # The Claude Code Bible — George's Power-User Operating Manual
 
@@ -397,18 +397,25 @@ When a task is big enough to need *deterministic* orchestration — fan-out, loo
 
 ## VII.1 — What it is, and how it differs from subagents
 
-A **git worktree** is a second working directory backed by the *same* repo, checked out to a *different* branch. Multiple worktrees share one `.git` but have independent files. Claude Code integrates this: `claude --worktree <name>` (or the worktree tools) gives an isolated checkout at `.claude/worktrees/<name>/`.
+A **git worktree** is a second working directory backed by the *same* repo, checked out to a
+*different* branch. Multiple worktrees share one `.git` but have independent checkout files.
+Claude Code integrates this: `claude --worktree <name>` (or the worktree tools) gives a
+collision-isolated checkout at `.claude/worktrees/<name>/`. This is not a security sandbox.
 
 Here's the distinction you were reaching for:
 
 | | **Subagent** | **Worktree** |
 |---|---|---|
-| Isolates… | **Context** (separate window) | **Filesystem + branch** (separate working dir) |
+| Isolates… | **Context** (separate window) | **Checkout changes + branch** (not host authority) |
 | Same files on disk? | Yes (shares your cwd) | **No** — its own checkout, its own branch |
 | Mental model | "A teammate I hand a question to, who reports back" | "A second desk where a different feature is laid out" |
 | Use for | Noisy/parallel/specialized *reasoning* | Parallel *code changes* that would otherwise collide |
 
-So: **not** "manual subagents." Worktrees solve a different problem — running **multiple changes in parallel without them stepping on each other's files.** You *can* combine them: a workflow can give each file-mutating agent its own worktree so parallel edits don't conflict.
+So: **not** "manual subagents." Worktrees solve a different problem — running **multiple
+changes in parallel without them stepping on each other's checkout files.** They still share
+the host, home directory, Git metadata, caches, processes, ports, network, credentials, and
+external accounts unless another containment mechanism says otherwise. You *can* combine them:
+a workflow can give each file-mutating agent its own worktree so parallel edits don't conflict.
 
 ## VII.2 — When you'd actually use it
 
@@ -418,7 +425,12 @@ So: **not** "manual subagents." Worktrees solve a different problem — running 
 
 ## VII.3 — The one setup gotcha for you
 
-Your repos rely on **gitignored secrets** (`.env` with Supabase/Telegram/Langfuse keys). A fresh worktree won't have them. Add a **`.worktreeinclude`** file listing the gitignored files to copy into new worktrees (your `.env`, local configs) so a new worktree is immediately runnable. Without this, every new worktree starts broken and you'll blame the tool.
+Your repos may rely on **gitignored secrets** (`.env` with Supabase/Telegram/Langfuse keys).
+A fresh worktree will not have them. A `.worktreeinclude` can copy local configuration for
+low-risk development convenience, but copying a broad `.env` also copies its authority.
+Prefer task-scoped, short-lived credentials exposed through constrained tools or a credential
+broker for consequential work. If local copying is acceptable, include only the minimum
+development values and document that the worktree is not contained.
 
 ---
 
@@ -479,7 +491,8 @@ every irreversible action (send, buy, post, deploy, write). The gate is the prod
 ## Defaults for any agent repo
 - Stack: Temporal (durable workflow + HITL signals), Supabase Postgres + pgvector,
   Langfuse (tracing), Telegram (HITL approval), offline eval suite wired as a CI gate.
-- Shared harness: `agent-core` (model tiering Haiku/Sonnet/Opus, budget, tracing, evals).
+- Shared harness: `agent-core` (provider-neutral qualified model aliases, tree-wide budget,
+  tracing, evals). Routing policy lives in `docs/OPERATING_MANUAL.md` §10.
 - Every agent exposes an MCP server (`<agent> mcp`) for local inspection.
 - Compliance bar: immutable hash-chained audit log + HITL (EU AI Act Art. 12/14).
 
