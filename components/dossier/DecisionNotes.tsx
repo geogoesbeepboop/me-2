@@ -15,7 +15,7 @@ export default function DecisionNotes({ node }: { node: Node }) {
   const docs = decisionsFor(node.repo);
   if (docs.length === 0) return null;
   return (
-    <section className="mt-16">
+    <section id="decision-records" className="mt-16 scroll-mt-36">
       <p className="border-t border-line pt-6 font-mono text-label tracking-[0.2em] text-dim uppercase">
         Decision notes — {docs.length} ADRs, mirrored from the repo
       </p>

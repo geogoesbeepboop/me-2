@@ -17,7 +17,13 @@ export default function OperatorPanel() {
 
   const refresh = (force = false) =>
     loadInventory(force).then((inv) => {
-      if (inv) setHidden(inv.filter((s) => s.status !== "public"));
+      if (inv) {
+        setHidden(
+          inv.filter(
+            (s) => s.status !== "public" && !s.source.includes("/procurement-agent/")
+          )
+        );
+      }
     });
   useEffect(() => {
     refresh();

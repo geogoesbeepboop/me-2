@@ -587,6 +587,155 @@ export function buildShiftLog(
     .sort((a, b) => eventMs(b) - eventMs(a));
 }
 
+/* ── the headline — one shift, one sentence ──────────────────────────
+   The narrative lead over the digest's counts: the single most
+   consequential thing that happened, said in plain language with a way
+   in. Every word traces to a real event; when nothing rises above the
+   rollup we return null and the digest speaks for itself. */
+
+export interface ShiftHeadline {
+  kind: ShiftEvent["kind"];
+  glyph: string;
+  /** glyph class — carries the semantic hue (g-fail, g-operate, …) */
+  cls: string;
+  /** what the headline is about, for styling/legend — never decorative */
+  tone: "alert" | "waiting" | "ship" | "run";
+  text: string;
+  href?: string;
+  accent: string;
+}
+
+const HEADLINE_FRESH_MS = 48 * 3600_000;
+
+/** anchor a shift event to epoch ms the same way the timeline does */
+function headlineMs(e: ShiftEvent): number {
+  return Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(e.at) ? `${e.at}T19:00:00Z` : e.at);
+}
+
+/** the most consequential event of a window, as one sentence. Priority is
+ *  stakes-first: a failed gate needs a human today; a PR waits on one; an
+ *  archive write is a visible artifact; then the agent that ran its own job
+ *  hardest; then commits; then a bare build session. */
+export function shiftHeadline(
+  fleet: FleetSnapshot,
+  writes: WriteRow[],
+  window: { start: number; end: number },
+  refMs: number
+): ShiftHeadline | null {
+  // 1 — a fresh nightly gate that FAILED outranks everything. Green gates
+  // are reassurance, not news, so they never lead (the NightWatchLine
+  // carries the all-clear). The gate runs at 06:17, just past the shift
+  // window's close, so we judge it by freshness, not window membership.
+  const gate = fleet.gateDigests?.[0];
+  if (gate) {
+    const age = refMs - (Date.parse(gate.at) || 0);
+    const fails = gate.runs.filter((r) => r.gate === "fail");
+    if (!Number.isNaN(age) && age <= HEADLINE_FRESH_MS && fails.length > 0) {
+      const repos = fails.map((r) => r.repo).join(", ");
+      const gates = fails.length === 1 ? "its nightly gate" : "their nightly gates";
+      return {
+        kind: "gate",
+        glyph: "☾",
+        cls: "g-fail",
+        tone: "alert",
+        text: `The night watch caught ${repos} failing ${gates} — the fleet needs you.`,
+        href: "/v2/ops#shift",
+        accent: "var(--color-ember)",
+      };
+    }
+  }
+
+  // the rest is ranked over the events inside the shift window
+  const events = buildShiftLog(fleet, writes).filter((e) => {
+    const t = headlineMs(e);
+    return !Number.isNaN(t) && t >= window.start && t < window.end;
+  });
+
+  // 2 — a PR opened: something is waiting on a human decision
+  const pr = events.find((e) => e.kind === "pr");
+  if (pr) {
+    return {
+      kind: "pr",
+      glyph: "⇡",
+      cls: "g-build",
+      tone: "waiting",
+      text: `${pr.agent} opened pull request #${pr.prNumber} — it's waiting on a human.`,
+      href: pr.prUrl,
+      accent: pr.accent,
+    };
+  }
+
+  // 3 — an archive write: a visible artifact went up on the site
+  const entry = events.find((e) => e.kind === "entry" && e.entry);
+  if (entry?.entry) {
+    return {
+      kind: "entry",
+      glyph: "✎",
+      cls: "g-build",
+      tone: "ship",
+      text: `“${entry.entry.title}” — ${entry.entry.tag} in the archive.`,
+      href: entry.entry.href,
+      accent: entry.accent,
+    };
+  }
+
+  // 4 — the agent that ran its own job the hardest
+  const runs = events
+    .filter((e) => e.kind === "session" && e.band === "operate" && (e.session?.work?.operateRuns ?? 0) > 0)
+    .sort((a, b) => (b.session?.work?.operateRuns ?? 0) - (a.session?.work?.operateRuns ?? 0));
+  const topRun = runs[0];
+  if (topRun?.session?.work) {
+    const units = operateSummary(topRun.session.work.operateUnits ?? {}, 2);
+    return {
+      kind: "session",
+      glyph: "▸",
+      cls: "g-operate",
+      tone: "run",
+      text: units ? `${topRun.agent} ran its job — ${units}.` : `${topRun.agent} ran its job.`,
+      href: `/v2/ops#${topRun.slug}`,
+      accent: topRun.accent,
+    };
+  }
+
+  // 5 — commits that landed
+  const commits = events.filter((e) => e.kind === "commit" && e.commit);
+  if (commits[0]?.commit) {
+    const text =
+      commits.length === 1
+        ? `${commits[0].agent} landed “${commits[0].commit.subject}”.`
+        : `${commits.length} commits landed across the fleet — latest “${commits[0].commit.subject}”.`;
+    return {
+      kind: "commit",
+      glyph: "▫",
+      cls: "g-build",
+      tone: "run",
+      text,
+      href: `/v2/ops#${commits[0].slug}`,
+      accent: commits[0].accent,
+    };
+  }
+
+  // 6 — a build session, if that's all the window held
+  const build = events
+    .filter((e) => e.kind === "session" && (e.session?.work?.edits ?? 0) > 0)
+    .sort((a, b) => (b.session?.work?.edits ?? 0) - (a.session?.work?.edits ?? 0));
+  const topBuild = build[0];
+  if (topBuild?.session?.work) {
+    const edits = topBuild.session.work.edits;
+    return {
+      kind: "session",
+      glyph: "▫",
+      cls: "g-build",
+      tone: "run",
+      text: `${topBuild.agent} put in a build session — ${edits} ${edits === 1 ? "edit" : "edits"} to its source.`,
+      href: `/v2/ops#${topBuild.slug}`,
+      accent: topBuild.accent,
+    };
+  }
+
+  return null;
+}
+
 /* ── detail views — what actually got done, per kind ─────── */
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {

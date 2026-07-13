@@ -14,10 +14,12 @@ import {
   fmtActive,
   nightlyGreen,
   nightlyLine,
+  shiftHeadline,
   useCityTime,
   useFleet,
   windowWorkLine,
   type MirrorDay,
+  type ShiftHeadline,
   type WriteRow,
 } from "./shared";
 import { shiftDigest, fmtUnits } from "@/lib/ops/digest";
@@ -26,26 +28,22 @@ import CityFooter from "@/components/city/CityFooter";
 
 /* one voice per hour of the city — durable lines, no counts.
    "you" is whoever holds the watch; the chrome says "the operator". */
-const HERO: Record<SceneName, { eyebrow: string; h1: [string, string]; sub: string }> = {
+const HERO: Record<SceneName, { eyebrow: string; h1: [string, string] }> = {
   night: {
     eyebrow: "NIGHT · 20:00 — 06:00",
     h1: ["Autonomous imagination,", "harnessed while you sleep."],
-    sub: "The desk is empty and the systems hold the watch. The skyline is a drawing — every light on the board below is the measured state of real work.",
   },
   morning: {
     eyebrow: "MORNING · 06:00 — 11:00",
     h1: ["What got done", "while you slept."],
-    sub: "At dawn the fleet files its report: the sessions that ran, the commits that landed, the words that got written. Read it like a shift log — it is one.",
   },
   day: {
     eyebrow: "DAY · 11:00 — 17:00",
     h1: ["Build fast,", "adapt faster."],
-    sub: "Daylight is for steering: review what ran, redirect what's stuck, ship what's ready. The board below is the working instrument, not a brochure.",
   },
   evening: {
     eyebrow: "EVENING · 17:00 — 20:00",
     h1: ["Hand the night", "to the systems."],
-    sub: "Shift change at dusk: what's still open gets briefed, queued, and left to run. The morning report writes itself overnight.",
   },
 };
 
@@ -80,7 +78,10 @@ export default function CityLanding({
             <br />
             {hero.h1[1]}
           </h1>
-          <p className="v2-sub">{hero.sub}</p>
+          <div className="v2-hero-actions">
+            <Link href="/projects">SEE THE PROJECTS</Link>
+            <Link href="/library">OPEN THE LIBRARY</Link>
+          </div>
         </div>
       </section>
 
@@ -161,6 +162,10 @@ function DigestPanel({ fleet, writes }: { fleet: FleetSnapshot; writes: WriteRow
   // across server and client, so no hydration drift on the window
   const ref = Date.parse(fleet.generatedAt) || 0;
   const d = useMemo(() => shiftDigest(fleet, writes, ref), [fleet, writes, ref]);
+  const headline = useMemo(
+    () => shiftHeadline(fleet, writes, { start: d.window.start, end: d.window.end }, ref),
+    [fleet, writes, d.window.start, d.window.end, ref]
+  );
   const heading = DIGEST_HEADING[d.window.label] ?? "THE SHIFT REPORT";
   const range = `${sfStamp(new Date(d.window.start).toISOString())} → ${
     d.window.inProgress ? "now" : sfStamp(new Date(d.window.end).toISOString())
@@ -174,6 +179,7 @@ function DigestPanel({ fleet, writes }: { fleet: FleetSnapshot; writes: WriteRow
           {d.window.label} · {range}
         </span>
       </div>
+      {headline && <Headline h={headline} />}
       {d.quiet ? (
         <p className="v2-digest-lede">
           a quiet shift — the fleet last stirred{" "}
@@ -200,8 +206,50 @@ function DigestPanel({ fleet, writes }: { fleet: FleetSnapshot; writes: WriteRow
           </div>
         </>
       )}
-      <NightWatchLine fleet={fleet} refMs={ref} />
+      {/* the headline already led with the gate — don't say it twice */}
+      {headline?.kind !== "gate" && <NightWatchLine fleet={fleet} refMs={ref} />}
     </section>
+  );
+}
+
+/* the shift's headline — one plain sentence with a way in. The glyph and
+   hue are the same semantics the shift log uses, so the lead reads as the
+   top of the log, not a separate ornament. */
+const HEADLINE_GLYPH_TITLE: Record<ShiftHeadline["kind"], string> = {
+  gate: "nightly gate digest",
+  pr: "pull request",
+  entry: "archive write",
+  session: "session",
+  commit: "commit",
+  mirror: "library mirror",
+};
+
+function Headline({ h }: { h: ShiftHeadline }) {
+  const body = (
+    <>
+      <i className={`v2-shift-glyph ${h.cls}`} title={HEADLINE_GLYPH_TITLE[h.kind]} aria-hidden>
+        {h.glyph}
+      </i>
+      <span className="v2-headline-text">{h.text}</span>
+      {h.href && <span className="v2-headline-go" aria-hidden>→</span>}
+    </>
+  );
+  return (
+    <p className="v2-headline" data-tone={h.tone} style={{ "--c": h.accent } as React.CSSProperties}>
+      {h.href ? (
+        h.href.startsWith("http") ? (
+          <a href={h.href} target="_blank" rel="noreferrer" className="v2-headline-link">
+            {body}
+          </a>
+        ) : (
+          <Link href={h.href} className="v2-headline-link">
+            {body}
+          </Link>
+        )
+      ) : (
+        body
+      )}
+    </p>
   );
 }
 

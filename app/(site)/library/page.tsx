@@ -4,12 +4,12 @@ import SearchEntry from "@/components/search/SearchEntry";
 import OperatorPanel from "@/components/library/OperatorPanel";
 import {
   decisionShelves,
-  featuredDocs,
   libraryShelves,
   unlistedCount,
   type LibraryDoc,
+  type Shelf,
 } from "@/lib/library";
-import { fullStamp, nodesOf } from "@/lib/content";
+import { nodesOf } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Library",
@@ -17,61 +17,145 @@ export const metadata: Metadata = {
     "The reading room behind the archive — the idea lenses, the working method, and every engineering decision, mirrored daily from where the work actually happens.",
 };
 
-const FRESH_DAYS = 14;
-const isFresh = (syncedAt: string) =>
-  Date.now() - new Date(syncedAt).getTime() <= FRESH_DAYS * 86_400_000;
+function sourceDate(d: LibraryDoc): string {
+  return d.sourceMtime.slice(0, 10);
+}
 
-function Stamp({ d }: { d: LibraryDoc }) {
+function SectionHead({
+  number,
+  title,
+  note,
+  id,
+}: {
+  number: string;
+  title: string;
+  note: string;
+  id: string;
+}) {
   return (
-    <p className="mt-2 font-mono text-mono-sm text-dim">
-      {d.source} · synced {fullStamp(d.syncedAt)}
-      {d.sourceCommit && ` · ${d.sourceCommit}`}
-    </p>
+    <div className="mb-10 grid items-end gap-x-8 gap-y-4 md:grid-cols-[2rem_minmax(0,1fr)_auto]">
+      <span className="pb-2 font-mono text-label tracking-[0.18em] text-dim">{number}</span>
+      <h2
+        id={id}
+        className="text-[clamp(2.5rem,5vw,4.8rem)] font-black leading-none tracking-[-0.035em] text-bone uppercase"
+      >
+        {title}
+      </h2>
+      <p className="max-w-xl pb-2 font-mono text-label leading-relaxed tracking-[0.18em] text-dim uppercase md:text-right">
+        {note}
+      </p>
+    </div>
   );
 }
 
-function Badges({ d }: { d: LibraryDoc }) {
+function DocCard({ d, kicker }: { d: LibraryDoc; kicker: string }) {
   return (
-    <>
-      {isFresh(d.syncedAt) && (
-        <span className="font-mono text-label tracking-[0.18em] text-bone uppercase">updated</span>
+    <Link
+      href={`/library/${d.urlPath}`}
+      className="group flex flex-col bg-void px-5 py-7 text-inherit no-underline transition-colors duration-300 hover:bg-panel sm:min-h-60 md:px-8"
+    >
+      <p className="font-mono text-label tracking-[0.2em] text-dim uppercase">{kicker}</p>
+      <h3 className="mt-5 text-[1.08rem] font-semibold leading-snug text-bone group-hover:underline group-hover:underline-offset-4">
+        {d.title}
+      </h3>
+      {d.summary && (
+        <p className="mt-4 line-clamp-3 text-[0.95rem] leading-relaxed text-ash">{d.summary}</p>
       )}
-      {d.status && (
-        <span className="font-mono text-label tracking-[0.18em] text-dim uppercase">{d.status}</span>
+      <time className="mt-auto pt-6 font-mono text-mono-sm text-dim" dateTime={sourceDate(d)}>
+        {sourceDate(d)}
+      </time>
+    </Link>
+  );
+}
+
+function ShelfCard({ shelf, entry }: { shelf: Shelf; entry: Shelf["entries"][number] }) {
+  const kicker = `${shelf.id === "hackathons" ? "lens" : "guide"} · ${shelf.label}`;
+  return (
+    <li className="flex min-w-0 flex-col bg-void">
+      <DocCard d={entry.doc} kicker={kicker} />
+      {entry.series && entry.series.history.length > 0 && (
+        <p className="border-t border-line/60 px-5 py-3 font-mono text-mono-sm leading-relaxed text-dim md:px-8">
+          HISTORY: {entry.series.history.map((h, i) => (
+            <span key={h.urlPath}>
+              {i > 0 && " · "}
+              <Link href={`/library/${h.urlPath}`} className="text-ash underline-offset-4 hover:underline">
+                {h.title}
+              </Link>
+            </span>
+          ))}
+        </p>
       )}
-    </>
+    </li>
+  );
+}
+
+function MethodCard() {
+  return (
+    <Link
+      href="/method"
+      className="group mb-4 block border border-line border-l-2 border-l-bone/50 bg-panel px-5 py-8 text-inherit no-underline transition-colors duration-300 hover:bg-bone/5 md:px-8 md:py-9"
+    >
+      <p className="font-mono text-label tracking-[0.2em] text-dim uppercase">
+        N°000 · guided overview
+      </p>
+      <h3 className="mt-4 text-[1.35rem] font-semibold text-bone group-hover:underline group-hover:underline-offset-4">
+        The Method
+      </h3>
+      <p className="mt-4 max-w-4xl text-[0.98rem] leading-relaxed text-ash">
+        The day-to-day operating system around the projects: skills, parallel lanes,
+        verification, overnight gates, and the publishing loop.
+      </p>
+    </Link>
+  );
+}
+
+function ShelfSection({ shelf, number }: { shelf: Shelf; number: string }) {
+  const lenses = shelf.id === "hackathons";
+  const title = lenses ? "Working notes and lenses" : "How I work";
+  const note = lenses
+    ? "Current lenses and field guides, preserved with source and revision history"
+    : "The operating guides behind the work, mirrored from the live harness";
+  return (
+    <section className="border-t border-line px-5 py-16 md:px-10 md:py-20" aria-labelledby={`shelf-${shelf.id}`}>
+      <SectionHead number={number} title={title} note={note} id={`shelf-${shelf.id}`} />
+      {!lenses && <MethodCard />}
+      <ul className={`grid gap-px border border-line bg-line/60 ${lenses ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+        {shelf.entries.map((entry) => (
+          <ShelfCard key={entry.doc.urlPath} shelf={shelf} entry={entry} />
+        ))}
+      </ul>
+    </section>
   );
 }
 
 export default function LibraryPage() {
-  const featured = featuredDocs();
-  const shelves = libraryShelves();
-  const decisions = decisionShelves();
-  const adrCount = decisions.reduce((n, g) => n + g.docs.length, 0);
-  // repo basename → project slug, resolved through the repo: registry
-  const projectOf = new Map(
-    nodesOf("projects")
-      .filter((n) => n.repo)
-      .map((n) => [n.repo!.split("/").pop()!, n.slug])
-  );
+  const shelves = [...libraryShelves()].sort((a, b) => {
+    const rank = (id: string) => (id === "harness" ? 0 : id === "hackathons" ? 1 : 2);
+    return rank(a.id) - rank(b.id);
+  });
+  const howIWork = shelves.find((shelf) => shelf.id === "harness");
+  const remainingShelves = shelves.filter((shelf) => shelf.id !== "harness");
+  const decisions = decisionShelves().filter((group) => group.repo !== "procurement-agent");
+  const adrCount = decisions.reduce((n, group) => n + group.docs.length, 0);
   const shelved = shelves.reduce(
-    (n, s) => n + s.entries.reduce((m, e) => m + 1 + (e.series?.history.length ?? 0), 0),
+    (n, shelf) => n + shelf.entries.reduce((m, entry) => m + 1 + (entry.series?.history.length ?? 0), 0),
     0
   );
   const deep = unlistedCount();
-
+  const projectByRepo = new Map(
+    nodesOf("projects")
+      .filter((node) => node.repo)
+      .map((node) => [node.repo!.split("/").pop()!, { slug: node.slug, title: node.title }])
+  );
   return (
     <div className="pt-36 pb-24">
-      <header className="mb-12 px-5 md:px-10">
-        <p className="font-mono text-label tracking-[0.16em] text-dim uppercase">
-          /archive/library
-        </p>
+      <header className="mb-14 px-5 md:px-10">
+        <p className="font-mono text-label tracking-[0.16em] text-dim uppercase">/archive/library</p>
         <h1 className="mt-4 text-display font-black uppercase stretch-125">Library</h1>
         <div className="mt-5 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <p className="max-w-xl text-ash">
-            The reading room behind the archive: the idea lenses this work grows from, the
-            method it runs on, and every engineering decision on record — mirrored daily from
-            where the documents actually live, provenance attached.
+            The source documents behind the archive: working lenses, operating guides, and the
+            engineering decisions that made the projects necessary.
           </p>
           <p className="shrink-0 font-mono text-label tracking-[0.18em] text-dim uppercase md:text-right">
             {shelved} on the shelf · {adrCount} decision records
@@ -82,136 +166,68 @@ export default function LibraryPage() {
         <SearchEntry />
       </header>
 
-      {/* ── the editor's picks ── */}
-      {featured.length > 0 && (
-        <section className="mb-4">
-          <div className="grid gap-px border-y border-line bg-line/40 sm:grid-cols-3">
-            {featured.map((d) => (
-              <Link
-                key={d.urlPath}
-                href={`/library/${d.urlPath}`}
-                className="group block bg-void px-5 py-6 transition-colors duration-300 hover:bg-panel md:px-8"
-              >
-                <p className="font-mono text-label tracking-[0.18em] text-dim uppercase">
-                  {d.collection}
-                </p>
-                <p className="mt-2 font-semibold text-bone group-hover:underline group-hover:underline-offset-4">
-                  {d.title}
-                </p>
-                <p className="mt-2 text-[0.92rem] leading-relaxed text-ash line-clamp-3">
-                  {d.summary}
-                </p>
-              </Link>
-            ))}
+      {howIWork && <ShelfSection shelf={howIWork} number="01" />}
+
+      {decisions.length > 0 && (
+        <section className="border-t border-line px-5 py-16 md:px-10 md:py-20" aria-labelledby="library-decisions">
+          <SectionHead
+            number="02"
+            title="Decisions"
+            note="Read in the project that made them necessary"
+            id="library-decisions"
+          />
+          <div className="border-y border-line">
+            {decisions.map((group) => {
+              const project = projectByRepo.get(group.repo);
+              const label = project?.title ?? group.repo;
+              const latest = group.docs.slice(-3).reverse();
+              return (
+                <article
+                  key={group.repo}
+                  className="grid gap-6 border-b border-line py-8 last:border-b-0 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-10"
+                >
+                  <div>
+                    <h3 className="text-[1.05rem] font-semibold text-bone">{label}</h3>
+                    <p className="mt-3 font-mono text-mono-sm tracking-[0.1em] text-dim">
+                      {group.docs.length} decision records
+                    </p>
+                    <p className="mt-2 font-mono text-label tracking-[0.18em] text-dim uppercase">
+                      latest {latest.length} of {group.docs.length}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <ul className="space-y-2">
+                      {latest.map((d) => (
+                        <li key={d.urlPath}>
+                          <Link
+                            href={`/library/${d.urlPath}`}
+                            className="text-[0.92rem] leading-relaxed text-ash underline-offset-4 hover:text-bone hover:underline"
+                          >
+                            {d.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {project && (
+                      <Link
+                        href={`/projects/${project.slug}#decision-records`}
+                        className="mt-5 inline-block font-mono text-label tracking-[0.2em] text-bone uppercase underline-offset-4 hover:underline"
+                      >
+                        See all decisions in the {label} dossier →
+                      </Link>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* ── the shelves — listed collections, series folded ── */}
-      {shelves.map((shelf) => (
-        <section key={shelf.id} className="mb-4">
-          <p className="border-t border-line px-5 pt-6 pb-2 font-mono text-label tracking-[0.2em] text-dim uppercase md:px-10">
-            {shelf.label}
-          </p>
-          <ul>
-            {shelf.entries.map((e) => (
-              <li key={e.doc.urlPath}>
-                <Link
-                  href={`/library/${e.doc.urlPath}`}
-                  className="group block border-t border-line/60 px-5 py-5 transition-colors duration-300 hover:bg-panel md:px-10"
-                >
-                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    {e.series && (
-                      <span className="font-mono text-label tracking-[0.18em] text-dim uppercase">
-                        series
-                      </span>
-                    )}
-                    <span className="font-semibold text-bone group-hover:underline group-hover:underline-offset-4">
-                      {e.series ? `${e.series.label} — current: ${e.doc.title}` : e.doc.title}
-                    </span>
-                    <Badges d={e.doc} />
-                  </div>
-                  {e.doc.summary && (
-                    <p className="mt-1 max-w-3xl text-[0.95rem] leading-relaxed text-ash">
-                      {e.doc.summary}
-                    </p>
-                  )}
-                  <Stamp d={e.doc} />
-                </Link>
-                {e.series && e.series.history.length > 0 && (
-                  <p className="border-t border-line/40 px-5 pb-4 pt-2 font-mono text-mono-sm text-dim md:px-10">
-                    earlier lenses:{" "}
-                    {e.series.history.map((h, i) => (
-                      <span key={h.urlPath}>
-                        {i > 0 && " · "}
-                        <Link
-                          href={`/library/${h.urlPath}`}
-                          className="text-ash underline-offset-4 hover:underline"
-                        >
-                          {h.title}
-                        </Link>
-                      </span>
-                    ))}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {remainingShelves.map((shelf, index) => (
+        <ShelfSection key={shelf.id} shelf={shelf} number={String(index + 3).padStart(2, "0")} />
       ))}
 
-      {/* ── decision records — every agent's ADRs, one collapsed shelf ── */}
-      {decisions.length > 0 && (
-        <details className="group/decisions border-t border-line">
-          <summary className="cursor-pointer list-none px-5 py-6 font-mono text-label tracking-[0.2em] text-dim uppercase transition-colors duration-300 hover:text-ash md:px-10">
-            <span aria-hidden className="mr-3 inline-block transition-transform duration-300 group-open/decisions:rotate-90">
-              ▸
-            </span>
-            Decision records — {adrCount} ADRs across{" "}
-            {decisions.map((g) => `${g.repo} ${g.docs.length}`).join(" · ")}
-            <span className="ml-3 normal-case tracking-normal text-dim">
-              (each also lives on its project&apos;s dossier)
-            </span>
-          </summary>
-          {decisions.map((g) => (
-            <div key={g.repo}>
-              <p className="border-t border-line/60 px-5 pt-4 pb-1 font-mono text-label tracking-[0.18em] text-ash uppercase md:px-10">
-                {projectOf.has(g.repo) ? (
-                  <Link
-                    href={`/projects/${projectOf.get(g.repo)}`}
-                    className="hover:underline hover:underline-offset-4"
-                  >
-                    {g.repo}
-                  </Link>
-                ) : (
-                  g.repo
-                )}
-              </p>
-              <ul className="pb-3">
-                {g.docs.map((d) => (
-                  <li key={d.urlPath}>
-                    <Link
-                      href={`/library/${d.urlPath}`}
-                      className="group flex flex-wrap items-baseline gap-x-4 gap-y-0.5 px-5 py-1.5 transition-colors duration-150 hover:bg-panel md:px-10"
-                    >
-                      <span className="text-[0.95rem] text-bone/85 group-hover:underline group-hover:underline-offset-4">
-                        {d.title}
-                      </span>
-                      {d.status && (
-                        <span className="font-mono text-label tracking-[0.14em] text-dim uppercase">
-                          {d.status}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </details>
-      )}
-
-      {/* the hidden shelf — renders only where the operator API answers */}
       <OperatorPanel />
     </div>
   );
