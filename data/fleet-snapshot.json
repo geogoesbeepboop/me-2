@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-07-16T13:45:07.489Z",
+  "generatedAt": "2026-07-17T14:00:01.767Z",
   "windowHours": 24,
   "agents": [
     {
@@ -36,8 +36,80 @@
       "dirty": 2,
       "state": "waiting",
       "stateDetail": "stopped mid-work — last event was a tool result",
-      "lastActiveAt": "2026-07-15T20:06:35.874Z",
+      "lastActiveAt": "2026-07-16T20:48:15.109Z",
       "sessions": [
+        {
+          "id": "ad763ec7-3a72-487c-aa55-abce2dd79e06",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "silly-dijkstra-efb1cf",
+          "branch": "claude/silly-dijkstra-efb1cf",
+          "startedAt": "2026-07-04T21:27:18.560Z",
+          "lastActiveAt": "2026-07-16T20:48:15.109Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 293,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 72,
+            "edits": 15,
+            "filesTouched": 11,
+            "commands": 39,
+            "reads": 16,
+            "testRuns": 9,
+            "operateRuns": 0,
+            "activeMinutes": 19
+          }
+        },
+        {
+          "id": "96a529b1-eb2f-448e-a9b6-bcb2cc84cdcf",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-07-06T17:30:10.008Z",
+          "lastActiveAt": "2026-07-16T20:47:51.922Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 31,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 5,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 4,
+            "reads": 1,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 2
+          }
+        },
+        {
+          "id": "5f9309bf-288f-4075-8297-9cffda8f9631",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-07-08T01:52:11.909Z",
+          "lastActiveAt": "2026-07-16T19:29:00.454Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 139,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 35,
+            "edits": 2,
+            "filesTouched": 2,
+            "commands": 28,
+            "reads": 1,
+            "testRuns": 4,
+            "operateRuns": 5,
+            "activeMinutes": 10,
+            "operateUnits": {
+              "seller run": 5
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/11",
+          "prNumber": 11
+        },
         {
           "id": "838ade23-12d0-418d-898e-b6a7f033c081",
           "title": "untitled session",
@@ -46,8 +118,8 @@
           "branch": "claude/quirky-bhabha-8e1bbb",
           "startedAt": "2026-07-02T18:03:35.544Z",
           "lastActiveAt": "2026-07-15T20:06:35.874Z",
-          "state": "waiting",
-          "stateDetail": "stopped mid-work — last event was a tool result",
+          "state": "parked",
+          "stateDetail": "no activity for a day",
           "events": 500,
           "subagents": 0,
           "work": {
@@ -73,8 +145,8 @@
           "branch": "main",
           "startedAt": "2026-07-08T04:49:25.834Z",
           "lastActiveAt": "2026-07-15T18:32:39.120Z",
-          "state": "waiting",
-          "stateDetail": "turn finished — a human decides next",
+          "state": "parked",
+          "stateDetail": "no activity for a day",
           "events": 236,
           "subagents": 2,
           "work": {
@@ -97,7 +169,7 @@
           "startedAt": "2026-07-14T17:14:17.616Z",
           "lastActiveAt": "2026-07-15T02:03:42.812Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 2 days",
           "events": 506,
           "subagents": 3,
           "work": {
@@ -124,7 +196,7 @@
           "startedAt": "2026-07-14T17:57:54.295Z",
           "lastActiveAt": "2026-07-14T17:58:11.683Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 2 days",
           "events": 6,
           "subagents": 0,
           "work": {
@@ -147,7 +219,7 @@
           "startedAt": "2026-07-04T16:05:00.016Z",
           "lastActiveAt": "2026-07-14T17:51:54.005Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 2 days",
           "events": 445,
           "subagents": 1,
           "work": {
@@ -170,7 +242,7 @@
           "startedAt": "2026-07-03T21:27:59.620Z",
           "lastActiveAt": "2026-07-14T17:13:03.891Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 2 days",
           "events": 551,
           "subagents": 0,
           "work": {
@@ -199,7 +271,7 @@
           "startedAt": "2026-07-10T09:56:09.773Z",
           "lastActiveAt": "2026-07-13T21:29:09.214Z",
           "state": "parked",
-          "stateDetail": "no activity for 2 days",
+          "stateDetail": "no activity for 3 days",
           "events": 328,
           "subagents": 13,
           "work": {
@@ -226,7 +298,7 @@
           "startedAt": "2026-06-29T02:29:45.292Z",
           "lastActiveAt": "2026-07-13T15:24:44.415Z",
           "state": "parked",
-          "stateDetail": "no activity for 2 days",
+          "stateDetail": "no activity for 3 days",
           "events": 70,
           "subagents": 1,
           "work": {
@@ -249,7 +321,7 @@
           "startedAt": "2026-07-13T15:23:25.559Z",
           "lastActiveAt": "2026-07-13T15:24:42.884Z",
           "state": "parked",
-          "stateDetail": "no activity for 2 days",
+          "stateDetail": "no activity for 3 days",
           "events": 22,
           "subagents": 0,
           "work": {
@@ -261,85 +333,6 @@
             "testRuns": 0,
             "operateRuns": 0,
             "activeMinutes": 1
-          }
-        },
-        {
-          "id": "913f76c8-3715-4bf9-89e5-9edf46ba7f21",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "sweet-chatterjee-04e00e",
-          "branch": "claude/sweet-chatterjee-04e00e",
-          "startedAt": "2026-07-02T19:31:36.376Z",
-          "lastActiveAt": "2026-07-13T04:42:48.444Z",
-          "state": "parked",
-          "stateDetail": "no activity for 3 days",
-          "events": 760,
-          "subagents": 7,
-          "work": {
-            "toolCalls": 227,
-            "edits": 99,
-            "filesTouched": 47,
-            "commands": 45,
-            "reads": 38,
-            "testRuns": 15,
-            "operateRuns": 3,
-            "activeMinutes": 87,
-            "operateUnits": {
-              "memo": 1,
-              "market op": 2
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/7",
-          "prNumber": 7
-        },
-        {
-          "id": "e57ba757-940f-40ac-ba10-9bdc9d2065d9",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-06-28T21:04:10.019Z",
-          "lastActiveAt": "2026-07-10T01:19:44.003Z",
-          "state": "parked",
-          "stateDetail": "no activity for 6 days",
-          "events": 1130,
-          "subagents": 4,
-          "work": {
-            "toolCalls": 300,
-            "edits": 128,
-            "filesTouched": 50,
-            "commands": 100,
-            "reads": 64,
-            "testRuns": 37,
-            "operateRuns": 4,
-            "activeMinutes": 117,
-            "operateUnits": {
-              "memo": 3,
-              "seller run": 1
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/3",
-          "prNumber": 3
-        },
-        {
-          "id": "ad7c3b83-83a9-4748-81eb-539012fafb75",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-07-08T07:29:06.891Z",
-          "lastActiveAt": "2026-07-09T20:31:27.967Z",
-          "state": "parked",
-          "stateDetail": "no activity for 6 days",
-          "events": 108,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 24,
-            "edits": 9,
-            "filesTouched": 4,
-            "commands": 9,
-            "reads": 5,
-            "testRuns": 2,
-            "operateRuns": 0,
-            "activeMinutes": 23
           }
         }
       ],
@@ -385,7 +378,7 @@
       "branch": "clap-first-rescope",
       "dirty": 4,
       "state": "parked",
-      "stateDetail": "no activity for a day",
+      "stateDetail": "no activity for 2 days",
       "lastActiveAt": "2026-07-15T01:13:04.767Z",
       "sessions": [
         {
@@ -396,7 +389,7 @@
           "startedAt": "2026-06-11T09:55:58.904Z",
           "lastActiveAt": "2026-07-15T01:13:04.767Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 2 days",
           "events": 567,
           "subagents": 2,
           "work": {
@@ -418,7 +411,7 @@
           "startedAt": "2026-06-11T00:29:30.967Z",
           "lastActiveAt": "2026-07-10T09:38:36.794Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 613,
           "subagents": 0,
           "work": {
@@ -446,7 +439,7 @@
           "startedAt": "2026-06-10T20:59:35.777Z",
           "lastActiveAt": "2026-07-10T01:21:54.021Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 424,
           "subagents": 0,
           "work": {
@@ -473,7 +466,7 @@
           "startedAt": "2026-06-11T02:35:02.826Z",
           "lastActiveAt": "2026-07-10T01:21:12.986Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 335,
           "subagents": 2,
           "work": {
@@ -529,7 +522,7 @@
       "branch": "main",
       "dirty": 60,
       "state": "parked",
-      "stateDetail": "no activity for 3 days",
+      "stateDetail": "no activity for 4 days",
       "lastActiveAt": "2026-07-12T19:02:05.248Z",
       "sessions": [
         {
@@ -541,7 +534,7 @@
           "startedAt": "2026-06-09T23:21:06.245Z",
           "lastActiveAt": "2026-07-12T19:02:05.248Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 16,
           "subagents": 0,
           "work": {
@@ -635,8 +628,8 @@
       ],
       "branch": "main",
       "dirty": 2,
-      "state": "waiting",
-      "stateDetail": "stopped mid-work — last event was a tool result",
+      "state": "parked",
+      "stateDetail": "no activity for a day",
       "lastActiveAt": "2026-07-15T20:06:34.728Z",
       "sessions": [
         {
@@ -646,8 +639,8 @@
           "branch": "main",
           "startedAt": "2026-07-06T16:22:41.644Z",
           "lastActiveAt": "2026-07-15T20:06:34.728Z",
-          "state": "waiting",
-          "stateDetail": "stopped mid-work — last event was a tool result",
+          "state": "parked",
+          "stateDetail": "no activity for a day",
           "events": 546,
           "subagents": 6,
           "work": {
@@ -672,7 +665,7 @@
           "startedAt": "2026-07-12T19:26:54.966Z",
           "lastActiveAt": "2026-07-14T02:07:40.649Z",
           "state": "parked",
-          "stateDetail": "no activity for 2 days",
+          "stateDetail": "no activity for 3 days",
           "events": 77,
           "subagents": 1,
           "work": {
@@ -694,7 +687,7 @@
           "startedAt": "2026-06-26T04:37:20.797Z",
           "lastActiveAt": "2026-07-12T19:40:37.807Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 701,
           "subagents": 2,
           "work": {
@@ -717,7 +710,7 @@
           "startedAt": "2026-07-10T09:39:54.670Z",
           "lastActiveAt": "2026-07-12T19:38:10.130Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 321,
           "subagents": 4,
           "work": {
@@ -739,7 +732,7 @@
           "startedAt": "2026-06-10T15:48:28.355Z",
           "lastActiveAt": "2026-07-12T19:27:00.562Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 357,
           "subagents": 0,
           "work": {
@@ -763,7 +756,7 @@
           "startedAt": "2026-06-11T06:03:06.605Z",
           "lastActiveAt": "2026-07-12T18:56:09.265Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 166,
           "subagents": 0,
           "work": {
@@ -786,7 +779,7 @@
           "startedAt": "2026-07-12T16:46:53.407Z",
           "lastActiveAt": "2026-07-12T17:03:48.383Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 12,
           "subagents": 0,
           "work": {
@@ -809,7 +802,7 @@
           "startedAt": "2026-07-12T16:31:09.614Z",
           "lastActiveAt": "2026-07-12T16:46:51.324Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 24,
           "subagents": 0,
           "work": {
@@ -832,7 +825,7 @@
           "startedAt": "2026-07-12T16:14:41.817Z",
           "lastActiveAt": "2026-07-12T16:31:08.271Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 18,
           "subagents": 0,
           "work": {
@@ -855,7 +848,7 @@
           "startedAt": "2026-07-12T15:58:29.900Z",
           "lastActiveAt": "2026-07-12T16:14:40.269Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 12,
           "subagents": 0,
           "work": {
@@ -878,7 +871,7 @@
           "startedAt": "2026-07-12T15:41:31.656Z",
           "lastActiveAt": "2026-07-12T15:58:28.688Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 12,
           "subagents": 0,
           "work": {
@@ -901,7 +894,7 @@
           "startedAt": "2026-07-12T14:47:48.703Z",
           "lastActiveAt": "2026-07-12T15:41:30.292Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 17,
           "subagents": 0,
           "work": {
@@ -918,24 +911,14 @@
       ],
       "commits": [
         {
-          "hash": "33b7127a50eaacaf79e16d1de2b291974c3b8e62",
-          "shortHash": "33b7127",
-          "subject": "library: mirror the stacks (2026-07-15 07:13)",
-          "at": "2026-07-15T07:13:09-07:00",
+          "hash": "ad8ac10624c2fffc621e0e30c4f7d759073a8cf7",
+          "shortHash": "ad8ac10",
+          "subject": "library: mirror the stacks (2026-07-16 07:00)",
+          "at": "2026-07-16T07:00:10-07:00",
           "files": 8,
           "ins": 2537,
           "del": 742,
-          "refs": "origin/site/library-sync-20260715"
-        },
-        {
-          "hash": "068d75b25ae147f8d8126e56f8860724f0e7c42c",
-          "shortHash": "068d75b",
-          "subject": "ops: file the fleet report (2026-07-15 06:58)",
-          "at": "2026-07-15T06:58:51-07:00",
-          "files": 1,
-          "ins": 191,
-          "del": 206,
-          "refs": "origin/main, origin/HEAD"
+          "refs": "origin/site/library-sync-20260716"
         }
       ]
     }
