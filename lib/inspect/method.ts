@@ -483,8 +483,8 @@ run jim-eval run --suite offline --compare-baseline --label nightly`,
   },
 
   night: {
-    path: "launchd — 06:17 · 06:45 · sun 07:15",
-    note: "the three agents that run the loop while I sleep — digest, report, curator",
+    path: "launchd — 06:17 · 06:45 · 07:00 · sun 07:15",
+    note: "the four agents that run the loop while I sleep — digest, report, library mirror, curator",
     files: [
       {
         path: "~/dev/scripts/nightly-gate-digest.sh",
@@ -525,6 +525,26 @@ git -C "$PAD" push origin HEAD:main
 # content-scope allowlist all pass. The model writes; code decides what ships.
 node scripts/check-content.mjs || GATES_OK=0
 npm run build >/dev/null 2>&1 || GATES_OK=0`,
+      },
+      {
+        path: "me-2/scripts/library-sync.sh",
+        lang: "bash",
+        note: "the mirrored docs re-sync daily at 07:00 — a copy, not a judgment; same deterministic triple gate, no model in the loop",
+        excerpt: `# library-sync.sh — the stacks mirror themselves, daily.
+# Scheduled at 07:00 — after the gate digest (06:17) and the ops report
+# (06:45), so the morning's publishing rhythm is digest → report → library.
+# Publishes through its own detached worktree pinned to origin/main
+# (~/dev/me-2--library), separate from the reports pad so the two daily
+# automations can never race.
+
+# Autonomy (George, 2026-07-09): pushes straight to main behind the same
+# deterministic triple gate the curator earned —
+#   1. content check (node scripts/check-content.mjs — includes the
+#      library integrity check)
+#   2. production build (npm run build)
+#   3. diff scope: content/library/** only
+# Any gate red → parked on site/library-sync-<date>. No model in the loop;
+# the mirror is a copy, not a judgment.`,
       },
     ],
   },

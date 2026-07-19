@@ -105,7 +105,14 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       { token: "grocery-buddy scraper-health", unit: "scraper probe" },
       { token: "grocery-buddy gate", unit: "gate check" },
     ],
-    verify: ["make test", "make evals", "grocery-buddy evals", "ruff", "gate.sh", "evals.sh"],
+    verify: [
+      "make test",
+      "make evals",
+      "grocery-buddy evals",
+      "ruff",
+      "gate.sh",
+      "evals.sh",
+    ],
     metrics: [
       { k: "test fns", v: "124" },
       { k: "orders placed", v: "0" },
@@ -149,7 +156,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       { token: "workflows.worker", unit: "worker run" },
       { token: "webhook.app", unit: "auth endpoint" },
     ],
-    verify: ["ruff", "gate.sh", "evals.sh"],
+    verify: ["ruff", "gate.sh"],
     metrics: [
       { k: "tests", v: "57" },
       { k: "auto-spend cap", v: "$50", gate: true, money: true },

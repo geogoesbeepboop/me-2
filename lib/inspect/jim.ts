@@ -17,10 +17,28 @@ export const JIM: InspectMap = {
         title: "How an agent buys a tool call",
         states: [
           { id: "call", label: "mcp tool call", col: 0, row: 0 },
-          { id: "pay402", label: "402 payment required", col: 1, row: 0, kind: "gate" },
+          {
+            id: "pay402",
+            label: "402 payment required",
+            col: 1,
+            row: 0,
+            kind: "gate",
+          },
           { id: "pay", label: "buyer pays usdc", col: 2, row: 0 },
-          { id: "settle", label: "facilitator settles", col: 3, row: 0, kind: "gate" },
-          { id: "result", label: "research returned", col: 3, row: 1, kind: "terminal" },
+          {
+            id: "settle",
+            label: "facilitator settles",
+            col: 3,
+            row: 0,
+            kind: "gate",
+          },
+          {
+            id: "result",
+            label: "research returned",
+            col: 3,
+            row: 1,
+            kind: "terminal",
+          },
         ],
         transitions: [
           { from: "call", to: "pay402" },
@@ -66,19 +84,49 @@ export const JIM: InspectMap = {
       {
         kind: "flow",
         title: "The counter, per request",
-        caption: "the chain guard refuses before payment; the facilitator verifies before the engine runs",
+        caption:
+          "the chain guard refuses before payment; the facilitator verifies before the engine runs",
         states: [
           { id: "req", label: "request", col: 0, row: 0 },
-          { id: "chain", label: "call-chain guard", col: 1, row: 0, kind: "gate" },
+          {
+            id: "chain",
+            label: "call-chain guard",
+            col: 1,
+            row: 0,
+            kind: "gate",
+          },
           { id: "px", label: "402 challenge", col: 2, row: 0 },
-          { id: "verify", label: "facilitator verify", col: 3, row: 0, kind: "gate" },
+          {
+            id: "verify",
+            label: "facilitator verify",
+            col: 3,
+            row: 0,
+            kind: "gate",
+          },
           { id: "run", label: "route runs", col: 4, row: 0 },
-          { id: "settle", label: "settle → receipt", col: 4, row: 1, kind: "terminal" },
-          { id: "refuse", label: "409 · unpaid", col: 1, row: 1, kind: "terminal" },
+          {
+            id: "settle",
+            label: "settle → receipt",
+            col: 4,
+            row: 1,
+            kind: "terminal",
+          },
+          {
+            id: "refuse",
+            label: "409 · unpaid",
+            col: 1,
+            row: 1,
+            kind: "terminal",
+          },
         ],
         transitions: [
           { from: "req", to: "chain" },
-          { from: "chain", to: "refuse", label: "loop or depth > 4", dashed: true },
+          {
+            from: "chain",
+            to: "refuse",
+            label: "loop or depth > 4",
+            dashed: true,
+          },
           { from: "chain", to: "px", label: "clean chain" },
           { from: "px", to: "verify", label: "signed payment" },
           { from: "verify", to: "run", label: "verified" },
@@ -152,8 +200,14 @@ export const JIM: InspectMap = {
         kind: "kv",
         title: "what GET /proof shows",
         items: [
-          { k: "settlements", v: "count · total USDC · 15 most recent receipts" },
-          { k: "verification", v: "gate pass-rate · refused runs · refused-not-billed $" },
+          {
+            k: "settlements",
+            v: "count · total USDC · 15 most recent receipts",
+          },
+          {
+            k: "verification",
+            v: "gate pass-rate · refused runs · refused-not-billed $",
+          },
           { k: "refusals", v: "recent gate rejections, last 500 runs" },
           { k: "trust", v: "per-source laplace scores, sorted" },
         ],
@@ -231,7 +285,8 @@ export const JIM: InspectMap = {
           depth: 0,
           start: 9100,
           dur: 7300,
-          detail: "claude-sonnet-4-6 · cached system · 14 figures, 14 citations",
+          detail:
+            "claude-sonnet-4-6 · cached system · 14 figures, 14 citations",
         },
         {
           name: "sourcing gate",
@@ -239,7 +294,8 @@ export const JIM: InspectMap = {
           depth: 0,
           start: 16450,
           dur: 40,
-          detail: "deterministic · 14/14 figures match cited facts · 0 violations",
+          detail:
+            "deterministic · 14/14 figures match cited facts · 0 violations",
         },
         {
           name: "faithfulness judge",
@@ -278,17 +334,73 @@ export const JIM: InspectMap = {
       {
         kind: "graph",
         title: "Where the facts actually come from",
-        caption: "every value keeps its provenance — free sources go straight to facts; money moves only through procure()",
+        caption:
+          "every value keeps its provenance — free sources go straight to facts; money moves only through procure()",
         nodes: [
-          { id: "edgar", label: "SEC EDGAR", sub: "xbrl companyfacts · 15 concepts", col: 0, row: 0 },
-          { id: "yahoo", label: "Yahoo Finance", sub: "price · sma · rsi · macd", col: 1, row: 0 },
-          { id: "macro", label: "US macro", sub: "effr · cpi · 2y/10y treasuries", col: 2, row: 0 },
-          { id: "thegraph", label: "The Graph", sub: "uniswap v3 · 4 chains · paid", col: 3, row: 0 },
-          { id: "peers", label: "Peer agents", sub: "x402 · trust ≥ 0.4", col: 4, row: 0 },
-          { id: "procure", label: "procure()", sub: "cache → budget → buy", col: 3, row: 1, accent: true },
-          { id: "facts", label: "Fact objects", sub: "value · unit · [C#] · source_url", col: 1, row: 2 },
-          { id: "derived", label: "compute_derived", sub: "margins · roe · ebitda — 7 formulas", col: 2, row: 2 },
-          { id: "snapshot", label: "Snapshot", sub: "sha256 fingerprint", col: 3, row: 2 },
+          {
+            id: "edgar",
+            label: "SEC EDGAR",
+            sub: "xbrl companyfacts · 15 concepts",
+            col: 0,
+            row: 0,
+          },
+          {
+            id: "yahoo",
+            label: "Yahoo Finance",
+            sub: "price · sma · rsi · macd",
+            col: 1,
+            row: 0,
+          },
+          {
+            id: "macro",
+            label: "US macro",
+            sub: "effr · cpi · 2y/10y treasuries",
+            col: 2,
+            row: 0,
+          },
+          {
+            id: "thegraph",
+            label: "The Graph",
+            sub: "uniswap v3 · 4 chains · paid",
+            col: 3,
+            row: 0,
+          },
+          {
+            id: "peers",
+            label: "Peer agents",
+            sub: "x402 · trust ≥ 0.4",
+            col: 4,
+            row: 0,
+          },
+          {
+            id: "procure",
+            label: "procure()",
+            sub: "cache → budget → buy",
+            col: 3,
+            row: 1,
+            accent: true,
+          },
+          {
+            id: "facts",
+            label: "Fact objects",
+            sub: "value · unit · [C#] · source_url",
+            col: 1,
+            row: 2,
+          },
+          {
+            id: "derived",
+            label: "compute_derived",
+            sub: "margins · roe · ebitda — 7 formulas",
+            col: 2,
+            row: 2,
+          },
+          {
+            id: "snapshot",
+            label: "Snapshot",
+            sub: "sha256 fingerprint",
+            col: 3,
+            row: 2,
+          },
         ],
         edges: [
           { from: "edgar", to: "facts", label: "10-K values + accession" },
@@ -328,7 +440,10 @@ export const JIM: InspectMap = {
         items: [
           { k: "purchase cache ttl", v: "86,400 s" },
           { k: "cache hit cost", v: "$0.00", accent: true },
-          { k: "derived facts", v: "carry formula + parent [C#]s, never a source" },
+          {
+            k: "derived facts",
+            v: "carry formula + parent [C#]s, never a source",
+          },
         ],
       },
       {
@@ -350,7 +465,13 @@ export const JIM: InspectMap = {
           { id: "bull", label: "bull analyst", col: 1, row: 0 },
           { id: "bear", label: "bear analyst", col: 1, row: 1 },
           { id: "judge", label: "judge", col: 2, row: 0 },
-          { id: "out", label: "net assessment", col: 3, row: 0, kind: "terminal" },
+          {
+            id: "out",
+            label: "net assessment",
+            col: 3,
+            row: 0,
+            kind: "terminal",
+          },
         ],
         transitions: [
           { from: "facts", to: "bull", label: "same facts" },
@@ -387,20 +508,69 @@ export const JIM: InspectMap = {
       {
         kind: "graph",
         title: "The context, as assembled",
-        caption: "five inputs, one call — the gate-feedback lane exists only on a retry",
+        caption:
+          "five inputs, one call — the gate-feedback lane exists only on a retry",
         nodes: [
-          { id: "facts", label: "facts_block", sub: "every fact, [C#]-tagged", col: 0, row: 0 },
-          { id: "debate", label: "debate verdict", sub: "the judge's net assessment", col: 1, row: 0 },
-          { id: "feedback", label: "gate feedback", sub: "violations from attempt n−1", col: 2, row: 0 },
-          { id: "mode", label: "mode directive", sub: "human · agent", col: 3, row: 0 },
-          { id: "system", label: "hard-rules prompt", sub: "5 rules · cached", col: 1, row: 1, accent: true },
-          { id: "model", label: "claude-sonnet-4-6", sub: "max 1500 tokens", col: 2, row: 1 },
-          { id: "memo", label: "the memo", sub: "prose · every figure cited", col: 2, row: 2 },
+          {
+            id: "facts",
+            label: "facts_block",
+            sub: "every fact, [C#]-tagged",
+            col: 0,
+            row: 0,
+          },
+          {
+            id: "debate",
+            label: "debate verdict",
+            sub: "the judge's net assessment",
+            col: 1,
+            row: 0,
+          },
+          {
+            id: "feedback",
+            label: "gate feedback",
+            sub: "violations from attempt n−1",
+            col: 2,
+            row: 0,
+          },
+          {
+            id: "mode",
+            label: "mode directive",
+            sub: "human · agent",
+            col: 3,
+            row: 0,
+          },
+          {
+            id: "system",
+            label: "hard-rules prompt",
+            sub: "5 rules · cached",
+            col: 1,
+            row: 1,
+            accent: true,
+          },
+          {
+            id: "model",
+            label: "claude-sonnet-4-6",
+            sub: "max 1500 tokens",
+            col: 2,
+            row: 1,
+          },
+          {
+            id: "memo",
+            label: "the memo",
+            sub: "prose · every figure cited",
+            col: 2,
+            row: 2,
+          },
         ],
         edges: [
           { from: "facts", to: "model", label: "verbatim, never summarized" },
           { from: "debate", to: "model" },
-          { from: "feedback", to: "model", label: "retry ≤ 2 only", dashed: true },
+          {
+            from: "feedback",
+            to: "model",
+            label: "retry ≤ 2 only",
+            dashed: true,
+          },
           { from: "mode", to: "model" },
           { from: "system", to: "model", label: "cached across calls" },
           { from: "model", to: "memo" },
@@ -454,11 +624,32 @@ export const JIM: InspectMap = {
         kind: "steps",
         title: "check_sourcing — per memo segment",
         items: [
-          { name: "extract ranges", tag: "gate", detail: "“$1.2–1.4 billion” → both endpoints" },
-          { name: "extract marked figures", tag: "gate", detail: "$ · % · × · word scales (“five billion”) · 5B suffixes · scientific notation" },
-          { name: "extract anchored decimals", tag: "gate", detail: "bare decimals sitting before a [C#] — RSI, ratios" },
-          { name: "check units", tag: "gate", detail: "a dollar figure can never match a percentage fact" },
-          { name: "match values", tag: "gate", detail: "against the facts the segment's citations point to" },
+          {
+            name: "extract ranges",
+            tag: "gate",
+            detail: "“$1.2–1.4 billion” → both endpoints",
+          },
+          {
+            name: "extract marked figures",
+            tag: "gate",
+            detail:
+              "$ · % · × · word scales (“five billion”) · 5B suffixes · scientific notation",
+          },
+          {
+            name: "extract anchored decimals",
+            tag: "gate",
+            detail: "bare decimals sitting before a [C#] — RSI, ratios",
+          },
+          {
+            name: "check units",
+            tag: "gate",
+            detail: "a dollar figure can never match a percentage fact",
+          },
+          {
+            name: "match values",
+            tag: "gate",
+            detail: "against the facts the segment's citations point to",
+          },
         ],
       },
       {
@@ -485,7 +676,8 @@ export const JIM: InspectMap = {
           },
           {
             name: "phantom citation = violation",
-            detail: "a [C#] pointing at a fact that doesn't exist is itself a violation.",
+            detail:
+              "a [C#] pointing at a fact that doesn't exist is itself a violation.",
             fail: true,
           },
         ],
@@ -505,9 +697,21 @@ export const JIM: InspectMap = {
         kind: "steps",
         title: "The faithfulness check",
         items: [
-          { name: "facts + memo in", tag: "io", detail: "the full fact set and the gated memo" },
-          { name: "haiku audits", tag: "model", detail: "JSON only: score 0–1, supported, issues" },
-          { name: "threshold", tag: "gate", detail: "passed = score ≥ judge_threshold (0.8 in config)" },
+          {
+            name: "facts + memo in",
+            tag: "io",
+            detail: "the full fact set and the gated memo",
+          },
+          {
+            name: "haiku audits",
+            tag: "model",
+            detail: "JSON only: score 0–1, supported, issues",
+          },
+          {
+            name: "threshold",
+            tag: "gate",
+            detail: "passed = score ≥ judge_threshold (0.8 in config)",
+          },
         ],
       },
       {
@@ -538,15 +742,28 @@ export const JIM: InspectMap = {
       {
         kind: "flow",
         title: "One peer purchase",
-        caption: "identical pipeline to The Graph — trust checked before any money moves",
+        caption:
+          "identical pipeline to The Graph — trust checked before any money moves",
         states: [
           { id: "want", label: "gather wants a fact", col: 0, row: 0 },
           { id: "trust", label: "trust ≥ 0.4?", col: 1, row: 0, kind: "gate" },
-          { id: "budget", label: "budget propose", col: 2, row: 0, kind: "gate" },
+          {
+            id: "budget",
+            label: "budget propose",
+            col: 2,
+            row: 0,
+            kind: "gate",
+          },
           { id: "cache", label: "cache?", col: 3, row: 0 },
           { id: "buy", label: "resilient x402 buy", col: 4, row: 0 },
           { id: "record", label: "recorded", col: 4, row: 1, kind: "terminal" },
-          { id: "refused", label: "refused · $0", col: 1, row: 1, kind: "terminal" },
+          {
+            id: "refused",
+            label: "refused · $0",
+            col: 1,
+            row: 1,
+            kind: "terminal",
+          },
         ],
         transitions: [
           { from: "want", to: "trust" },
@@ -602,14 +819,33 @@ export const JIM: InspectMap = {
       {
         kind: "flow",
         title: "The memo cache short-circuit",
-        caption: "a cached memo is re-gated before it's served — never trusted on age alone",
+        caption:
+          "a cached memo is re-gated before it's served — never trusted on age alone",
         states: [
           { id: "req", label: "paid request", col: 0, row: 0 },
           { id: "cache", label: "memo cache", col: 1, row: 0, kind: "gate" },
-          { id: "recheck", label: "gate re-check", col: 2, row: 0, kind: "gate" },
-          { id: "serve", label: "served · $0 inference", col: 3, row: 0, kind: "terminal" },
+          {
+            id: "recheck",
+            label: "gate re-check",
+            col: 2,
+            row: 0,
+            kind: "gate",
+          },
+          {
+            id: "serve",
+            label: "served · $0 inference",
+            col: 3,
+            row: 0,
+            kind: "terminal",
+          },
           { id: "run", label: "full pipeline", col: 1, row: 1 },
-          { id: "store", label: "stored · ttl", col: 2, row: 1, kind: "terminal" },
+          {
+            id: "store",
+            label: "stored · ttl",
+            col: 2,
+            row: 1,
+            kind: "terminal",
+          },
         ],
         transitions: [
           { from: "req", to: "cache" },
@@ -662,7 +898,10 @@ export const JIM: InspectMap = {
         items: [
           { k: "interval", v: "86,400 s" },
           { k: "cooldown", v: "21,600 s per signal" },
-          { k: "triggers", v: "{pct: 5.0} price · {pct: 10.0} metric · rsi 70/30" },
+          {
+            k: "triggers",
+            v: "{pct: 5.0} price · {pct: 10.0} metric · rsi 70/30",
+          },
           { k: "models involved in detection", v: "0", accent: true },
         ],
       },
@@ -670,19 +909,48 @@ export const JIM: InspectMap = {
         kind: "steps",
         title: "assess() — for each signal",
         items: [
-          { name: "severity check", tag: "gate", detail: "below the monitor's severity_floor → suppressed" },
-          { name: "cooldown check", tag: "gate", detail: "same signal key fired within 6h → suppressed" },
-          { name: "synthesize", tag: "model", detail: "survivors earn a written update — through the sourcing gate again" },
-          { name: "tone gate", tag: "gate", detail: "the impersonal guard, before anything publishes" },
+          {
+            name: "severity check",
+            tag: "gate",
+            detail: "below the monitor's severity_floor → suppressed",
+          },
+          {
+            name: "cooldown check",
+            tag: "gate",
+            detail: "same signal key fired within 6h → suppressed",
+          },
+          {
+            name: "synthesize",
+            tag: "model",
+            detail:
+              "survivors earn a written update — through the sourcing gate again",
+          },
+          {
+            name: "tone gate",
+            tag: "gate",
+            detail: "the impersonal guard, before anything publishes",
+          },
         ],
       },
       {
         kind: "rules",
-        title: "The impersonal guard — the publisher's-exclusion lane, as regex",
+        title:
+          "The impersonal guard — the publisher's-exclusion lane, as regex",
         items: [
-          { name: "second person", detail: "“you / your / yourself” — the memo must never talk to a person." },
-          { name: "advice & ratings", detail: "“should buy / sell / hold” · “strong buy” · “we recommend” · “price target(s)”." },
-          { name: "personalization", detail: "“your portfolio / position / holdings / account”." },
+          {
+            name: "second person",
+            detail:
+              "“you / your / yourself” — the memo must never talk to a person.",
+          },
+          {
+            name: "advice & ratings",
+            detail:
+              "“should buy / sell / hold” · “strong buy” · “we recommend” · “price target(s)”.",
+          },
+          {
+            name: "personalization",
+            detail: "“your portfolio / position / holdings / account”.",
+          },
         ],
       },
       {
@@ -699,17 +967,73 @@ export const JIM: InspectMap = {
       {
         kind: "graph",
         title: "The harness, end to end",
-        caption: "87 offline cases · ~2s · $0 — the same run the 06:17 night watch executes",
+        caption:
+          "98 offline cases · ~2s · $0 — the same run the 06:17 night watch executes",
         nodes: [
-          { id: "gatecases", label: "gate suite", sub: "38 memos · truths + planted lies", col: 0, row: 0 },
-          { id: "guards", label: "guard suite", sub: "40 cases · 5 categories", col: 1, row: 0 },
-          { id: "scen", label: "scenarios", sub: "9 full-engine runs, scripted i/o", col: 2, row: 0 },
-          { id: "live", label: "live suite", sub: "8 held-out tickers × 2 variants", col: 3, row: 0 },
-          { id: "runner", label: "jim-eval run", sub: "offline: no keys · no network", col: 1, row: 1 },
-          { id: "runjson", label: "run document", sub: "eval_runs/<id>.json · git sha", col: 2, row: 1 },
-          { id: "baseline", label: "BASELINE diff", sub: "case-by-case + thresholds", col: 2, row: 2, accent: true },
-          { id: "verdict", label: "verdict", sub: "pass · regressed → exit 1", col: 3, row: 2 },
-          { id: "night", label: "nightly digest", sub: "launchd 06:17 · morning banner", col: 4, row: 2 },
+          {
+            id: "gatecases",
+            label: "gate suite",
+            sub: "48 memos · truths, planted lies + injection",
+            col: 0,
+            row: 0,
+          },
+          {
+            id: "guards",
+            label: "guard suite",
+            sub: "40 cases · 5 categories",
+            col: 1,
+            row: 0,
+          },
+          {
+            id: "scen",
+            label: "scenarios",
+            sub: "10 full-engine runs, scripted i/o",
+            col: 2,
+            row: 0,
+          },
+          {
+            id: "live",
+            label: "live suite",
+            sub: "8 held-out tickers × 2 variants",
+            col: 3,
+            row: 0,
+          },
+          {
+            id: "runner",
+            label: "jim-eval run",
+            sub: "offline: no keys · no network",
+            col: 1,
+            row: 1,
+          },
+          {
+            id: "runjson",
+            label: "run document",
+            sub: "eval_runs/<id>.json · git sha",
+            col: 2,
+            row: 1,
+          },
+          {
+            id: "baseline",
+            label: "BASELINE diff",
+            sub: "case-by-case + thresholds",
+            col: 2,
+            row: 2,
+            accent: true,
+          },
+          {
+            id: "verdict",
+            label: "verdict",
+            sub: "pass · regressed → exit 1",
+            col: 3,
+            row: 2,
+          },
+          {
+            id: "night",
+            label: "nightly digest",
+            sub: "launchd 06:17 · morning banner",
+            col: 4,
+            row: 2,
+          },
         ],
         edges: [
           { from: "gatecases", to: "runner" },
@@ -728,8 +1052,9 @@ export const JIM: InspectMap = {
         items: [
           {
             name: "offline",
-            value: "87 cases · ~2s · $0",
-            detail: "zero tolerance — any newly-failing case regresses the run and exits 1.",
+            value: "98 cases · ~2s · $0",
+            detail:
+              "zero tolerance — any newly-failing case regresses the run and exits 1.",
             fail: true,
           },
           {

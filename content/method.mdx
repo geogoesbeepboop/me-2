@@ -5,15 +5,15 @@ thesis: "The way we build is as important as what we build."
 status: "ALWAYS ON"
 metrics:
   - k: "skills, one ladder"
-    v: "21"
+    v: "22"
   - k: "hooks on the rim, fail-open"
     v: "5"
   - k: "repos gated on every commit + nightly"
     v: "4"
   - k: "offline eval cases, nightly at $0"
-    v: "87"
+    v: "98"
   - k: "launchd agents running the loop"
-    v: "3"
+    v: "4"
   - k: "token-accounting lenses"
     v: "6"
 sections:
@@ -28,17 +28,42 @@ sections:
 
 <Section id="slept" n="00" title="While I slept">
 
-The day starts before I do. Three launchd agents run the loop overnight — no server, no cloud, just this machine keeping its own house.
+The day starts before I do. Four launchd agents run the loop overnight — no server, no cloud, just this machine keeping its own house.
 
 <TerminalLog
   title="the night shift — this morning, as it ran"
   lines={[
-    { t: "06:17", k: "sys", s: "launchd: com.geoandr.nightly-gate-digest — every focus repo's gate.sh + evals.sh" },
-    { t: "06:17", k: "out", s: "jim-agent — ✅ pass (9s) · evals — ✅ pass (2s)" },
-    { t: "06:17", k: "out", s: "grocery-buddy — ✅ pass (3s) · procurement-agent — ✅ pass (2s)" },
-    { t: "06:17", k: "out", s: "dj-agent — ✅ pass (7s)" },
-    { t: "06:45", k: "sys", s: "launchd: me.ops-report — the fleet report measures, sanitizes, commits, pushes; the site redeploys" },
-    { t: "07:15", k: "sys", s: "sundays: me.curator — every entry drift-checked against its repo; publishes only through its own gates" }
+    {
+      t: "06:17",
+      k: "sys",
+      s: "launchd: com.geoandr.nightly-gate-digest — every focus repo's gate.sh + evals.sh",
+    },
+    {
+      t: "06:17",
+      k: "out",
+      s: "jim-agent — ✅ pass (10s) · evals — ✅ pass (1s)",
+    },
+    {
+      t: "06:17",
+      k: "out",
+      s: "grocery-buddy — ✅ pass (3s) · procurement-agent — ✅ pass (2s)",
+    },
+    { t: "06:17", k: "out", s: "dj-agent — ✅ pass (8s)" },
+    {
+      t: "06:45",
+      k: "sys",
+      s: "launchd: me.ops-report — the fleet report measures, sanitizes, commits, pushes; the site redeploys",
+    },
+    {
+      t: "07:00",
+      k: "sys",
+      s: "launchd: me.library-sync — the mirrored docs re-sync into the archive, deterministic; publishes through its own gates",
+    },
+    {
+      t: "07:15",
+      k: "sys",
+      s: "sundays: me.curator — every entry drift-checked against its repo; publishes only through its own gates",
+    },
   ]}
 />
 
@@ -54,9 +79,15 @@ No dashboard, no status meeting with myself. A SessionStart hook injects three t
   title="a session start — the hook's injection, condensed"
   lines={[
     { k: "sys", s: "SessionStart · session-context.sh →" },
-    { k: "out", s: "Git: on 'main', 0 uncommitted change(s). Last commit: 15c85a8 …" },
+    {
+      k: "out",
+      s: "Git: on 'main', 0 uncommitted change(s). Last commit: 15c85a8 …",
+    },
     { k: "out", s: "Gate digest (2026-07-06): 4 repos ✅ · evals ✅" },
-    { k: "out", s: "## Next steps — the last handoff's ordered list, yesterday-me briefing today-me" }
+    {
+      k: "out",
+      s: "## Next steps — the last handoff's ordered list, yesterday-me briefing today-me",
+    },
   ]}
 />
 
@@ -72,13 +103,41 @@ Ceremony matches stakes. Every piece of work enters through one of these doors �
   title="which door, when"
   caption="every rung below the first is a real skill on this machine — click the harness below to read them"
   rungs={[
-    { skill: "just ask", when: "trivial — I know exactly what I want", gets: "no ceremony" },
-    { skill: "/spike", when: "prototype — can this even work?", gets: "one approach, a flat checklist, kill criteria" },
-    { skill: "/plan", when: "a real feature in an existing project", gets: "dense phases, each ending where a human verifies" },
-    { skill: "/challenge", when: "a decision worth attacking before it ships", gets: "an opus critic's ranked case against" },
-    { skill: "/deep-plan · /deep-challenge", when: "architecture on the line — expensive to be wrong", gets: "scripted fan-out: recon, competing designs, a five-lens panel" },
-    { skill: "/new-agent", when: "a brand-new agent project", gets: "the whole convention set — first question: what's the gate?" },
-    { skill: "/hack", when: "a hackathon clock is running", gets: "demo-first scaffold + a T-minus schedule" }
+    {
+      skill: "just ask",
+      when: "trivial — I know exactly what I want",
+      gets: "no ceremony",
+    },
+    {
+      skill: "/spike",
+      when: "prototype — can this even work?",
+      gets: "one approach, a flat checklist, kill criteria",
+    },
+    {
+      skill: "/plan",
+      when: "a real feature in an existing project",
+      gets: "dense phases, each ending where a human verifies",
+    },
+    {
+      skill: "/challenge",
+      when: "a decision worth attacking before it ships",
+      gets: "an opus critic's ranked case against",
+    },
+    {
+      skill: "/deep-plan · /deep-challenge",
+      when: "architecture on the line — expensive to be wrong",
+      gets: "scripted fan-out: recon, competing designs, a five-lens panel",
+    },
+    {
+      skill: "/new-agent",
+      when: "a brand-new agent project",
+      gets: "the whole convention set — first question: what's the gate?",
+    },
+    {
+      skill: "/hack",
+      when: "a hackathon clock is running",
+      gets: "demo-first scaffold + a T-minus schedule",
+    },
   ]}
 />
 
@@ -100,38 +159,67 @@ The session shape that changes throughput isn't a better prompt — it's **condu
       sub: "this session",
       lines: [
         { k: "cmd", s: "revamp /method + the project deep dives" },
-        { k: "sys", s: "3 explorers fan out — the site · jim-agent · grocery + dj" },
+        {
+          k: "sys",
+          s: "3 explorers fan out — the site · jim-agent · grocery + dj",
+        },
         { k: "out", s: "plan approved — two implementation briefs written" },
-        { k: "out", s: "reviewing diffs, not token streams" }
-      ]
+        { k: "out", s: "reviewing diffs, not token streams" },
+      ],
     },
     {
       name: "lane: grocery-buddy",
       role: "executor",
       sub: "background agent · own context",
       lines: [
-        { k: "sys", s: "brief: goal · constraints · files it owns · verify command · what done means" },
-        { k: "out", s: "compressing the topology · drawing the real sub-graphs" },
-        { k: "out", s: "verify: tsc ✅ · content check ✅" }
-      ]
+        {
+          k: "sys",
+          s: "brief: goal · constraints · files it owns · verify command · what done means",
+        },
+        {
+          k: "out",
+          s: "compressing the topology · drawing the real sub-graphs",
+        },
+        { k: "out", s: "verify: tsc ✅ · content check ✅" },
+      ],
     },
     {
       name: "lane: dj-agent",
       role: "executor",
       sub: "background agent · own context",
       lines: [
-        { k: "sys", s: "same brief shape, different territory — lanes can't stomp each other" },
-        { k: "out", s: "ingest transaction · generation loop · critic thresholds" },
-        { k: "out", s: "verify: tsc ✅ · content check ✅" }
-      ]
-    }
+        {
+          k: "sys",
+          s: "same brief shape, different territory — lanes can't stomp each other",
+        },
+        {
+          k: "out",
+          s: "ingest transaction · generation loop · critic thresholds",
+        },
+        { k: "out", s: "verify: tsc ✅ · content check ✅" },
+      ],
+    },
   ]}
   contract={[
-    { name: "goal", detail: "one sentence, unambiguous — if I can't write it, the work isn't ready to delegate" },
+    {
+      name: "goal",
+      detail:
+        "one sentence, unambiguous — if I can't write it, the work isn't ready to delegate",
+    },
     { name: "constraints", detail: "what must not change, said out loud" },
-    { name: "files", detail: "the lane's territory, named — so lanes can't collide" },
-    { name: "verify", detail: "the exact command the lane must pass — usually that repo's gate.sh" },
-    { name: "done", detail: "what finished looks like, so the lane can stop itself" }
+    {
+      name: "files",
+      detail: "the lane's territory, named — so lanes can't collide",
+    },
+    {
+      name: "verify",
+      detail:
+        "the exact command the lane must pass — usually that repo's gate.sh",
+    },
+    {
+      name: "done",
+      detail: "what finished looks like, so the lane can stop itself",
+    },
   ]}
 />
 
@@ -141,19 +229,63 @@ The ramp is deliberately boring: one conductor plus one executor, adding a lane 
 
 <Section id="verify" n="04" title="Verification without me">
 
-The highest-leverage question in the whole system is asked *before* any task starts: **can the agent verify this without me?** If the answer is no — no test to run, no eval case, no seeded data — that gets built first. It feels slower; it's faster by mid-session, because the agent self-corrects instead of queueing on my eyeballs.
+The highest-leverage question in the whole system is asked _before_ any task starts: **can the agent verify this without me?** If the answer is no — no test to run, no eval case, no seeded data — that gets built first. It feels slower; it's faster by mid-session, because the agent self-corrects instead of queueing on my eyeballs.
 
 <ArchitectureDiagram
   title="what a commit has to survive"
   caption="one file per repo, three enforcement points: the commit, the night watch, and — when repos get remotes — CI runs the same script"
   nodes={[
-    { id: "diff", label: "The diff", sub: "any lane · any repo", col: 0, row: 0 },
-    { id: "commit", label: "git commit", sub: "any session, every time", col: 1, row: 0 },
-    { id: "hook", label: "guard-commit", sub: "global hook · fail-open", col: 2, row: 0, accent: true },
-    { id: "gate", label: "gate.sh", sub: "lint + hermetic suite · <120s", col: 3, row: 0, accent: true },
-    { id: "green", label: "committed", sub: "lint + suite proven", col: 4, row: 0 },
-    { id: "blocked", label: "blocked", sub: "the exact failing check, returned", col: 3, row: 1 },
-    { id: "night", label: "night watch", sub: "same file · 06:17 · digested", col: 4, row: 1 }
+    {
+      id: "diff",
+      label: "The diff",
+      sub: "any lane · any repo",
+      col: 0,
+      row: 0,
+    },
+    {
+      id: "commit",
+      label: "git commit",
+      sub: "any session, every time",
+      col: 1,
+      row: 0,
+    },
+    {
+      id: "hook",
+      label: "guard-commit",
+      sub: "global hook · fail-open",
+      col: 2,
+      row: 0,
+      accent: true,
+    },
+    {
+      id: "gate",
+      label: "gate.sh",
+      sub: "lint + hermetic suite · <120s",
+      col: 3,
+      row: 0,
+      accent: true,
+    },
+    {
+      id: "green",
+      label: "committed",
+      sub: "lint + suite proven",
+      col: 4,
+      row: 0,
+    },
+    {
+      id: "blocked",
+      label: "blocked",
+      sub: "the exact failing check, returned",
+      col: 3,
+      row: 1,
+    },
+    {
+      id: "night",
+      label: "night watch",
+      sub: "same file · 06:17 · digested",
+      col: 4,
+      row: 1,
+    },
   ]}
   edges={[
     { from: "diff", to: "commit" },
@@ -161,34 +293,71 @@ The highest-leverage question in the whole system is asked *before* any task sta
     { from: "hook", to: "gate", label: "runs the repo's own gate" },
     { from: "gate", to: "green", label: "exit 0" },
     { from: "gate", to: "blocked", label: "red", dashed: true },
-    { from: "gate", to: "night", label: "runs again nightly" }
+    { from: "gate", to: "night", label: "runs again nightly" },
   ]}
 />
 
-Evals are the same idea for the nondeterministic parts: anything with an LLM decision carries an offline, zero-credential `evals.sh` — JIM's replays 87 cases in about two seconds for $0.00, armed with a baseline so a regression is a verdict, not a feeling. The full harness is drawn inside <a href="/projects/jim">JIM's dossier</a>. And `--no-verify` stays available as the deliberate escape hatch — used rarely, said out loud in the commit message.
+Evals are the same idea for the nondeterministic parts: anything with an LLM decision carries an offline, zero-credential `evals.sh` — JIM's replays 98 cases in about two seconds for $0.00, armed with a baseline so a regression is a verdict, not a feeling. The full harness is drawn inside <a href="/projects/jim">JIM's dossier</a>. And `--no-verify` stays available as the deliberate escape hatch — used rarely, said out loud in the commit message.
 
 </Section>
 
 <Section id="flywheel" n="05" title="The flywheel">
 
-Everything above compounds through one rule and one ritual. The rule: **anything done or explained three times becomes a skill that session.** The ritual: a thirty-minute weekly retro over one question — *where did I babysit this week?*
+Everything above compounds through one rule and one ritual. The rule: **anything done or explained three times becomes a skill that session.** The ritual: a thirty-minute weekly retro over one question — _where did I babysit this week?_
 
 <ArchitectureDiagram
   title="the flywheel — friction leaves as an artifact"
   caption="skip the retro for a month and the setup stays exactly this good; run it weekly and every annoyance is felt approximately once"
   nodes={[
-    { id: "catch", label: "A babysit moment", sub: "re-explaining · hand-verifying", col: 0, row: 0 },
-    { id: "log", label: "BABYSIT_LOG.md", sub: "one line · ten seconds", col: 1, row: 0 },
-    { id: "retro", label: "/retro — weekly", sub: "conversion, not review", col: 2, row: 0, accent: true },
-    { id: "fix", label: "cheapest fix wins", sub: "hook < gate < instruction < skill", col: 3, row: 0, accent: true },
-    { id: "harness", label: "The harness", sub: "compounds — felt once", col: 4, row: 0 }
+    {
+      id: "catch",
+      label: "A babysit moment",
+      sub: "re-explaining · hand-verifying",
+      col: 0,
+      row: 0,
+    },
+    {
+      id: "log",
+      label: "BABYSIT_LOG.md",
+      sub: "one line · ten seconds",
+      col: 1,
+      row: 0,
+    },
+    {
+      id: "retro",
+      label: "/retro — weekly",
+      sub: "conversion, not review",
+      col: 2,
+      row: 0,
+      accent: true,
+    },
+    {
+      id: "fix",
+      label: "cheapest fix wins",
+      sub: "hook < gate < instruction < skill",
+      col: 3,
+      row: 0,
+      accent: true,
+    },
+    {
+      id: "harness",
+      label: "The harness",
+      sub: "compounds — felt once",
+      col: 4,
+      row: 0,
+    },
   ]}
   edges={[
     { from: "catch", to: "log" },
     { from: "log", to: "retro", label: "the open list" },
     { from: "retro", to: "fix", label: "one fix per item" },
     { from: "fix", to: "harness", label: "applied in-session" },
-    { from: "harness", to: "catch", label: "next week's friction, smaller", dashed: true }
+    {
+      from: "harness",
+      to: "catch",
+      label: "next week's friction, smaller",
+      dashed: true,
+    },
   ]}
 />
 
@@ -207,15 +376,66 @@ The design rule underneath all of it: the main context window is the most expens
   inspect="method"
   subtitle="Claude Code as the engine; the harness as transmission, brakes, and instrumentation. Everything below is real configuration, quoted from the files that enforce it."
   nodes={[
-    { id: "contract", label: "CLAUDE.md", sub: "framing = a hypothesis · disagree out loud", col: 0, row: 0, accent: true },
+    {
+      id: "contract",
+      label: "CLAUDE.md",
+      sub: "framing = a hypothesis · disagree out loud",
+      col: 0,
+      row: 0,
+      accent: true,
+    },
     { id: "cc", label: "Claude Code", sub: "the main loop", col: 1, row: 0 },
-    { id: "skills", label: "The skills", sub: "21 front doors · light → deep", col: 2, row: 0 },
-    { id: "specialists", label: "Specialists", sub: "critic · researcher · explore fleets", col: 0, row: 1 },
-    { id: "rim", label: "Hook rim", sub: "5 guards · deterministic · fail-open", col: 1, row: 1, accent: true },
-    { id: "memory", label: "Memory & handoffs", sub: "state survives on disk", col: 2, row: 1 },
-    { id: "meter", label: "Token meter", sub: "6 lenses + a ledger", col: 0, row: 2 },
-    { id: "fleet", label: "Fleet gates", sub: "gate.sh + evals.sh × 4 repos", col: 1, row: 2, accent: true },
-    { id: "night", label: "Night automation", sub: "06:17 · 06:45 · sun 07:15", col: 2, row: 2 }
+    {
+      id: "skills",
+      label: "The skills",
+      sub: "22 front doors · light → deep",
+      col: 2,
+      row: 0,
+    },
+    {
+      id: "specialists",
+      label: "Specialists",
+      sub: "critic · researcher · explore fleets",
+      col: 0,
+      row: 1,
+    },
+    {
+      id: "rim",
+      label: "Hook rim",
+      sub: "5 guards · deterministic · fail-open",
+      col: 1,
+      row: 1,
+      accent: true,
+    },
+    {
+      id: "memory",
+      label: "Memory & handoffs",
+      sub: "state survives on disk",
+      col: 2,
+      row: 1,
+    },
+    {
+      id: "meter",
+      label: "Token meter",
+      sub: "6 lenses + a ledger",
+      col: 0,
+      row: 2,
+    },
+    {
+      id: "fleet",
+      label: "Fleet gates",
+      sub: "gate.sh + evals.sh × 4 repos",
+      col: 1,
+      row: 2,
+      accent: true,
+    },
+    {
+      id: "night",
+      label: "Night automation",
+      sub: "06:17 · 06:45 · 07:00 · sun 07:15",
+      col: 2,
+      row: 2,
+    },
   ]}
   edges={[
     { from: "contract", to: "cc", label: "governs every turn" },
@@ -226,7 +446,7 @@ The design rule underneath all of it: the main context window is the most expens
     { from: "cc", to: "meter", label: "every window priced" },
     { from: "rim", to: "fleet", label: "guard-commit runs the gate" },
     { from: "fleet", to: "night", label: "re-run nightly" },
-    { from: "night", to: "cc", label: "the morning banner" }
+    { from: "night", to: "cc", label: "the morning banner" },
   ]}
   stateMachines={[
     {
@@ -238,15 +458,21 @@ The design rule underneath all of it: the main context window is the most expens
         { id: "onboard", label: "/onboard", col: 2, row: 0, kind: "gate" },
         { id: "work", label: "the loop", col: 3, row: 0 },
         { id: "wrap", label: "/end-session", col: 4, row: 0, kind: "gate" },
-        { id: "handoff", label: "handoff on disk", col: 5, row: 0, kind: "terminal" }
+        {
+          id: "handoff",
+          label: "handoff on disk",
+          col: 5,
+          row: 0,
+          kind: "terminal",
+        },
       ],
       transitions: [
         { from: "boot", to: "inject", label: "git + digest + last handoff" },
         { from: "inject", to: "onboard", label: "lean prefix" },
         { from: "onboard", to: "work", label: "drift flagged first" },
         { from: "work", to: "wrap", label: "docs then handoff" },
-        { from: "wrap", to: "handoff", label: "next steps, ordered" }
-      ]
+        { from: "wrap", to: "handoff", label: "next steps, ordered" },
+      ],
     },
     {
       title: "A deep-skill run",
@@ -257,8 +483,14 @@ The design rule underneath all of it: the main context window is the most expens
         { id: "fan", label: "scripted fan-out", col: 2, row: 0 },
         { id: "dedupe", label: "merge + dedupe", col: 3, row: 0 },
         { id: "opus", label: "opus synthesis", col: 4, row: 0, kind: "gate" },
-        { id: "adjudicate", label: "my honest take", col: 5, row: 0, kind: "gate" },
-        { id: "decision", label: "decision", col: 6, row: 0, kind: "terminal" }
+        {
+          id: "adjudicate",
+          label: "my honest take",
+          col: 5,
+          row: 0,
+          kind: "gate",
+        },
+        { id: "decision", label: "decision", col: 6, row: 0, kind: "terminal" },
       ],
       transitions: [
         { from: "brief", to: "intensity", label: "low · med · high" },
@@ -266,35 +498,105 @@ The design rule underneath all of it: the main context window is the most expens
         { from: "fan", to: "dedupe", label: "independent passes" },
         { from: "dedupe", to: "opus", label: "steelman + rank" },
         { from: "opus", to: "adjudicate", label: "don't just relay" },
-        { from: "adjudicate", to: "decision", label: "fix · accept · reject" }
-      ]
-    }
+        { from: "adjudicate", to: "decision", label: "fix · accept · reject" },
+      ],
+    },
   ]}
   loops={[
-    { name: "critic", model: "opus · xhigh", shape: "single-shot", does: "the strongest honest case against — read-only, so the cost of being wrong stays a paragraph" },
-    { name: "researcher", model: "sonnet · max", shape: "fan 1–3", does: "current sources, triangulated, ~18-month staleness flags; returns conclusions, never raw pages" },
-    { name: "explore fleet", model: "dial: haiku→opus", shape: "4 / 6 / 8 parallel", does: "read-only codebase recon for /plan and /deep-plan — the map comes back, the territory stays out" },
-    { name: "critic panel", model: "sonnet ×5 lenses", shape: "1–3 per lens", does: "correctness · failure modes · security · scale · simpler-alternatives, run blind and deduped" },
-    { name: "design trio", model: "sonnet ×3 stances", shape: "judged", does: "MVP-first vs risk-first vs robustness-first; a judge scores, opus grafts the best of the losers" }
+    {
+      name: "critic",
+      model: "opus · xhigh",
+      shape: "single-shot",
+      does: "the strongest honest case against — read-only, so the cost of being wrong stays a paragraph",
+    },
+    {
+      name: "researcher",
+      model: "sonnet · max",
+      shape: "fan 1–3",
+      does: "current sources, triangulated, ~18-month staleness flags; returns conclusions, never raw pages",
+    },
+    {
+      name: "explore fleet",
+      model: "dial: haiku→opus",
+      shape: "4 / 6 / 8 parallel",
+      does: "read-only codebase recon for /plan and /deep-plan — the map comes back, the territory stays out",
+    },
+    {
+      name: "critic panel",
+      model: "sonnet ×5 lenses",
+      shape: "1–3 per lens",
+      does: "correctness · failure modes · security · scale · simpler-alternatives, run blind and deduped",
+    },
+    {
+      name: "design trio",
+      model: "sonnet ×3 stances",
+      shape: "judged",
+      does: "MVP-first vs risk-first vs robustness-first; a judge scores, opus grafts the best of the losers",
+    },
   ]}
   core={[
-    { name: "the gate question", rule: "before any task: can the agent verify this without me? if no — no test, no eval, no seeded data — build that first" },
-    { name: "commit gate", rule: "git commit runs the repo's own gate.sh and blocks on red; --no-verify is the deliberate escape hatch, said out loud in the message" },
-    { name: "lane contract", rule: "a parallel lane starts with a written brief: goal, constraints, files to respect, the verify command it must pass, and what done means" },
-    { name: "guard-bash", rule: "recursive deletes are blocked when the target resolves to a protected directory or its ancestor — anything strictly inside stays deletable; fails open" },
-    { name: "guard-secrets", rule: "high-confidence keys never land in tracked files; .env, examples, and key files are exempt by design" },
-    { name: "plan rules", rule: "no time estimates, ever; phases end exactly where a human verifies; total phases stay in the single digits" },
-    { name: "doc discipline", rule: "no new document without explicit approval — update what exists, never sprawl" },
-    { name: "deep-skill contract", rule: "the skill frames the brief; a script runs the fan-out — bounded, deterministic, reproducible" },
-    { name: "the meter's honesty", rule: "dollar figures are API-list-price equivalents, not the bill; input counts under-report — trust output and cache-read" }
+    {
+      name: "the gate question",
+      rule: "before any task: can the agent verify this without me? if no — no test, no eval, no seeded data — build that first",
+    },
+    {
+      name: "commit gate",
+      rule: "git commit runs the repo's own gate.sh and blocks on red; --no-verify is the deliberate escape hatch, said out loud in the message",
+    },
+    {
+      name: "lane contract",
+      rule: "a parallel lane starts with a written brief: goal, constraints, files to respect, the verify command it must pass, and what done means",
+    },
+    {
+      name: "guard-bash",
+      rule: "recursive deletes are blocked when the target resolves to a protected directory or its ancestor — anything strictly inside stays deletable; fails open",
+    },
+    {
+      name: "guard-secrets",
+      rule: "high-confidence keys never land in tracked files; .env, examples, and key files are exempt by design",
+    },
+    {
+      name: "plan rules",
+      rule: "no time estimates, ever; phases end exactly where a human verifies; total phases stay in the single digits",
+    },
+    {
+      name: "doc discipline",
+      rule: "no new document without explicit approval — update what exists, never sprawl",
+    },
+    {
+      name: "deep-skill contract",
+      rule: "the skill frames the brief; a script runs the fan-out — bounded, deterministic, reproducible",
+    },
+    {
+      name: "the meter's honesty",
+      rule: "dollar figures are API-list-price equivalents, not the bill; input counts under-report — trust output and cache-read",
+    },
   ]}
   layers={[
-    { name: "Contract", note: "One global CLAUDE.md: treat my framing as a hypothesis, pressure-test consequential decisions, disagree out loud, resolve trivial choices alone. It makes the default posture adversarial instead of agreeable." },
-    { name: "Skills", note: "Twenty-one front doors on one ladder: session bookends, the shaping tier (/spike, /plan, /challenge), scripted deep siblings, project starters (/new-agent, /hack), the weekly /retro, and six token lenses. One shape throughout: frame a self-contained brief, delegate the heavy work, synthesize back." },
-    { name: "Specialists", note: "A critic on Opus paid to attack, a researcher on Sonnet paid to read elsewhere, Explore fleets for recon. All of them return conclusions into the main loop — never their raw material." },
-    { name: "Rim", note: "Five hooks wrap every session: catastrophic-command guard, commit gate, secret-write guard, format-on-edit, session-context injection. Deterministic shell, zero model, all fail-open." },
-    { name: "Memory & meter", note: "Handoffs make state survive sessions; memory files make taste survive projects; the token ledger makes cost a number instead of a feeling." },
-    { name: "Fleet", note: "The layer that runs without me: every focus repo carries an executable gate.sh (guard-commit blocks red commits) and, where an LLM decides anything, an offline evals.sh; a 06:17 LaunchAgent runs both across the fleet and digests the result; the city board reads that digest, files its own morning report, and curates its own entries — deterministically gated." }
+    {
+      name: "Contract",
+      note: "One global CLAUDE.md: treat my framing as a hypothesis, pressure-test consequential decisions, disagree out loud, resolve trivial choices alone. It makes the default posture adversarial instead of agreeable.",
+    },
+    {
+      name: "Skills",
+      note: "Twenty-two front doors on one ladder: session bookends, the shaping tier (/spike, /plan, /challenge), scripted deep siblings, project starters (/new-agent, /hack), the weekly /retro, and six token lenses. One shape throughout: frame a self-contained brief, delegate the heavy work, synthesize back.",
+    },
+    {
+      name: "Specialists",
+      note: "A critic on Opus paid to attack, a researcher on Sonnet paid to read elsewhere, Explore fleets for recon. All of them return conclusions into the main loop — never their raw material.",
+    },
+    {
+      name: "Rim",
+      note: "Five hooks wrap every session: catastrophic-command guard, commit gate, secret-write guard, format-on-edit, session-context injection. Deterministic shell, zero model, all fail-open.",
+    },
+    {
+      name: "Memory & meter",
+      note: "Handoffs make state survive sessions; memory files make taste survive projects; the token ledger makes cost a number instead of a feeling.",
+    },
+    {
+      name: "Fleet",
+      note: "The layer that runs without me: every focus repo carries an executable gate.sh (guard-commit blocks red commits) and, where an LLM decides anything, an offline evals.sh; a 06:17 LaunchAgent runs both across the fleet and digests the result; the city board reads that digest, files its own morning report, and curates its own entries — deterministically gated.",
+    },
   ]}
   invariants={[
     "Raw research never enters the main window — subagents read; the loop receives conclusions.",
@@ -303,7 +605,7 @@ The design rule underneath all of it: the main context window is the most expens
     "Hooks fail open — they guard accidents, not deliberate obfuscation.",
     "Every token in every window is ledgered, with drill-down to what each subagent was fed.",
     "Verification is agent-runnable: gates and evals pass or fail without me, on every commit and every night.",
-    "The board and I read the same digest — the site is the instrument panel, not a brochure."
+    "The board and I read the same digest — the site is the instrument panel, not a brochure.",
   ]}
 />
 
@@ -311,8 +613,14 @@ The design rule underneath all of it: the main context window is the most expens
 
 The harness is why a one-person shop ships agents on payment rails with red-team suites. Same nervous system as the products, pointed at the producer — and increasingly, running without him.
 
-<Ref to="projects/procurement-agent#decisions" note="the doctrine, applied to a product instead of the producer" />
+<Ref
+  to="projects/procurement-agent#decisions"
+  note="the doctrine, applied to a product instead of the producer"
+/>
 
-<Ref to="writing/four-agents-one-nervous-system" note="the products' shared spine — this page is its fifth room" />
+<Ref
+  to="writing/four-agents-one-nervous-system"
+  note="the products' shared spine — this page is its fifth room"
+/>
 
 </Section>
