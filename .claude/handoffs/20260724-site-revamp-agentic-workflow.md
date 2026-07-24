@@ -16,3 +16,6 @@ Spec: `docs/specs/2026-07-23-agentic-workflow-revamp.md` (contract + as-built de
 2. Review + merge PR #14 (no self-merge; body carries the Mermaid delta + evidence packet).
 3. Post-merge morning: confirm the 06:45 filing puts m-clone on the deployed board; watch Sunday's curator pass over the new /method and the new m-clone dossier (update-project may drift-fire on it — gates should park anything bad on site/auto-curate-*).
 4. Carve-out on record: app/(x)/landing11/wall.tsx keeps two dead essay position-map keys (noindex, fallback positions).
+
+## Amendment (same day)
+Procurement-agent de-listed from all editorial surfaces (owner call) — commit f2ea392, spec amendment section has the scoping. Fleet board is now jim · grocery-buddy · dj-agent · m-clone + archive after the next filing. The repo stays in the nightly harness fleet.
