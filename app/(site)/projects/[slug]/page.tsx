@@ -41,18 +41,21 @@ export default async function ProjectDossier({ params }: Props) {
   const reflection = node.reflection ? resolveRef(node.reflection) : undefined;
   const sections = node.sections ?? [];
 
+  // the breadcrumb already carries status; the fourth cell earns its keep
+  // as the verification pointer — a public repo link, or an honest note
+  const source: [string, string] = ["Source", node.source ?? "—"];
   const meta: [string, string][] = bench
     ? [
         ["On the bench since", node.started ? stamp(node.started) : "—"],
         ["Last update", node.updated ? stamp(node.updated) : "—"],
-        ["Status", node.status],
+        source,
         ["Stage", "Bench — raw, still moving"],
       ]
     : [
         ["Role", node.role ?? "—"],
         ["Stack", node.stack?.join(" · ") ?? "—"],
         ["Timeline", node.timeline ?? "—"],
-        ["Status", node.status],
+        source,
       ];
 
   const hairline = bench ? "border-dashed border-line-loud" : "border-line";
@@ -116,7 +119,20 @@ export default async function ProjectDossier({ params }: Props) {
             <p className="mb-1 text-label tracking-[0.2em] text-dim uppercase">
               {k}
             </p>
-            <p className="text-bone">{v}</p>
+            {v.startsWith("https://") ? (
+              <p className="text-bone">
+                <a
+                  href={v}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline-offset-4 hover:underline"
+                >
+                  {v.replace("https://", "")}
+                </a>
+              </p>
+            ) : (
+              <p className="text-bone">{v}</p>
+            )}
           </div>
         ))}
       </div>

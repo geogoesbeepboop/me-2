@@ -1,6 +1,6 @@
 ---
 title: "M-Clone"
-summary: "A full retail-banking app rebuilt as a lab — accounts, cards, budgets, goals, Plaid-linked data — with a money assistant that answers entirely on-device. No backend, no server database, and by hard rule no remote LLM. The assistant's judgment is a shipped eval product: a scored corpus, a sealed holdout, and gates that run on every commit."
+summary: "A full retail-banking app rebuilt as a lab — accounts, cards, budgets, goals, Plaid-linked sandbox data — with a money assistant that answers entirely on-device. No backend, no server database, and by hard rule no remote LLM. The assistant's judgment is a shipped eval product: a scored corpus, a sealed holdout, and gates that run on every commit."
 date: "2026-07-23"
 year: "2026"
 status: "ACTIVE BUILD"
@@ -9,6 +9,7 @@ domain: "FINTECH · ON-DEVICE AI"
 accent: "#ff7a9e"
 stage: "ship"
 repo: "/Users/geoandr/dev/M-Clone"
+source: "private — walkthrough on request"
 role: "Solo — iOS app, on-device assistant, eval product"
 stack:
   [
@@ -21,12 +22,12 @@ stack:
   ]
 timeline: "May — Jul 2026 · ongoing"
 metrics:
-  - k: "routing accuracy, on-device"
+  - k: "routing family accuracy, live corpus"
     v: "86.5%"
+  - k: "fully correct on the sealed holdout, on device"
+    v: "21.5%"
   - k: "out-of-scope leaks, live corpus"
     v: "0/35"
-  - k: "sealed holdout cases"
-    v: "81"
   - k: "test functions, all model-free"
     v: "604"
 sections:
@@ -45,11 +46,13 @@ reflection: "writing/you-appear-exactly-twice"
 
 <Section id="brief" n="00" title="Brief">
 
-Every bank now ships an assistant, and every one of them phones home. This project rebuilds the whole surface — accounts, credit cards, budgets, goals, Plaid-linked real data — and then answers the interesting question: **how good can a money assistant be if it never leaves the phone?** Chat history, financial ledgers, budgets, and Plaid tokens live on-device in SwiftData and the Keychain. There is no backend and no server-side database; the only hosted piece is a thin Plaid OAuth/webhook relay.
+Every bank now ships an assistant, and every one of them phones home. This project rebuilds the whole surface — accounts, credit cards, budgets, goals, Plaid-linked sandbox data — and then answers the interesting question: **how good can a money assistant be if it never leaves the phone?** Chat history, financial ledgers, budgets, and Plaid tokens live on-device in SwiftData and the Keychain. There is no backend and no server-side database; the only hosted piece is a thin Plaid OAuth/webhook relay.
 
-The assistant is a hybrid: a deterministic router with typed financial tools and calculators does the load-bearing work, and Apple's on-device foundation model assists where language helps — with the model's authority capped by construction. On the live corpus, the current arm routes 86.5% of prompts to the right capability family and has leaked **zero** out-of-scope requests in 35 attempts.
+The assistant is a hybrid: a deterministic router with typed financial tools and calculators does the load-bearing work, and Apple's on-device foundation model assists where language helps — with the model's authority capped by construction. On the live corpus, the current arm routes 86.5% of prompts to the right capability family and has leaked **zero** out-of-scope requests in 35 attempts. On the sealed holdout — cases no tuning session has ever seen — end-to-end answers come back fully correct **21.5%** (34/158) of the time on a physical iPhone. That is the honest ceiling of a first-generation on-device model, and publishing it is the point: the flattering number and the sealed one, side by side.
 
-The deeper deliverable is the discipline around that number. The router's judgment is governed by a real eval product — versioned corpus packs, preregistered experiments, a failure taxonomy, a cryptographically sealed holdout — and by commit gates that keep every test model-free. The claim isn't "the assistant feels smart." It's "here is the corpus, here is the score, here is the gate that fails if either regresses."
+The deeper deliverable is the discipline around those numbers. The router's judgment is governed by a real eval product — versioned corpus packs, preregistered experiments, a failure taxonomy, a cryptographically sealed holdout — and by commit gates that keep every test model-free. The claim isn't "the assistant feels smart." It's "here is the corpus, here is the score, here is the gate that fails if either regresses." The build ran on the same contract: the flagship feature merged from five human turns steering 561 agent events, under the gates below.
+
+*Personal project, built on personal hardware and accounts; all financial data is Plaid sandbox or synthetic. No employer systems, data, or IP.*
 
 </Section>
 

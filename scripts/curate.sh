@@ -66,6 +66,9 @@ DRIFTED=()
 for f in content/projects/*.mdx; do
   slug="$(basename "$f" .mdx)"
   if [ -n "$ONLY" ] && [ "$slug" != "$ONLY" ]; then continue; fi
+  # the site's own dossier would drift-fire on every curator pass (this repo
+  # always has fresh commits) — the archive curates the archive by hand
+  [ "$slug" = "the-archive" ] && continue
   repo_path="$(sed -n 's/^repo: *"\{0,1\}\([^"]*\)"\{0,1\} *$/\1/p' "$f" | head -1)"
   updated="$(sed -n 's/^updated: *"\{0,1\}\([0-9-]*\)"\{0,1\} *$/\1/p' "$f" | head -1)"
   # an entry that's never been re-synced measures from its publish date

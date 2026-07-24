@@ -19,8 +19,9 @@ import type { SfWeather } from "@/lib/ops/weather";
 
 const NAV = [
   { n: "01", label: "PROJECTS", href: "/projects" },
-  { n: "02", label: "ABOUT", href: "/about" },
-  { n: "03", label: "LIBRARY", href: "/library", aliases: ["/method"] },
+  { n: "02", label: "METHOD", href: "/method" },
+  { n: "03", label: "ABOUT", href: "/about" },
+  { n: "04", label: "LIBRARY", href: "/library" },
 ] as const;
 
 export default function CityBar({
@@ -40,9 +41,7 @@ export default function CityBar({
       </Link>
       <nav className="city-nav" aria-label="Sections">
         {NAV.map((item) => {
-          const active =
-            pathname.startsWith(item.href) ||
-            ("aliases" in item && item.aliases.some((href) => pathname.startsWith(href)));
+          const active = pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} data-active={active}>
               <span className="city-nav-n">{item.n}</span>

@@ -968,7 +968,7 @@ export const JIM: InspectMap = {
         kind: "graph",
         title: "The harness, end to end",
         caption:
-          "98 offline cases · ~2s · $0 — the same run the 06:17 night watch executes",
+          "98 offline cases · ~1.5s · $0 — the same run the 06:17 night watch executes",
         nodes: [
           {
             id: "gatecases",
@@ -1052,7 +1052,7 @@ export const JIM: InspectMap = {
         items: [
           {
             name: "offline",
-            value: "98 cases · ~2s · $0",
+            value: "98 cases · ~1.5s · $0",
             detail:
               "zero tolerance — any newly-failing case regresses the run and exits 1.",
             fail: true,

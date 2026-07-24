@@ -21,9 +21,10 @@ export default function ProjectsPage() {
         </h1>
         <div className="mt-5 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <p className="max-w-xl text-ash">
-            Products and systems, built end to end — one index, every stage.
-            Each entry shows the how: the full architecture, the real logs,
-            what broke, and the decisions that cost something.
+            Products built end to end at lab scale, with production discipline
+            — gates, evals, cost ledgers, one operator. Each entry shows the
+            how: the full architecture, the real logs, what broke, and the
+            decisions that cost something.
           </p>
           {/* the stage doctrine, made legible */}
           <p className="shrink-0 font-mono text-label tracking-[0.18em] text-dim uppercase md:text-right">

@@ -1,0 +1,176 @@
+---
+title: "The Archive"
+summary: "The site you are reading — a Next.js/React archive that is also an ops instrument: it measures the agent fleet from transcripts on disk, files a sanitized report every morning, syncs its library daily, and curates its own entries weekly behind deterministic gates. The one system here a stranger can touch right now."
+date: "2026-07-24"
+year: "2026"
+status: "OPERATING"
+thesis: "The portfolio is a production system — it measures the work, files the report, and curates itself."
+domain: "WEB · OPS"
+accent: "#8f897c"
+stage: "ship"
+repo: "/Users/geoandr/dev/me-2"
+source: "https://github.com/geogoesbeepboop/me-2"
+role: "Solo — design, React/TypeScript build, ops automation"
+stack:
+  [
+    "Next.js 16 · React 19",
+    "TypeScript",
+    "MDX content graph",
+    "launchd automation",
+    "open-meteo",
+  ]
+timeline: "Jun 2026 — operating"
+metrics:
+  - k: "the fleet report files itself, daily"
+    v: "06:45"
+  - k: "automations running the site's loop"
+    v: "3"
+  - k: "a filed report can never carry"
+    v: "prompts · paths · patches"
+  - k: "publish gate for autonomous merges"
+    v: "check · build · scope"
+sections:
+  - { id: "brief", title: "Brief" }
+  - { id: "instrument", title: "The instrument" }
+  - { id: "surfaces", title: "The surfaces" }
+  - { id: "what-broke", title: "What broke" }
+  - { id: "decisions", title: "Decisions & tradeoffs" }
+  - { id: "whats-next", title: "What's next" }
+refs:
+  - "writing/harness-engineering"
+  - "writing/you-appear-exactly-twice"
+reflection: "writing/harness-engineering"
+---
+
+<Section id="brief" n="00" title="Brief">
+
+A portfolio usually describes work. This one measures it. Underneath the editorial archive — the dossiers, the essays, the library — runs an ops layer that watches the same agent fleet the entries describe: sessions parsed from the transcripts Claude Code leaves on disk, git telemetry from the repos themselves, and the nightly gate results the fleet's own automation writes. The front door is a drawn San Francisco that keeps the city's real time and weather; the board under it is entirely measured.
+
+The site maintains itself on a schedule. Every morning it files a sanitized fleet report and the deployed site serves that record, labeled with its cut time. Every day the library re-mirrors its source documents deterministically. Every Sunday a curator agent checks each entry against its source repo and publishes updates only through gates code enforces — a failed gate parks the work on a branch instead of shipping it.
+
+And because the entries it curates are agents, the site is where the honesty rules live: every number traces to a source repo, states are labeled as inferred, and a report can never carry a prompt, a path, or a patch.
+
+</Section>
+
+<Section id="instrument" n="01" title="The instrument">
+
+The measurement pipeline is the spine. Nothing on the board is typed in; it is scanned, classified, sanitized, and filed.
+
+<ArchitectureDiagram
+  title="the archive — measurement to page"
+  caption="Live measurement exists only on the operator's machine. Everyone else reads the filed report — sanitization runs at the cut, in code."
+  nodes={[
+    { id: "tr", label: "Transcripts", sub: "~/.claude/projects · on disk", col: 0, row: 0 },
+    { id: "git", label: "Repo telemetry", sub: "commits · status", col: 1, row: 0 },
+    { id: "gates", label: "Gate digests", sub: "the night watch's record", col: 2, row: 0 },
+    { id: "scan", label: "Session scanner", sub: "lib/ops · states inferred", col: 0, row: 1 },
+    { id: "prof", label: "Operation registry", sub: "build · operate · verify", col: 1, row: 1, accent: true },
+    { id: "san", label: "Sanitizer", sub: "strips prompts, paths, patches", col: 2, row: 1, accent: true },
+    { id: "snap", label: "Filed report", sub: "fleet-snapshot.json · 06:45", col: 0, row: 2 },
+    { id: "board", label: "Fleet board + shift log", sub: "the landing · the ops room", col: 1, row: 2 },
+    { id: "cur", label: "Curator publish gate", sub: "check · build · scope — else parked", col: 2, row: 2, accent: true }
+  ]}
+  edges={[
+    { from: "tr", to: "scan", label: "sessions" },
+    { from: "git", to: "scan", label: "commits" },
+    { from: "gates", to: "board", label: "☾ rows" },
+    { from: "scan", to: "prof", label: "classify" },
+    { from: "prof", to: "san", label: "measured work" },
+    { from: "san", to: "snap", label: "the cut" },
+    { from: "snap", to: "board", label: "recorded mode" },
+    { from: "cur", to: "board", label: "gated merges → main" }
+  ]}
+/>
+
+Every session's tool calls are split three ways — **build** (edits to the agent's own source), **operate** (the agent running its actual job), **verify** (tests and checks) — using a committed, reviewed registry of each agent's operate and verify tokens. The honesty rule is enforced in copy: these agents persist no run output to disk, so operate counts are labeled as invocations counted from transcripts, never as products made.
+
+The automations hold the loop while the operator sleeps:
+
+<TerminalLog
+  title="the site's day — three launchd agents, one gate"
+  lines={[
+    { t: "06:45", k: "sys", s: "me.ops-report — measure, sanitize, commit the snapshot, push; the host redeploys" },
+    { t: "07:00", k: "sys", s: "me.library-sync — re-mirror changed source docs into /library, deterministic, no model" },
+    { t: "07:15", k: "sys", s: "me.curator (sundays) — drift-check every entry against its source repo" },
+    { k: "out", s: "curator publish gate: content check · production build · diff scope (content, inspect, profiles)" },
+    { k: "sys", s: "gates green → merge to main · any gate red → parked on site/auto-curate-<date>" }
+  ]}
+/>
+
+</Section>
+
+<Section id="surfaces" n="02" title="The surfaces">
+
+The reading layer is built to carry evidence, not vibes. Each dossier's console ports its repo's real rules and executes them in the browser on labeled, representative data — the citation-gate arithmetic in JIM's console is the same `max(2%, 0.05)` tolerance the repo enforces. Click-to-inspect opens verbatim excerpts from the source repos, keyed to topology nodes, with the provenance of every published number cited where it was measured.
+
+The content model is a graph, not a folder: entries declare `refs:` in frontmatter, the build resolves them, computes backlinks, and assigns archive numbers chronologically. Adding a project to the site is one file with one `repo:` field — the same field the fleet roster, the curator, and the dossier's ops strip all read.
+
+Scroll performance is doctrine, learned the hard way (below): no backdrop-filter anywhere, no SVG filter blur, soft bodies rendered as gradients, and the full city scene animates only on the front door — content pages hold a still frame.
+
+</Section>
+
+<Section id="what-broke" n="03" title="What broke">
+
+<WhatBroke
+  items={[
+    {
+      title: "The blur that taxed every scrolled frame",
+      sev: "PERF-01",
+      what: "Translucent panels on backdrop-filter and Gaussian-blurred SVG fog re-rasterized on every animation frame. The city looked expensive and scrolled like it, too.",
+      fix: "Backdrop-filter is banned site-wide — panels sit on flat void. Soft bodies (fog, clouds) became gradient fills; the scene layer is promoted and contained; cropped scene strips hold a still frame instead of running the animation.",
+      lesson: "A drawn city must never cost the reader a frame. Any always-on animation has to justify its budget."
+    },
+    {
+      title: "The gate clock that lied while the machine slept",
+      sev: "OPS-01",
+      what: "Idle sleep quietly inflated the nightly gates' wall-clocks — the digest's dated trend line showed a gate budgeted at 120 seconds running 5,589, in plain sight on this site's board.",
+      fix: "The nightly run now caffeinates itself. The incident is the system working: the outer loop's own drift was caught by the record it files, within a day.",
+      lesson: "Automation that measures the fleet must also be measured. Dated trend lines catch what a green checkmark hides."
+    }
+  ]}
+/>
+
+</Section>
+
+<Section id="decisions" n="04" title="Decisions & tradeoffs">
+
+<Decision
+  n="01"
+  title="The deployed site serves a filed report, not live data"
+  chose="Measurement runs only on the operator's machine; the public board renders the last sanitized snapshot, labeled with its cut time."
+  over="A hosted collector, a database, and live polling in production."
+  cost="The public board is up to a day old, and says so."
+  payoff="No server to run, no credentials in production, and sanitization enforced at the cut — a report physically cannot carry prompts, repo paths, patches, or steering notes."
+/>
+
+<Decision
+  n="02"
+  title="Autonomous merges, deterministic counterweight"
+  chose="The Sunday curator publishes fact updates to main on its own — but only if the content check, the production build, and a diff-scope allowlist all pass; anything else parks on a branch."
+  over="Review-everything (drift accumulates) or trust-the-model (drift ships)."
+  cost="A gate failure means updates wait for a human — freshness loses to safety."
+  payoff="No drift → no model run → zero spend. The model writes; code decides what ships."
+/>
+
+<Decision
+  n="03"
+  title="The graph is computed, never curated by hand"
+  chose="Archive numbers, cross-links, and backlinks are derived at build time from frontmatter refs; a content check gates every edit."
+  over="Hand-maintained indexes and related-links sections."
+  cost="A build step and a validator to keep honest."
+  payoff="The archive grows by adding a file, and a dangling reference is a failed check, not a dead link."
+/>
+
+</Section>
+
+<Section id="whats-next" n="05" title="What's next">
+
+<NextUp
+  items={[
+    "A click-to-inspect map for this entry — the scanner, the sanitizer, and the curator gates as verbatim excerpts, like every other dossier gets.",
+    "Surface the labor-split methodology on the ops room's protocol panel in plain language.",
+    "Let the filed report carry gate-trend sparklines per repo — the dated wall-clock lesson, made a visual.",
+  ]}
+/>
+
+</Section>

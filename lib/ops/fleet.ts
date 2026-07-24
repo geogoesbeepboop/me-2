@@ -47,15 +47,19 @@ export function roster(): RosterEntry[] {
       href: `/${n.path}`,
       repoPath: n.repo as string,
     }));
-  // the archive itself — the site is one of the agents' workplaces too
-  entries.push({
-    slug: "the-archive",
-    title: "The Archive",
-    accent: "var(--color-ember)",
-    domain: "THIS SITE",
-    href: "/",
-    repoPath: process.cwd(),
-  });
+  // the archive itself — the site is one of the agents' workplaces too.
+  // When a content entry claims the slug (content/projects/the-archive.mdx),
+  // it IS the roster row — accent, href and repo come from the dossier.
+  if (!entries.some((e) => e.slug === "the-archive")) {
+    entries.push({
+      slug: "the-archive",
+      title: "The Archive",
+      accent: "var(--color-ember)",
+      domain: "THIS SITE",
+      href: "/",
+      repoPath: process.cwd(),
+    });
+  }
   return entries;
 }
 

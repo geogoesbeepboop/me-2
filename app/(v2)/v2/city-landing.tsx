@@ -78,6 +78,12 @@ export default function CityLanding({
             <br />
             {hero.h1[1]}
           </h1>
+          {/* the identity anchor — durable, plain words. The H1 rotates with
+              the hour; who I am doesn't. */}
+          <p className="v2-sub">
+            AI engineer — agents, evals, and the guardrails that let them touch
+            money.
+          </p>
           <div className="v2-hero-actions">
             <Link href="/projects">SEE THE PROJECTS</Link>
             <Link href="/library">OPEN THE LIBRARY</Link>
@@ -91,7 +97,9 @@ export default function CityLanding({
         <section className="v2-panel" aria-label="The fleet">
           <div className="v2-panel-head">
             <h2>THE FLEET</h2>
-            <span className="v2-panel-sub">what each agent has done</span>
+            <span className="v2-panel-sub">
+              AI agents I built and run — their real work, measured
+            </span>
           </div>
           {fleet.agents.map((a) => (
             <Link

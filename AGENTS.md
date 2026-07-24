@@ -23,7 +23,16 @@ explore layer reaches actual implementation depth.
   ref paths).
 - Each project's frontmatter `repo:` points at its source repo on disk.
   That field is the registry for the `update-project` skill — keep it
-  accurate, never hardcode repo paths elsewhere.
+  accurate, never hardcode repo paths elsewhere. `source:` is the reader's
+  verification pointer — a public GitHub URL, or an honest plain-text note
+  ("private — walkthrough on request"); it renders as the dossier meta
+  grid's fourth cell. Status vocabulary is honest by rule: `LIVE` (and its
+  index pulse) is reserved for systems operating right now — anything a
+  snapshot shows parked says so.
+- `content/projects/the-archive.mdx` is the site's own dossier (the fleet
+  roster derives its Archive row from it; `roster()` only synthesizes one
+  when the entry is absent). The weekly curator skips this slug on purpose
+  — this repo always has fresh commits, so drift-sync would self-fire.
 - `refs:` builds the bidirectional graph; links land at the top of a piece.
   `reflection:` steers a dossier's outro to its paired essay.
 - Click-to-inspect: `SystemDeepDive inspect="<slug>"` resolves through
@@ -55,8 +64,9 @@ explore layer reaches actual implementation depth.
   `lib/markdown.tsx` (react-markdown, no raw HTML), never through
   `lib/mdx.tsx` (trusted-content-only). Decision records show their
   `sourceMeta.status` in plain ink.
-- **Nav doctrine amendment (2026-07-09):** the CityBar's instrument row
-  gained `05 LIBRARY`; the one-row rule stands.
+- **Nav doctrine amendment (2026-07-09, renumbered 2026-07-24):** the
+  CityBar's instrument row is `01 PROJECTS · 02 METHOD · 03 ABOUT ·
+  04 LIBRARY`; the one-row rule stands.
 - **Presentation tiers (2026-07-09, round 2):** the manifest is also the
   shelf plan. Per-collection `display: "unlisted"` keeps a collection
   mirrored, ⌘K-searchable and URL-addressable but OFF the /library index —

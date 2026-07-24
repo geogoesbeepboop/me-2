@@ -19,15 +19,24 @@ function rowProps(node: Node) {
   };
 
   if (node.kind === "projects") {
+    // the evidence line every visitor sees without a pointer: the domain
+    // and one real, sourced metric. Hover keeps the thesis as the flourish.
+    const signal = [
+      node.domain,
+      node.metrics?.[0] && `${node.metrics[0].v} ${node.metrics[0].k}`,
+    ]
+      .filter(Boolean)
+      .join(" — ");
+
     if (bench) {
       return {
         ...base,
+        signal,
         primaryMeta: node.updated
           ? `UPD ${stamp(node.updated)}`
           : stamp(node.date),
         thesis: node.question ?? node.summary,
         secondary: [
-          node.domain,
           node.started && `on the bench since ${stamp(node.started)}`,
           "raw — updates, open questions, no polish",
         ]
@@ -37,15 +46,10 @@ function rowProps(node: Node) {
     }
     return {
       ...base,
+      signal,
       primaryMeta: node.year ?? stamp(node.date),
       thesis: node.thesis ?? node.summary,
-      secondary: [
-        node.domain,
-        node.stack?.slice(0, 3).join(" · "),
-        node.metrics?.[0] && `${node.metrics[0].v} ${node.metrics[0].k}`,
-      ]
-        .filter(Boolean)
-        .join(" — "),
+      secondary: node.stack?.slice(0, 4).join(" · ") ?? "",
     };
   }
 

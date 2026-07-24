@@ -1,20 +1,23 @@
 ---
 title: "Grocery Buddy"
-summary: "A pantry that runs itself over Telegram — predicts what's low, builds the Amazon cart, stages checkout, and hands a human the final tap. Scaffold to live on Fly.io in seven days."
+summary: "A pantry that runs itself over Telegram — predicts what's low, builds the Amazon cart, stages checkout, and hands a human the final tap. Scaffold to running my household in seven days."
 date: "2026-06-08"
 year: "2026"
-status: "LIVE"
+status: "PARKED"
 thesis: "It does everything except spend your money. That's the feature."
 domain: "HOME OPS · COMMERCE"
 accent: "#3fe07c"
 stage: "ship"
 repo: "/Users/geoandr/dev/grocery-buddy"
+source: "https://github.com/geogoesbeepboop/grocery-buddy"
 role: "Solo — design, engineering, evals, ops"
 stack: ["Claude Haiku 4.5 + Sonnet 4.6", "Temporal", "FastAPI", "Postgres", "Playwright", "Telegram"]
-timeline: "Jun 2026 — operating"
+timeline: "Jun — Jul 2026 · parked"
 metrics:
-  - k: "days, scaffold → live"
+  - k: "days, scaffold → running"
     v: "7"
+  - k: "predictor precision · recall, last graded run"
+    v: "0.86 · 0.81"
   - k: "cost per run"
     v: "$0.15–0.40"
   - k: "orders placed by the agent"
@@ -36,7 +39,7 @@ Groceries are a standing tax on attention: notice what's low, remember the brand
 
 Two invariants hold everywhere. **The agent never places an order** — it stages the cart and hands back a checkout link; the human taps "Place order." And **nothing touches the pantry or a cart without the user's say-so** — every purchase passes an approval gate, and imports stage a proposal before a single row is written.
 
-It went from empty repo to live on Fly.io in seven days, and it has been running my household since. A full run — prediction, pricing, briefing — costs between fifteen and forty cents.
+It went from empty repo to running my household's groceries in seven days — a docker-compose stack behind an ngrok tunnel, with the Fly.io deploy config and runbook written but not yet executed. A full run — prediction, pricing, briefing — costs between fifteen and forty cents, and the predictor's last graded snapshot read 0.86 precision / 0.81 recall.
 
 Here's one of those runs, end to end — the automation made visible:
 
@@ -209,7 +212,7 @@ The other surface is staying signed in to a website that doesn't want robots. Wh
     { date: "Jun 02", tag: "v0.1", title: "Scaffold, schema, evals wiring — same day", note: "Langfuse, the cost ledger, and prediction snapshots existed before the first cart did." },
     { date: "Jun 03–04", tag: "", title: "Amazon auth edge cases + import, phase 2", note: "The state-machine sign-in and the Telegram 2FA relay earn their keep." },
     { date: "Jun 07", tag: "v0.6", title: "In-transit replenishment lifecycle", note: "Confirm → on-the-way → restock on arrival. The pantry stops double-suggesting." },
-    { date: "Jun 08", tag: "v1.0", title: "Resilience layer, evals rebuilt, live on Fly.io", note: "Selector self-repair, synthetic health probe, cost telemetry. Operating since." }
+    { date: "Jun 08", tag: "v1.0", title: "Resilience layer, evals rebuilt, running end to end", note: "Selector self-repair, synthetic health probe, cost telemetry. Fly.io config written; the stack runs on docker-compose." }
   ]}
 />
 

@@ -29,6 +29,10 @@ export interface IndexRowProps {
   /** right column: year, updated stamp, or read time */
   primaryMeta: string;
   status: string;
+  /** ALWAYS-VISIBLE evidence line under the title — domain + one real
+   *  metric. The hover reveal is the flourish; this line is the scan.
+   *  Without it, touch devices (no hover) see only codenames. */
+  signal?: string;
   /** the hidden layer: one-line thesis */
   thesis: string;
   /** the hidden layer: dense mono metadata */
@@ -47,6 +51,7 @@ export default function IndexRow({
   title,
   primaryMeta,
   status,
+  signal,
   thesis,
   secondary,
   accent,
@@ -78,13 +83,20 @@ export default function IndexRow({
           {live && <span className="live-dot" aria-hidden />}
           <span className="text-(--accent)">{tag}</span>
         </span>
-        <h3 className="text-title font-bold uppercase transition-[font-stretch] duration-700 ease-(--ease-cine) group-hover:stretch-110 group-focus-visible:stretch-110">
-          <span className="mr-3 font-mono text-label md:hidden">
-            <span className="text-dim">{no} · </span>
-            <span className="text-(--accent)">{tag}</span>
-          </span>
-          {title}
-        </h3>
+        <div className="min-w-0">
+          <h3 className="text-title font-bold uppercase transition-[font-stretch] duration-700 ease-(--ease-cine) group-hover:stretch-110 group-focus-visible:stretch-110">
+            <span className="mr-3 font-mono text-label md:hidden">
+              <span className="text-dim">{no} · </span>
+              <span className="text-(--accent)">{tag}</span>
+            </span>
+            {title}
+          </h3>
+          {signal && (
+            <p className="mt-1.5 font-mono text-label tracking-[0.14em] text-dim uppercase transition-colors duration-500 group-hover:text-void/60 group-focus-visible:text-void/60">
+              {signal}
+            </p>
+          )}
+        </div>
         <span className="text-right font-mono text-mono-sm text-ash transition-colors duration-500 group-hover:text-void/70 group-focus-visible:text-void/70">
           {primaryMeta}
         </span>

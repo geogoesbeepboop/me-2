@@ -55,6 +55,9 @@ export interface NodeMeta {
   /** projects only: absolute path of the source repo this entry distills —
    *  the registry the update-project skill reads */
   repo?: string;
+  /** projects only: where a reader can verify the source — a public repo URL,
+   *  or plain text when it isn't public (e.g. "private — walkthrough on request") */
+  source?: string;
   /** chronological archive number, oldest = 001 */
   no: string;
 }
@@ -112,6 +115,7 @@ function readKind(kind: Kind): Node[] {
         domain: meta.domain,
         stage: kind === "projects" ? (meta.stage ?? "ship") : undefined,
         repo: meta.repo,
+        source: meta.source,
         readingTime:
           kind === "writing"
             ? Math.max(2, Math.round(content.split(/\s+/).length / 200))
