@@ -118,3 +118,13 @@ Update `lib/inspect/method.ts` to the new node ids (keys must match or nodes los
 - The library page edit (featuring + essays section) touches app code — outside the curator's autonomous diff scope; correct for a human `site/*` PR, but reuse the existing card/section markup to keep the diff small and taste-consistent (run the repo's `taste-editor` agent over the copy per AGENTS.md).
 - The 07:00 library-sync LaunchAgent publishes mirrors to origin/main daily through its own worktree — our branch's re-synced mirrors may conflict at merge time if sources change mid-review; if so, re-run `npm run sync:library` on the branch before merge.
 - Essay prose volume is the schedule risk: five essays + the method rewrite are the bulk; mechanical phases are small.
+
+## As-built delta (2026-07-24)
+
+- **Critic findings (fresh-context adversarial pass on diff + this spec), all fixed in `524c23d`:**
+  1. Bank-branding leak via real file paths in visible UI (host-shell name in the inspect map, assistant codename in the dossier TerminalLog and the mirrored runbook §0). Neutralized site-side; runbook line fixed at source and re-synced; profiles.ts classification tokens now codename-free substrings that still match the real commands.
+  2. `projects/jim#system` anchors were soft-broken (jim's bench dossier has no `<Section id="system">`; the checker validates nodes, not fragments) — repointed to `projects/jim` at all four sites.
+  3. Two live `/writing` links (projects index footer, essay back-link) rode the 308 with stale labels — repointed to `/library`.
+- The Sunday-proposer launchd job is **not installed** (verified `~/Library/LaunchAgents`); the page credits the proposer as a skill and keeps the launchd metric at 4.
+- Companion commits in `agentic-harness` (local `main`, ahead 2, **not pushed**): `33e0e89` manual retitles, + the runbook codename fix. Owner pushes.
+- Known follow-ups (tracked): `app/(x)/landing11/wall.tsx` keeps two dead position-map keys for the deleted essays (noindex experiment, fallback positions — deliberate carve-out); the Sunday `/update-project` may drift-fire on the new m-clone dossier since M-Clone commits daily — its rewrite protections are the publish gates, but the first curator pass after merge deserves a look; the deployed fleet card/AgentStrip for m-clone appears only after the first post-merge 06:45 filing (by design).
