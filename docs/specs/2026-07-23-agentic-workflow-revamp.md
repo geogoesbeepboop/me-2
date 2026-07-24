@@ -128,3 +128,16 @@ Update `lib/inspect/method.ts` to the new node ids (keys must match or nodes los
 - The Sunday-proposer launchd job is **not installed** (verified `~/Library/LaunchAgents`); the page credits the proposer as a skill and keeps the launchd metric at 4.
 - Companion commits in `agentic-harness` (local `main`, ahead 2, **not pushed**): `33e0e89` manual retitles, + the runbook codename fix. Owner pushes.
 - Known follow-ups (tracked): `app/(x)/landing11/wall.tsx` keeps two dead position-map keys for the deleted essays (noindex experiment, fallback positions — deliberate carve-out); the Sunday `/update-project` may drift-fire on the new m-clone dossier since M-Clone commits daily — its rewrite protections are the publish gates, but the first curator pass after merge deserves a look; the deployed fleet card/AgentStrip for m-clone appears only after the first post-merge 06:45 filing (by design).
+
+## Amendment (2026-07-24): procurement-agent de-listed
+
+Owner call: "we haven't built this one enough to reference it." Removed from all
+editorial surfaces: dossier + inspect map deleted, fleet profile removed (board
+roster derives from entries, so it drops at the next filing), decisions shelf
+auto-swept (6 ADR mirrors removed by sync), about/method/essays/grocery/jim
+references repointed or dropped, dead filters and the CardRails backdrop removed.
+Deliberately NOT scrubbed: verbatim library mirrors of internal docs (the manuals
+mention it honestly), the noindex landing experiments (decorative room layout,
+no project content), a generic "procurement" domain word in the color doctrine,
+and jim's "procurement failure" (data-fetching, unrelated). The repo stays in the
+nightly harness fleet — de-listed from the site, not from the machine.

@@ -20,7 +20,7 @@ export default function OperatorPanel() {
       if (inv) {
         setHidden(
           inv.filter(
-            (s) => s.status !== "public" && !s.source.includes("/procurement-agent/")
+            (s) => s.status !== "public"
           )
         );
       }

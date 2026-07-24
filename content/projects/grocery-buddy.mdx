@@ -27,7 +27,6 @@ sections:
   - { id: "decisions", title: "Decisions & tradeoffs" }
   - { id: "whats-next", title: "What's next" }
 refs:
-  - "projects/procurement-agent#decisions"
   - "writing/harness-engineering#the-harness-is-a-product"
 ---
 
@@ -294,11 +293,9 @@ Filed candidly — every fix below is now load-bearing architecture.
   items={[
     "Budget envelopes — the monthly_budget_usd column exists; wire it so carts warn before they spend it.",
     "Learn consumption rates from confirmed purchases, not just declared habits — the order cadence is sitting in the events table.",
-    "Risk-tiered auto-buy behind a deterministic policy gate — Procurement Agent's authority design, reimplemented locally. Cheap known staples self-approve; novel or expensive stays human.",
+    "Risk-tiered auto-buy behind a deterministic policy gate. Cheap known staples self-approve; novel or expensive stays human.",
     "Gmail delivery tracking, so arrivals land on the real date instead of an estimate — and the 'did you order it?' tap disappears."
   ]}
 />
-
-<Ref to="projects/procurement-agent#decisions" note="the convergence decision: shared design DNA, deliberately zero shared code" />
 
 </Section>

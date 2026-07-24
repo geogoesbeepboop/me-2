@@ -500,7 +500,7 @@ if command -v caffeinate >/dev/null 2>&1 && [ -z "\${DIGEST_CAFFEINATED:-}" ]; t
 fi
 
 # Repo list: one name per line in ~/.config/agentic-harness/repos.txt
-# (currently: jim-agent · grocery-buddy · procurement-agent · dj-agent · M-Clone)
+# (the five focus repos; blank lines and #-comments ok)
 out="$OUT_DIR/$(date +%F).md"
 
 for r in "\${REPOS[@]}"; do

@@ -4,7 +4,7 @@ summary: "The scaffolding around AI agents has one job: the model proposes, dete
 date: "2026-07-23"
 thesis: "Everything probabilistic gets a deterministic boundary around it."
 refs:
-  - "projects/procurement-agent#decisions"
+  - "projects/m-clone#system"
   - "projects/grocery-buddy#how-i-built-it"
 ---
 
@@ -12,7 +12,7 @@ refs:
 
 A harness is not a prompt library. It's the deterministic shell around every probabilistic decision: hooks that fire on every tool call, a commit gate that runs the repo's own checks before any diff lands, guards that make catastrophic commands and leaked secrets structurally hard instead of vigilance-dependent. Five focus repos here carry an executable gate enforced on every commit and re-run nightly; the model never gets to be the last word on whether its own work is healthy.
 
-<Ref to="projects/procurement-agent#decisions" note="the same principle inside a product: the model recommends, code approves" />
+<Ref to="projects/m-clone#system" note="the same principle inside a product: the model proposes, deterministic routing decides" />
 
 ## Green that can't be gamed
 

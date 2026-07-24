@@ -4,7 +4,7 @@ summary: "The task loop that ships real features with two human touchpoints: cor
 date: "2026-07-23"
 thesis: "Human judgment is the scarcest resource in the system — spend it on decisions, never on re-testing."
 refs:
-  - "projects/procurement-agent#decisions"
+  - "projects/m-clone#eval-product"
   - "projects/jim"
 ---
 
@@ -28,7 +28,7 @@ The approved plan is saved into the repo — contract on top, design below — a
 
 The second touchpoint is a packet, not a claim: the spec cited, each acceptance check with its actual output, the eval delta, a fresh-context critic's adversarial verdict on the diff, and — most important — the honest list of what was *not* verified. An agent that says "everything verified" is less trustworthy than one that names the path it couldn't exercise. Self-assessment is not verification; the agent that wrote the code is the worst judge of it.
 
-<Ref to="projects/procurement-agent#decisions" note="the same idea shipped as product: approval as a first-class feature" />
+<Ref to="projects/m-clone#eval-product" note="the same idea shipped as product: acceptance checks that live on as a scored corpus" />
 
 The packet ends with a proposed contract for the most likely next task, so accepting evidence and approving the next spec is one touch. The strongest run of this loop so far steered a full feature — spec, adversarial critique, five self-paced eval rounds, merged PR — on roughly five human turns across 561 agent events. That ratio is the whole argument.
 

@@ -177,7 +177,7 @@ export default function LibraryPage() {
   });
   const howIWork = shelves.find((shelf) => shelf.id === "harness");
   const remainingShelves = shelves.filter((shelf) => shelf.id !== "harness");
-  const decisions = decisionShelves().filter((group) => group.repo !== "procurement-agent");
+  const decisions = decisionShelves();
   const adrCount = decisions.reduce((n, group) => n + group.docs.length, 0);
   const shelved = shelves.reduce(
     (n, shelf) => n + shelf.entries.reduce((m, entry) => m + 1 + (entry.series?.history.length ?? 0), 0),

@@ -177,26 +177,6 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     ],
   },
 
-  "procurement-agent": {
-    mandate:
-      "Restocks what's routine on its own and pauses for your approval on anything risky.",
-    operate: [
-      { token: "procurement_agent.demo", unit: "demo run" },
-      { token: "mcp_server.server", unit: "mcp session" },
-      { token: "workflows.worker", unit: "worker run" },
-      { token: "webhook.app", unit: "auth endpoint" },
-    ],
-    verify: ["ruff", "gate.sh"],
-    metrics: [
-      { k: "tests", v: "57" },
-      { k: "auto-spend cap", v: "$50", gate: true, money: true },
-      { k: "review threshold", v: "$1,000", gate: true, money: true },
-      { k: "mandate TTL", v: "900s", gate: true },
-    ],
-    outputUnpersisted: true,
-    noGitHistory: true,
-  },
-
   "the-archive": {
     mandate:
       "The site you're reading — a living archive that measures its own fleet, files the report, and mirrors the stacks.",
@@ -210,7 +190,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     // three me.* LaunchAgents (ops-report daily, library-sync daily,
     // curator weekly), and the curator/sync publish gate
     metrics: [
-      { k: "mirrored docs", v: "73" },
+      { k: "mirrored docs", v: "67" },
       { k: "automations", v: "3" },
       { k: "publish gate", v: "check+build+scope", gate: true },
     ],
