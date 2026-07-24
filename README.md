@@ -11,8 +11,10 @@ moving) — one index instead of separate work/lab sections.
 The archive reads as a flat mono index until touched. Hover/focus inverts a
 row, the project's accent bar drops in, and a clipped second layer opens
 (thesis + dense metadata); click cuts to the dossier with a full-bleed wipe.
-Identical on `/`, `/projects`, `/writing`. Declared in
+Identical on `/` and `/projects`. Declared in
 `components/archive/IndexRow.tsx`; the cut lives in `app/template.tsx`.
+(Essays live at `/writing/:slug` and are shelved on `/library` as the
+working-notes strip — the standalone writing index is gone.)
 
 Every project dossier also carries a **SystemDeepDive** — a one-click,
 full-screen "complete architecture" modal: the full component map (zoomable),
@@ -31,10 +33,11 @@ the layers, and the invariants that always hold.
 
 ## N°000 — /method
 
-The meta-dossier: the Claude Code harness (global CLAUDE.md contract, 17
-skills, 4 fail-open hooks, critic/researcher subagents, the 6-lens token
-meter) documented with the same anatomy as a project — diagram, deep-dive
-modal, state machines, terminal trace. Content lives in `content/method.mdx`
+The meta-dossier: the Claude Code harness (global CLAUDE.md contract, 22
+skills, 5 fail-open hooks, critic/researcher subagents, the 6-lens token
+meter, 5 gated repos) documented with the same anatomy as a project —
+diagram, deep-dive modal, state machines, terminal trace — organized
+around the contract → evidence-packet task loop. Content lives in `content/method.mdx`
 (outside the archive graph on purpose); it's reachable from the hero trace,
 a pinned N°000 row on the home index, and the footer. When the harness
 changes, update that one file.

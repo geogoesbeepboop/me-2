@@ -91,8 +91,8 @@ harness_fingerprint() {
     ls -1 "$HOME/.claude/agents" 2>/dev/null
     ls -1 "$HOME/.claude/hooks" 2>/dev/null
     ls -1 "$HOME/Library/LaunchAgents" 2>/dev/null | grep -Ei 'geoandr|^me\.'
-    stat -f '%m' "$HOME/dev/docs/TOP_PERCENT_WORKFLOW.md" "$HOME/dev/docs/OPERATING_MANUAL.md" 2>/dev/null
-    for r in jim-agent grocery-buddy procurement-agent dj-agent; do
+    stat -f '%m' "$HOME/dev/agentic-harness/docs/MANUAL.md" "$HOME/dev/agentic-harness/docs/OPERATING_MANUAL.md" 2>/dev/null
+    for r in jim-agent grocery-buddy procurement-agent dj-agent M-Clone; do
       ls "$HOME/dev/$r/.claude/gate.sh" "$HOME/dev/$r/.claude/evals.sh" 2>/dev/null
     done
   } | shasum | awk '{print $1}'

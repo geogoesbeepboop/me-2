@@ -137,10 +137,11 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     ],
     verify: ["jim-eval", "ruff", "gate.sh", "evals.sh"],
     metrics: [
-      // mined 2026-07-06: 172 = grep -rc "^def test_" tests/; 88 = 39 gate
-      // + 40 guard + 9 scenario cases (ADR-0009, dataset*.py/scenarios.py)
+      // mined 2026-07-06: 172 = grep -rc "^def test_" tests/; re-measured
+      // 2026-07-23: 98 = 48 gate + 40 guard + 10 scenario cases (python
+      // import of GATE_REGRESSION/GUARD_CASES/SCENARIOS per update-method)
       { k: "test fns", v: "172" },
-      { k: "offline eval cases", v: "88" },
+      { k: "offline eval cases", v: "98" },
       { k: "data budget cap", v: "$0.10", gate: true, money: true },
       { k: "faithfulness gate", v: "≥0.8", gate: true },
     ],
@@ -209,7 +210,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     // three me.* LaunchAgents (ops-report daily, library-sync daily,
     // curator weekly), and the curator/sync publish gate
     metrics: [
-      { k: "mirrored docs", v: "72" },
+      { k: "mirrored docs", v: "73" },
       { k: "automations", v: "3" },
       { k: "publish gate", v: "check+build+scope", gate: true },
     ],
