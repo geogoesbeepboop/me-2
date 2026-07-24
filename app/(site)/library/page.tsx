@@ -4,6 +4,7 @@ import SearchEntry from "@/components/search/SearchEntry";
 import OperatorPanel from "@/components/library/OperatorPanel";
 import {
   decisionShelves,
+  featuredDocs,
   libraryShelves,
   unlistedCount,
   type LibraryDoc,
@@ -115,12 +116,25 @@ function ShelfSection({ shelf, number }: { shelf: Shelf; number: string }) {
   const note = lenses
     ? "Current lenses and field guides, preserved with source and revision history"
     : "The operating guides behind the work, mirrored from the live harness";
+  const featured = lenses ? [] : featuredDocs();
+  const entries = lenses
+    ? shelf.entries
+    : shelf.entries.filter((entry) => !featured.some((d) => d.urlPath === entry.doc.urlPath));
   return (
     <section className="border-t border-line px-5 py-16 md:px-10 md:py-20" aria-labelledby={`shelf-${shelf.id}`}>
       <SectionHead number={number} title={title} note={note} id={`shelf-${shelf.id}`} />
       {!lenses && <MethodCard />}
+      {featured.length > 0 && (
+        <ul className="mb-4 grid gap-px border border-line border-l-2 border-l-bone/50 bg-line/60 sm:grid-cols-2">
+          {featured.map((d) => (
+            <li key={d.urlPath} className="flex min-w-0 flex-col bg-void">
+              <DocCard d={d} kicker="start here · guide" />
+            </li>
+          ))}
+        </ul>
+      )}
       <ul className={`grid gap-px border border-line bg-line/60 ${lenses ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
-        {shelf.entries.map((entry) => (
+        {entries.map((entry) => (
           <ShelfCard key={entry.doc.urlPath} shelf={shelf} entry={entry} />
         ))}
       </ul>
