@@ -147,6 +147,35 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     outputUnpersisted: true,
   },
 
+  "m-clone": {
+    mandate:
+      "Answers money questions from real ledgers, entirely on the phone — no cloud model, no backend.",
+    operate: [
+      { token: "simctl launch", unit: "app launch" },
+      { token: "devicectl", unit: "device run" },
+      { token: "run-device.sh", unit: "on-device eval sitting" },
+      { token: "mac-harness/run.sh", unit: "harness run" },
+    ],
+    verify: [
+      "gate.sh",
+      "evals.sh",
+      "gate-erica-routing",
+      "pytest",
+      "validate-erica-routing-corpus",
+      "xcodebuild test",
+    ],
+    metrics: [
+      // mined 2026-07-23: 604 = grep -rh '@Test' Crown/Tests/CrownKitTests
+      // --include='*.swift' | wc -l; 86.5% + 0/35 = evals/erica-routing/
+      // REPORT.md hybrid-armA-v1 row (live corpus); 81 = line count of
+      // evals/erica-routing/sealed/holdout-v3.jsonl
+      { k: "test fns, model-free", v: "604" },
+      { k: "routing accuracy (family)", v: "86.5%" },
+      { k: "out-of-scope leaks", v: "0/35", gate: true },
+      { k: "sealed holdout cases", v: "81" },
+    ],
+  },
+
   "procurement-agent": {
     mandate:
       "Restocks what's routine on its own and pauses for your approval on anything risky.",

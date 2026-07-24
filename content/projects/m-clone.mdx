@@ -1,0 +1,288 @@
+---
+title: "M-Clone"
+summary: "A full retail-banking app rebuilt as a lab — accounts, cards, budgets, goals, Plaid-linked data — with a money assistant that answers entirely on-device. No backend, no server database, and by hard rule no remote LLM. The assistant's judgment is a shipped eval product: a scored corpus, a sealed holdout, and gates that run on every commit."
+date: "2026-07-23"
+year: "2026"
+status: "ACTIVE BUILD"
+thesis: "An assistant you can trust with money is an eval product wearing an app."
+domain: "FINTECH · ON-DEVICE AI"
+accent: "#ff7a9e"
+stage: "ship"
+repo: "/Users/geoandr/dev/M-Clone"
+role: "Solo — iOS app, on-device assistant, eval product"
+stack:
+  [
+    "Swift · SwiftUI",
+    "SwiftData",
+    "Apple Foundation Models (on-device)",
+    "Plaid (sandbox)",
+    "Next.js relay",
+    "Python eval tooling",
+  ]
+timeline: "May — Jul 2026 · ongoing"
+metrics:
+  - k: "routing accuracy, on-device"
+    v: "86.5%"
+  - k: "out-of-scope leaks, live corpus"
+    v: "0/35"
+  - k: "sealed holdout cases"
+    v: "81"
+  - k: "test functions, all model-free"
+    v: "604"
+sections:
+  - { id: "brief", title: "Brief" }
+  - { id: "system", title: "The system" }
+  - { id: "eval-product", title: "The eval product" }
+  - { id: "what-broke", title: "What broke" }
+  - { id: "decisions", title: "Decisions & tradeoffs" }
+  - { id: "whats-next", title: "What's next" }
+refs:
+  - "projects/jim#system"
+  - "writing/evals-are-the-product#audit-the-ruler"
+  - "writing/you-appear-exactly-twice#done-arrives-as-evidence"
+reflection: "writing/you-appear-exactly-twice"
+---
+
+<Section id="brief" n="00" title="Brief">
+
+Every bank now ships an assistant, and every one of them phones home. This project rebuilds the whole surface — accounts, credit cards, budgets, goals, Plaid-linked real data — and then answers the interesting question: **how good can a money assistant be if it never leaves the phone?** Chat history, financial ledgers, budgets, and Plaid tokens live on-device in SwiftData and the Keychain. There is no backend and no server-side database; the only hosted piece is a thin Plaid OAuth/webhook relay.
+
+The assistant is a hybrid: a deterministic router with typed financial tools and calculators does the load-bearing work, and Apple's on-device foundation model assists where language helps — with the model's authority capped by construction. On the live corpus, the current arm routes 86.5% of prompts to the right capability family and has leaked **zero** out-of-scope requests in 35 attempts.
+
+The deeper deliverable is the discipline around that number. The router's judgment is governed by a real eval product — versioned corpus packs, preregistered experiments, a failure taxonomy, a cryptographically sealed holdout — and by commit gates that keep every test model-free. The claim isn't "the assistant feels smart." It's "here is the corpus, here is the score, here is the gate that fails if either regresses."
+
+</Section>
+
+<Section id="system" n="01" title="The system">
+
+Two host shells share one Swift package; everything that matters lives in the package. The assistant's spine is deliberately boring: the model proposes an intent, deterministic routing decides what runs, and typed tools compute answers from the real ledgers — the model never free-generates a balance.
+
+<SystemDeepDive
+  title="M-Clone"
+  inspect="m-clone"
+  subtitle="Everything below is real configuration and real wiring, quoted from the files that enforce it."
+  nodes={[
+    {
+      id: "hosts",
+      label: "Two host shells",
+      sub: "SwiftUI · one shared package",
+      col: 0,
+      row: 0,
+    },
+    {
+      id: "kit",
+      label: "CrownKit core",
+      sub: "@Observable VMs · repositories",
+      col: 1,
+      row: 0,
+    },
+    {
+      id: "store",
+      label: "SwiftData store",
+      sub: "all data on-device",
+      col: 2,
+      row: 0,
+    },
+    {
+      id: "router",
+      label: "Hybrid router",
+      sub: "deterministic floor · model assist",
+      col: 0,
+      row: 1,
+      accent: true,
+    },
+    {
+      id: "tools",
+      label: "Typed tools",
+      sub: "calculators · schemas",
+      col: 1,
+      row: 1,
+    },
+    {
+      id: "insights",
+      label: "Insights engine",
+      sub: "rules + on-device narration",
+      col: 2,
+      row: 1,
+    },
+    {
+      id: "guards",
+      label: "Guards",
+      sub: "no-remote-LLM · model-free tests",
+      col: 0,
+      row: 2,
+      accent: true,
+    },
+    {
+      id: "evals",
+      label: "The eval product",
+      sub: "corpus · sealed holdout · harness",
+      col: 1,
+      row: 2,
+      accent: true,
+    },
+    {
+      id: "relay",
+      label: "Plaid relay",
+      sub: "the only hosted piece",
+      col: 2,
+      row: 2,
+    },
+  ]}
+  edges={[
+    { from: "hosts", to: "kit", label: "hosts share the package" },
+    { from: "kit", to: "store", label: "repositories" },
+    { from: "router", to: "tools", label: "typed calls only" },
+    { from: "tools", to: "store", label: "answers from real ledgers" },
+    { from: "insights", to: "store", label: "reads" },
+    { from: "guards", to: "router", label: "no cloud, enforced", dashed: true },
+    { from: "evals", to: "router", label: "scores every change" },
+    { from: "relay", to: "hosts", label: "oauth return · webhook → push" },
+  ]}
+  core={[
+    {
+      name: "no remote llm",
+      rule: "the assistant never leaves the device — a source-level guard fails the commit if a cloud-model call appears, even 'temporarily'",
+    },
+    {
+      name: "model-free tests",
+      rule: "no test may reach a live language model or the real availability gate; injected doubles and an availability override only, guard-enforced",
+    },
+    {
+      name: "the sealed holdout",
+      rule: "holdout bundles are never read, tuned against, or regenerated outside the sealing workflow; corpus changes pass a validator first",
+    },
+    {
+      name: "bugs become cases",
+      rule: "a real failure is written into the corpus or test suite and watched failing before it's fixed — same diff, no silent patching",
+    },
+    {
+      name: "anti-cheat",
+      rule: "deleting, skipping, or weakening a test or eval to go green turns the gate red; deliberate cleanups must say so in the commit",
+    },
+  ]}
+  invariants={[
+    "Financial data, chat history, budgets, and Plaid tokens live on-device — there is no backend and no server-side database.",
+    "The model proposes; deterministic routing and typed tools decide what runs and what the numbers are.",
+    "Every routing change is scored against the corpus before it ships; the sealed holdout stays sealed.",
+    "The whole gate stays green on a headless, model-free machine — no network, no Apple Intelligence required.",
+  ]}
+/>
+
+</Section>
+
+<Section id="eval-product" n="02" title="The eval product">
+
+The assistant's quality is not a vibe; it's a shipped artifact with its own versioning, its own guards, and its own report. Corpus packs cover development, confusables, workflows, journeys, and over-refusal probes. Experiments are preregistered before they run. Failures are classified in a written taxonomy. And an 81-case holdout sits sealed behind a hashing workflow so no tuning session can ever quietly train on the exam.
+
+Every commit pays a fast toll; the full routing gate runs the expensive machinery:
+
+<TerminalLog
+  title="what a change to the assistant has to survive"
+  lines={[
+    { k: "sys", s: "git commit → .claude/gate.sh (<120s, every commit)" },
+    { k: "out", s: "pytest scripts/tests · corpus validation · no-remote-LLM guard · model-free guard · anti-cheat" },
+    { k: "sys", s: "scripts/gate-erica-routing.sh — the full routing gate" },
+    { k: "out", s: "XCTest on an iPhone simulator · capability-pack native scoring · det-harness smoke" },
+    { k: "sys", s: "nightly 06:17 — both run again across the fleet; the digest lands before I wake" },
+  ]}
+/>
+
+The same discipline covers the insights engine — the feed that turns ledgers into observations. Thirty-five engineered fixtures pin its rules; live narration runs are scored per-row, on device, and adjudicated by actually reading every output rather than trusting the metric. That habit exists because a metric lied once, and the story of how is below.
+
+<Ref to="projects/jim#system" note="the same eval-first spine, pointed at cited research memos" />
+
+</Section>
+
+<Section id="what-broke" n="03" title="What broke">
+
+<WhatBroke
+  items={[
+    {
+      title: "The metric that read 1.000 while the answer lost its number",
+      sev: "EVAL-01",
+      what: "An any-of citation metric scored narration as perfect while the model dropped the single dollar figure the feature existed to surface. Token-level score: flawless. Output: wrong.",
+      fix: "The metric went red-first before any feature fix: score predicates are now byte-identical to what production enforces, the harness's prompts are parity-fenced against the app's, and shipping-gate suites earn a periodic every-row read.",
+      lesson: "Measurement drift is a first-class failure class. The cases you grade are only as honest as the ruler.",
+    },
+    {
+      title: "Available, but not actually available",
+      sev: "OS-01",
+      what: "The on-device model reported .available while every generation failed. The typed error chain ran through the OS safety sanitizer: its guardrail asset had never downloaded, and availability doesn't reflect guardrail readiness (filed upstream as FB19844387).",
+      fix: "The harness captures typed error chains instead of stringified errors, prewarms once, and documents the provisioning fix; the eval report superseded its own earlier 'no evidence' state with root cause attached.",
+      lesson: "On-device AI has OS-level failure modes cloud APIs never taught you. Type the errors or you'll never see them.",
+    },
+    {
+      title: "Cards with no limit inflated everyone's utilization",
+      sev: "DATA-01",
+      what: "Credit cards reporting a nil limit were silently inflating utilization in two separate services — financial health and credit score — the kind of confidently-wrong arithmetic a money app can't afford.",
+      fix: "Both call sites fixed against a 30-source fixture corpus mirroring the real aggregator surface, with a direct test pinning the behavior. The bug became a case before it became a fix.",
+      lesson: "Real-data edge cases are the product. The fixture corpus is where they go to become permanent.",
+    },
+  ]}
+/>
+
+</Section>
+
+<Section id="decisions" n="04" title="Decisions & tradeoffs">
+
+<Decision
+  n="01"
+  title="No remote LLM, as a guard — not a preference"
+  chose="A source-level check that fails any commit introducing a cloud-model call. The privacy claim is enforced, not aspirational."
+  over="A cloud model behind a privacy policy, or 'local-first' with quiet exceptions."
+  cost="The assistant is capped by what an on-device model can do; hard problems need routing craft instead of a bigger model."
+  payoff="The core promise — your money data never leaves the phone — survives every future contributor, including me on a lazy day."
+/>
+
+<Decision
+  n="02"
+  title="Deterministic floor, model assist"
+  chose="A deterministic router and typed tools as the load-bearing path, with the on-device model assisting inside a bounded lane."
+  over="LLM-first routing with the deterministic path as fallback."
+  cost="Two systems to keep coherent, and an eval corpus to keep them honest."
+  payoff="86.5% family accuracy with zero out-of-scope leaks — and every number in an answer computed, never generated."
+/>
+
+<Decision
+  n="03"
+  title="The holdout is sealed, cryptographically"
+  chose="A sealed 81-case holdout behind a hashing workflow; tuning happens on development packs, and the seal is checked, not promised."
+  over="One big eval set everyone iterates against."
+  cost="Slower feedback: the honest number arrives only at sealed reads."
+  payoff="When tuning showed 55 and the holdout said ~23, the gap was visible instead of shipped. Overfitting became a measurement, not a surprise."
+/>
+
+<Decision
+  n="04"
+  title="Tests never touch the model"
+  chose="Every test runs against injected doubles with an availability override; a guard fails commits that reach for the live model."
+  over="Integration tests against real on-device inference."
+  cost="Live-model behavior needs separate, deliberate device sittings to observe."
+  payoff="The whole suite — 604 test functions — runs on a headless machine, every commit, every night, at zero model cost and zero flake from OS asset state."
+/>
+
+</Section>
+
+<Section id="whats-next" n="05" title="What's next">
+
+<NextUp
+  items={[
+    "Grow the capability corpus from real sittings — every confused routing becomes a corpus case before its fix.",
+    "Template-first rendering on hardware tiers where the on-device context window stays small.",
+    "Deeper insight narration under the same per-row adjudication bar that caught the 1.000 lie.",
+    "Keep the relay boring: OAuth return, AASA, webhook-to-push — nothing else grows server-side.",
+  ]}
+/>
+
+<Ref
+  to="writing/evals-are-the-product#audit-the-ruler"
+  note="the measurement-drift lesson, argued in full"
+/>
+
+<Ref
+  to="writing/you-appear-exactly-twice#done-arrives-as-evidence"
+  note="the working loop that built this — five human turns steering 561 agent events"
+/>
+
+</Section>

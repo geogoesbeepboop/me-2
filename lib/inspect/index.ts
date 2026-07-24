@@ -4,6 +4,7 @@ import { GROCERY_BUDDY } from "./grocery-buddy";
 import { PROCUREMENT_AGENT } from "./procurement-agent";
 import { JIM } from "./jim";
 import { DJ_AGENT } from "./dj-agent";
+import { M_CLONE } from "./m-clone";
 
 /**
  * Registry of click-to-inspect excerpts, keyed by the `inspect` prop a
@@ -16,6 +17,7 @@ export const INSPECT: Record<string, InspectMap> = {
   "procurement-agent": PROCUREMENT_AGENT,
   jim: JIM,
   "dj-agent": DJ_AGENT,
+  "m-clone": M_CLONE,
 };
 
 export type { InspectEntry, InspectMap } from "./types";
