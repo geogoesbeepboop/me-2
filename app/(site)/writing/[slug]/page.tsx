@@ -49,10 +49,10 @@ export default async function WritingPost({ params }: Props) {
         <CrossLinks node={node} n="∞" />
 
         <Link
-          href="/writing"
+          href="/library"
           className="mt-10 inline-block font-mono text-mono-sm text-ash underline-offset-4 hover:underline"
         >
-          ← All writing
+          ← All notes, in the library
         </Link>
       </div>
     </article>

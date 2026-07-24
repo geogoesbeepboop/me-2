@@ -4,7 +4,7 @@ summary: "Tests catch broken code; evals catch a system that confidently does th
 date: "2026-07-23"
 thesis: "An agent product is worth exactly what its eval suite can prove about it."
 refs:
-  - "projects/jim#system"
+  - "projects/jim"
   - "projects/grocery-buddy#how-i-built-it"
 ---
 
@@ -12,7 +12,7 @@ refs:
 
 A test asserts `total == 42.17`. An eval asks: given this input, this history, this catalog — did the agent make the right *decision*? Agent products fail in the second category far more often than the first: nothing is broken, every function returns, and the output is confidently wrong. That's why every product here with an LLM decision in it carries a scored suite, run nightly at zero credentials and near-zero cost — 98 offline cases replay in seconds, armed with a baseline so a regression is a verdict, not a feeling.
 
-<Ref to="projects/jim#system" note="the suite that runs while I sleep" />
+<Ref to="projects/jim" note="the suite that runs while I sleep" />
 
 ## Bugs become cases
 

@@ -4,20 +4,20 @@ import type { InspectMap } from "./types";
  * M-CLONE — click-to-inspect for the on-device banking-copilot dossier.
  * Distilled from /Users/geoandr/dev/M-Clone: names, thresholds, guard
  * behavior, and corpus facts are as coded/measured, never illustrative.
- * (Measured 2026-07-23: 86.5% family / 0/35 OOS = evals/erica-routing/
+ * (Measured 2026-07-23: 86.5% family / 0/35 OOS = the routing evals'
  * REPORT.md hybrid-armA-v1 row; 81 = sealed/holdout-v3.jsonl; 604 =
  * `grep -rh '@Test' Crown/Tests/CrownKitTests | wc -l`.)
  */
 export const M_CLONE: InspectMap = {
   hosts: {
-    path: "Crown/ · BofAShell/",
+    path: "Crown/ (+ a second host shell)",
     note: "Two SwiftUI host apps, zero duplicated logic — both consume the same shared package.",
     blocks: [
       {
         kind: "kv",
         title: "the split",
         items: [
-          { k: "hosts", v: "two app shells (Crown, BofAShell)" },
+          { k: "hosts", v: "two app shells, one code path" },
           { k: "shared", v: "CrownCore + CrownKit Swift package" },
           { k: "pattern", v: "SwiftUI · @Observable view-models" },
           { k: "backend", v: "none — no server, no server DB", accent: true },
@@ -123,7 +123,7 @@ export const M_CLONE: InspectMap = {
     ],
   },
   evals: {
-    path: "evals/erica-routing/",
+    path: "evals/ — assistant routing + insights",
     note: "The eval product: versioned packs, preregistrations, a failure taxonomy, a sealed holdout, a native harness.",
     blocks: [
       {

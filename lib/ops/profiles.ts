@@ -160,19 +160,19 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     verify: [
       "gate.sh",
       "evals.sh",
-      "gate-erica-routing",
+      "-routing.sh",
       "pytest",
-      "validate-erica-routing-corpus",
+      "routing-corpus",
       "xcodebuild test",
     ],
     metrics: [
       // mined 2026-07-23: 604 = grep -rh '@Test' Crown/Tests/CrownKitTests
-      // --include='*.swift' | wc -l; 86.5% + 0/35 = evals/erica-routing/
+      // --include='*.swift' | wc -l; 86.5% + 0/35 = the routing evals'
       // REPORT.md hybrid-armA-v1 row (live corpus); 81 = line count of
-      // evals/erica-routing/sealed/holdout-v3.jsonl
+      // the routing evals' sealed/holdout-v3.jsonl
       { k: "test fns, model-free", v: "604" },
       { k: "routing accuracy (family)", v: "86.5%" },
-      { k: "out-of-scope leaks", v: "0/35", gate: true },
+      { k: "out-of-scope leaks", v: "0/35" },
       { k: "sealed holdout cases", v: "81" },
     ],
   },

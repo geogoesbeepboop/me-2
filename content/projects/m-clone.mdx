@@ -37,7 +37,7 @@ sections:
   - { id: "decisions", title: "Decisions & tradeoffs" }
   - { id: "whats-next", title: "What's next" }
 refs:
-  - "projects/jim#system"
+  - "projects/jim"
   - "writing/evals-are-the-product#audit-the-ruler"
   - "writing/you-appear-exactly-twice#done-arrives-as-evidence"
 reflection: "writing/you-appear-exactly-twice"
@@ -182,7 +182,7 @@ Every commit pays a fast toll; the full routing gate runs the expensive machiner
   lines={[
     { k: "sys", s: "git commit → .claude/gate.sh (<120s, every commit)" },
     { k: "out", s: "pytest scripts/tests · corpus validation · no-remote-LLM guard · model-free guard · anti-cheat" },
-    { k: "sys", s: "scripts/gate-erica-routing.sh — the full routing gate" },
+    { k: "sys", s: "the full assistant-routing gate" },
     { k: "out", s: "XCTest on an iPhone simulator · capability-pack native scoring · det-harness smoke" },
     { k: "sys", s: "nightly 06:17 — both run again across the fleet; the digest lands before I wake" },
   ]}
@@ -190,7 +190,7 @@ Every commit pays a fast toll; the full routing gate runs the expensive machiner
 
 The same discipline covers the insights engine — the feed that turns ledgers into observations. Thirty-five engineered fixtures pin its rules; live narration runs are scored per-row, on device, and adjudicated by actually reading every output rather than trusting the metric. That habit exists because a metric lied once, and the story of how is below.
 
-<Ref to="projects/jim#system" note="the same eval-first spine, pointed at cited research memos" />
+<Ref to="projects/jim" note="the same eval-first spine, pointed at cited research memos" />
 
 </Section>
 

@@ -2,14 +2,14 @@
 title: 'The Operating Manual — how the day runs (solo runbook, v4)'
 collection: harness
 source: ~/dev/agentic-harness/docs/OPERATING_MANUAL.md
-sourceMtime: '2026-07-24T06:26:03.247Z'
-sourceCommit: 33e0e89
+sourceMtime: '2026-07-24T07:11:29.467Z'
+sourceCommit: c7ba1f1
 syncedAt: '2026-07-24'
 summary: >-
   Rewritten 2026-07-13. The v3 manual grew into a 1,100-line platform spec that
   taxed every read and got skipped under pressure — which showed up as burnout
   from juggling sessions, manual UI testing …
-contentHash: 'sha256:7279504536ab41ced03614907783806c7ac518adea47f45cb8dcddfc828ff306'
+contentHash: 'sha256:c40235561fee622600f6fd2d59be6d72216a01c2b8519d3a01bdbde5046f4a56'
 ---
 # The Operating Manual — how the day runs (solo runbook, v4)
 
@@ -70,7 +70,7 @@ Every piece of the harness, one line each. Details: MANUAL.md §6 (doctrine), se
   receipts (a retro line, an observed failure), and AGENTS.md forbids editing a guard to make
   a failing check pass — anti-cheat watches the test/eval dirs on every commit. What grows
   in-diff automatically is the *suites they run* (bugs-become-cases), never the runners.
-- **Known gap, deliberate:** M-Clone's `evals.sh` covers erica routing only; the insights
+- **Known gap, deliberate:** M-Clone's `evals.sh` covers assistant routing only; the insights
   corpus needs the on-device model and is re-run per-session, not nightly. Revisit if the mac
   harness proves headless-safe.
 
