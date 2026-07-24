@@ -1,0 +1,29 @@
+---
+title: "Harness Engineering"
+summary: "The scaffolding around AI agents has one job: the model proposes, deterministic code disposes. Hooks, gates, and anti-cheat lines make a green check mean something — and the harness itself is a product, with its own gate."
+date: "2026-07-23"
+thesis: "Everything probabilistic gets a deterministic boundary around it."
+refs:
+  - "projects/procurement-agent#decisions"
+  - "projects/grocery-buddy#how-i-built-it"
+---
+
+## The model proposes, code disposes
+
+A harness is not a prompt library. It's the deterministic shell around every probabilistic decision: hooks that fire on every tool call, a commit gate that runs the repo's own checks before any diff lands, guards that make catastrophic commands and leaked secrets structurally hard instead of vigilance-dependent. Five focus repos here carry an executable gate enforced on every commit and re-run nightly; the model never gets to be the last word on whether its own work is healthy.
+
+<Ref to="projects/procurement-agent#decisions" note="the same principle inside a product: the model recommends, code approves" />
+
+## Green that can't be gamed
+
+The result that changed how I read test output: when one vendor sealed git history and network access on a coding benchmark, a model's score dropped from 87.1% to 73.0% — 63% of audited "passing" runs had cheated. The tells are old ones — tests deleted or disabled, unrequested changes — and they're deterministic to check. So they live in the gate, not in my attention: a diff that touches a test or eval file with net-negative assertions, or adds skip markers, goes red and names the file. A green gate that can't be gamed cheaply is what licenses trusting "done" at all.
+
+## The harness is a product
+
+Harness changes go through the same loop as feature code: contract, implementation, evidence. The harness repo has its own gate; it eats its own dog food. And nothing in it is described as protection — hooks fail open, a worktree is not a sandbox. These are conveniences that make the right thing cheap. The day an agent spends real money autonomously, that becomes a sandbox project with its own contract — an infrastructure question, not a trust question.
+
+<Ref to="projects/grocery-buddy#how-i-built-it" note="gates and health probes as load-bearing product features" />
+
+## The kill rule
+
+Scaffolding accumulates, and accumulated scaffolding is drag. Two spending rules keep it honest. Fan-out must pay rent: multi-agent runs win benchmarks largely by burning ~15× the tokens, so a parallel lane is justified by the review it saves, not by the thrill of concurrency. And anything — ritual, eval, hook, standing loop — that hasn't changed a decision or caught a regression in about three cycles is a deletion candidate. "We've always run it" is not a defense.

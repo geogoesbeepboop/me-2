@@ -1,0 +1,33 @@
+---
+title: "Loop Engineering"
+summary: "Coding agents work best inside a loop they can verify themselves. Designing that loop — what the agent starts with, what it can check, when it stops — beats prompting harder, every time."
+date: "2026-07-23"
+thesis: "Prompting harder is what you do when you haven't engineered the loop."
+refs:
+  - "projects/dj-agent"
+  - "projects/jim"
+---
+
+## The loop is the product
+
+When an agent underperforms, the reflex is to write a better prompt. The leverage is almost never there. It's in the loop the agent runs inside: what context it starts with, what it can verify without a human, and what makes it stop. Engineer those three and a mediocre prompt ships good work; skip them and the best prompt in the world ships confident guesses.
+
+## The inner loop
+
+**Context in.** A lane starts with the contract, the repo's instruction file, and the latest handoff — injected by a session-start hook, not pasted by hand. State lives in git, files, and handoffs, never only in a context window, so any lane can be killed and restarted fresh. Quality degrades measurably past ~100–150k tokens of context; the discipline that keeps you out of that zone is state-on-disk, not bigger windows.
+
+**Verifiers the agent runs itself.** A commit gate in seconds, the eval subset, a verify skill that drives the real flows. Verification the agent can't run becomes *your* job at review time — so the cheapest missing verifier gets built as part of the task, not deferred. It feels slower and is faster by mid-session, because the agent self-corrects instead of queueing on your eyeballs.
+
+**Fan out for reads, single lane for writes.** Parallel subagents are for investigation and review — heavy reading happens in someone else's window and only conclusions come back. Implementation runs single-lane with checkpoints unless workstreams touch disjoint modules *and* disjoint runtimes: worktrees isolate files, not simulators, ports, or datastores.
+
+<Ref to="projects/dj-agent" note="a generation loop with a critic and thresholds designed in from the start" />
+
+## Knowing when to stop
+
+A lane ends at an evidence packet, a blocked-on-input question, or a spent retry budget — never at "this is probably right." And after two iterations on the same problem with no genuinely new hypothesis, the next move is fresh eyes: a critic with clean context reading only the repo and the spec. The session that produced the confusion is the worst place to resolve it.
+
+## The outer loop
+
+The same discipline runs on a longer clock. Every morning at 06:17, every focus repo's gate and eval suite runs while I sleep; a digest lands, and the session-start hook serves it with the first coffee. Weekly, a proposer agent mines the digests and logs for recurring friction and files improvement proposals. On a model release: requalify by rerunning the suites and comparing — never switch on launch-day vibes. Drift gets caught by machinery, on a schedule, not by someone noticing.
+
+<Ref to="projects/jim" note="nightly baseline-compare: a regression is a verdict, not a feeling" />
