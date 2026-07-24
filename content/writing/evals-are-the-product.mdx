@@ -1,0 +1,31 @@
+---
+title: "Evals Are the Product"
+summary: "Tests catch broken code; evals catch a system that confidently does the wrong thing. For agent products, the second category is where life and death happen — so the suite grows from reality, and the ruler itself gets audited."
+date: "2026-07-23"
+thesis: "An agent product is worth exactly what its eval suite can prove about it."
+refs:
+  - "projects/jim"
+  - "projects/grocery-buddy#how-i-built-it"
+---
+
+## Tests check code; evals judge behavior
+
+A test asserts `total == 42.17`. An eval asks: given this input, this history, this catalog — did the agent make the right *decision*? Agent products fail in the second category far more often than the first: nothing is broken, every function returns, and the output is confidently wrong. That's why every product here with an LLM decision in it carries a scored suite, run nightly at zero credentials and near-zero cost — 98 offline cases replay in seconds, armed with a baseline so a regression is a verdict, not a feeling.
+
+<Ref to="projects/jim" note="the suite that runs while I sleep" />
+
+## Bugs become cases
+
+Suites grow from reality, never speculation. Every real failure is written into the suite *first* — watch it fail — then fixed in the same diff. The suite becomes a monotonically growing net of everything that has ever actually gone wrong, and the nightly run guards it forever. The discipline sounds slow and is the opposite: 20–50 cases drawn from real failures beat any elaborate framework, and they accumulate as a side effect of debugging you were doing anyway.
+
+Eval-alongside is the default while a product moves fast: every feature lands with its cases in the same diff, converted straight from the contract's acceptance evidence. Once real users or real money flow, the relationship inverts — the cases *are* the spec, and a plan isn't approved until the cases defining "working" exist.
+
+## The grader hierarchy
+
+Graders are chosen by cost curve, cheapest first: a deterministic code-grader is free forever; snapshot-replay against recorded traffic is cheap and offline; an LLM judge is a paid call per case per run, *forever*. A judge is the last resort, and when one earns its place it's pinned to a model version, calibrated against my own grading on a sample, and given an "Unknown" escape so it never bluffs a verdict.
+
+## Audit the ruler
+
+The sharpest lesson of this year: measurement drift is a first-class failure class. A token-level metric can read a perfect 1.000 while the output silently drops the one figure the feature exists to surface. The fixes are structural, not vigilance: score predicates stay byte-identical to what production enforces, eval-harness prompts are parity-fenced against app prompts, and any suite that gates shipping earns a periodic every-row read — actually reading the outputs, not the scores. The cases you grade are only as honest as the ruler you grade them with.
+
+<Ref to="projects/grocery-buddy#how-i-built-it" note="evals wired before the first cart ever built" />

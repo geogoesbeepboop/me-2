@@ -1,9 +1,8 @@
 {
   "$comment": "THE LIBRARY's single authority — visibility AND presentation. Visibility precedence: deny > in-doc marker (site: private / <!-- me2: private -->) > private[] > public. deny is a hard wall — matched sources never enter the pipeline. private[] is the flip list the ops toggle and `npm run library` edit. scanAllow[] lets a named source publish past the soft PII scan. Presentation: display 'unlisted' keeps a collection mirrored + searchable + URL-addressable but off the /library index (lowest visibility ≠ private); series folds versioned lenses into one shelf entry with a history trail; featured[] is the START HERE strip. decisions/<repo> collections derive automatically from each content/projects/*.mdx `repo:` field.",
   "featured": [
-    "~/dev/hackathons/ideas_3.0.md",
-    "~/dev/agentic-harness/docs/OPERATING_MANUAL.md",
-    "~/dev/agentic-harness/docs/TOP_PERCENT_WORKFLOW.md"
+    "~/dev/agentic-harness/docs/MANUAL.md",
+    "~/dev/agentic-harness/docs/OPERATING_MANUAL.md"
   ],
   "collections": [
     {

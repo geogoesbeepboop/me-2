@@ -39,10 +39,10 @@ export default function ProjectsPage() {
       <ArchiveIndex nodes={nodesOf("projects")} />
       <div className="mt-14 px-5 md:px-10">
         <Link
-          href="/writing"
+          href="/library"
           className="font-mono text-mono-sm text-ash underline-offset-4 hover:underline"
         >
-          The thinking behind the builds lives in writing →
+          The thinking behind the builds lives in the library →
         </Link>
       </div>
     </div>

@@ -1,0 +1,29 @@
+---
+title: "Agent Anatomy"
+summary: "Before an agent ships: twelve design questions, a deterministic owner for every irreversible action, risk tiers set by blast radius, and a precise understanding of what a green check does — and does not — prove."
+date: "2026-07-23"
+thesis: "Probabilistic models propose; deterministic systems constrain."
+refs:
+  - "projects/m-clone#system"
+  - "projects/dj-agent"
+---
+
+## Twelve questions
+
+Every agent project here answers the same twelve questions before it ships, grouped four ways: **correctness** (what's the outcome, who authorizes actions at runtime, what versions do the evals pin), **trust** (what enters and leaves, what's remembered, which tools and credentials it holds, where humans stay in the loop), **economics** (budget and latency), and **operability** (what's observable, what's durable, how it fails and terminates). Small agents answer a subset; anything irreversible answers all twelve. The questions are boring on purpose — the failures they prevent are not.
+
+## Authority stays deterministic
+
+Money, publishing, deletion, consent, outbound messages: every action in that class has a deterministic owner. The model recommends; code or a human is the final allow/deny — always. This is the single design rule that makes everything else safe to automate, and it's visible in the products: an ordering agent whose approval step is a feature, not a compliance apology; a research agent that refuses to ship an uncited number because a validator, not a vibe, says so.
+
+<Ref to="projects/m-clone#system" note="the deterministic owner, shipped: the model proposes an intent; routing and typed tools decide" />
+
+## Risk is blast radius
+
+Review depth tracks consequence, not code size. A local, reversible change gets the obvious check and no ceremony. A path that touches money or acts externally gets line-level review, containment, and a rollback plan — however small the diff. Tiering by blast radius is what frees attention to go where it matters: machine-absorbed review for gated product logic, eyes-on review reserved for the irreversible.
+
+<Ref to="projects/dj-agent" note="generation bounded by critic thresholds — risk held inside the loop" />
+
+## What green means
+
+A green check means exactly this: the checks that ran passed, in the environment where they ran. It does not prove security, usefulness, or integration; it does not prove the untested path works; it does not prove the agent understood the intent. Engineering around that gap — evidence packets that name what was *not* verified, gates that can't be gamed, suites that grow from real failures — is the actual job. The anatomy exists so that when something does break, it breaks inside a boundary that was designed to hold it.

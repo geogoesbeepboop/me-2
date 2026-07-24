@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  * Each project gets one piece of line art behind its landing header,
  * in its own accent, at whisper opacity — a DJ deck behind the booth,
  * pantry shelves behind the groceries, a candlestick wall behind the
- * analyst, a card on rails behind procurement. If you notice it, it
+ * analyst. If you notice it, it
  * should please you; it must never compete with the content. Replaces
  * the bench-grid texture in the header zone for slugs that have art;
  * unknown slugs keep the grid.
@@ -157,49 +157,11 @@ function MarketWall() {
 }
 
 /** one card, locked to its rails — the desk that cannot spend */
-function CardRails() {
-  return (
-    <svg viewBox="0 0 760 420" preserveAspectRatio="xMaxYMid slice" className="h-full w-full">
-      <g {...S}>
-        {/* the card */}
-        <rect x={330} y={110} width={330} height={200} rx={16} />
-        <rect x={362} y={154} width={52} height={38} rx={6} />
-        {/* contactless arcs */}
-        {[0, 1, 2].map((i) => (
-          <path
-            key={i}
-            d={`M ${440 + i * 12} ${158 - i * 2} a ${18 + i * 10} ${18 + i * 10} 0 0 1 0 ${30 + i * 4}`}
-            opacity={0.7 - i * 0.15}
-          />
-        ))}
-        {/* the number line + signature */}
-        <line x1={362} y1={232} x2={560} y2={232} opacity={0.5} />
-        <path d="M 362 272 q 16 -14 30 0 t 30 0 t 30 0 t 30 0" opacity={0.6} />
-        {/* rails feeding the card — circuit traces with terminals */}
-        {[
-          "M 80 140 h 120 v 40 h 126",
-          "M 60 210 h 180 v 0 h 86",
-          "M 90 300 h 110 v -50 h 126",
-          "M 130 360 h 140 v -90 h 56",
-        ].map((d, i) => (
-          <g key={d} opacity={0.8 - i * 0.1}>
-            <path d={d} />
-            <circle cx={Number(d.split(" ")[1])} cy={Number(d.split(" ")[2])} r={5} />
-          </g>
-        ))}
-        {/* the one-way gate on the rail */}
-        <rect x={290} y={196} width={28} height={28} rx={3} />
-        <path d="M 298 210 h 12 m -5 -5 l 5 5 l -5 5" opacity={0.9} />
-      </g>
-    </svg>
-  );
-}
 
 const ART: Record<string, ReactNode> = {
   "dj-agent": <DjDeck />,
   "grocery-buddy": <PantryShelves />,
   jim: <MarketWall />,
-  "procurement-agent": <CardRails />,
 };
 
 export function hasBackdrop(slug: string): boolean {

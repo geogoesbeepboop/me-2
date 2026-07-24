@@ -4,12 +4,13 @@ import SearchEntry from "@/components/search/SearchEntry";
 import OperatorPanel from "@/components/library/OperatorPanel";
 import {
   decisionShelves,
+  featuredDocs,
   libraryShelves,
   unlistedCount,
   type LibraryDoc,
   type Shelf,
 } from "@/lib/library";
-import { nodesOf } from "@/lib/content";
+import { nodesOf, type Node as ArchiveNode } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Library",
@@ -68,6 +69,24 @@ function DocCard({ d, kicker }: { d: LibraryDoc; kicker: string }) {
   );
 }
 
+function NoteCard({ n }: { n: ArchiveNode }) {
+  return (
+    <Link
+      href={`/writing/${n.slug}`}
+      className="group flex flex-col bg-void px-5 py-7 text-inherit no-underline transition-colors duration-300 hover:bg-panel sm:min-h-60 md:px-8"
+    >
+      <p className="font-mono text-label tracking-[0.2em] text-dim uppercase">note · from the workbench</p>
+      <h3 className="mt-5 text-[1.08rem] font-semibold leading-snug text-bone group-hover:underline group-hover:underline-offset-4">
+        {n.title}
+      </h3>
+      <p className="mt-4 line-clamp-3 text-[0.95rem] leading-relaxed text-ash">{n.summary}</p>
+      <time className="mt-auto pt-6 font-mono text-mono-sm text-dim" dateTime={n.date}>
+        {n.date}
+      </time>
+    </Link>
+  );
+}
+
 function ShelfCard({ shelf, entry }: { shelf: Shelf; entry: Shelf["entries"][number] }) {
   const kicker = `${shelf.id === "hackathons" ? "lens" : "guide"} · ${shelf.label}`;
   return (
@@ -113,14 +132,37 @@ function ShelfSection({ shelf, number }: { shelf: Shelf; number: string }) {
   const lenses = shelf.id === "hackathons";
   const title = lenses ? "Working notes and lenses" : "How I work";
   const note = lenses
-    ? "Current lenses and field guides, preserved with source and revision history"
+    ? "First-party notes from the workbench, then the idea lenses — mirrored with source and revision history"
     : "The operating guides behind the work, mirrored from the live harness";
+  const notes = lenses ? nodesOf("writing") : [];
+  const featured = lenses ? [] : featuredDocs();
+  const entries = lenses
+    ? shelf.entries
+    : shelf.entries.filter((entry) => !featured.some((d) => d.urlPath === entry.doc.urlPath));
   return (
     <section className="border-t border-line px-5 py-16 md:px-10 md:py-20" aria-labelledby={`shelf-${shelf.id}`}>
       <SectionHead number={number} title={title} note={note} id={`shelf-${shelf.id}`} />
       {!lenses && <MethodCard />}
+      {notes.length > 0 && (
+        <ul className="mb-4 grid gap-px border border-line bg-line/60 sm:grid-cols-2">
+          {notes.map((n) => (
+            <li key={n.slug} className="flex min-w-0 flex-col bg-void">
+              <NoteCard n={n} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {featured.length > 0 && (
+        <ul className="mb-4 grid gap-px border border-line border-l-2 border-l-bone/50 bg-line/60 sm:grid-cols-2">
+          {featured.map((d) => (
+            <li key={d.urlPath} className="flex min-w-0 flex-col bg-void">
+              <DocCard d={d} kicker="start here · guide" />
+            </li>
+          ))}
+        </ul>
+      )}
       <ul className={`grid gap-px border border-line bg-line/60 ${lenses ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
-        {shelf.entries.map((entry) => (
+        {entries.map((entry) => (
           <ShelfCard key={entry.doc.urlPath} shelf={shelf} entry={entry} />
         ))}
       </ul>
@@ -135,13 +177,14 @@ export default function LibraryPage() {
   });
   const howIWork = shelves.find((shelf) => shelf.id === "harness");
   const remainingShelves = shelves.filter((shelf) => shelf.id !== "harness");
-  const decisions = decisionShelves().filter((group) => group.repo !== "procurement-agent");
+  const decisions = decisionShelves();
   const adrCount = decisions.reduce((n, group) => n + group.docs.length, 0);
   const shelved = shelves.reduce(
     (n, shelf) => n + shelf.entries.reduce((m, entry) => m + 1 + (entry.series?.history.length ?? 0), 0),
     0
   );
   const deep = unlistedCount();
+  const noteCount = nodesOf("writing").length;
   const projectByRepo = new Map(
     nodesOf("projects")
       .filter((node) => node.repo)
@@ -158,7 +201,7 @@ export default function LibraryPage() {
             engineering decisions that made the projects necessary.
           </p>
           <p className="shrink-0 font-mono text-label tracking-[0.18em] text-dim uppercase md:text-right">
-            {shelved} on the shelf · {adrCount} decision records
+            {shelved} on the shelf · {noteCount} field notes · {adrCount} decision records
             <br />
             {deep} more in the deep stacks — ⌘K finds them
           </p>

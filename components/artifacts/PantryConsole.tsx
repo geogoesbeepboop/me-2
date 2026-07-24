@@ -122,7 +122,7 @@ const ROADMAP: [string, string][] = [
   ["budget envelopes", "monthly_budget_usd is already in the schema; carts warn before they spend it"],
   ["learned rates", "consumption learned from confirmed orders — the cadence sits in the events table"],
   ["delivery tracking", "gmail arrival dates land restocks on the real day; the “did you order it?” tap disappears"],
-  ["tiered auto-buy", "procurement agent's authority design, reimplemented locally — cheap staples self-approve, novel or expensive stays human"],
+  ["tiered auto-buy", "deterministic authority design — cheap staples self-approve, novel or expensive stays human"],
 ];
 
 export default function PantryConsole({ title }: { title?: string }) {

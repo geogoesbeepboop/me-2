@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
       { source: "/work/:slug", destination: "/projects/:slug", permanent: true },
       { source: "/lab", destination: "/projects", permanent: true },
       { source: "/lab/:slug", destination: "/projects/:slug", permanent: true },
+      // the writing index folded into the library's working-notes shelf
+      // (2026-07); essay pages keep their /writing/:slug URLs
+      { source: "/writing", destination: "/library", permanent: true },
       // the city graduated to the front door (2026-06): /v2 → / (ops stays)
       { source: "/v2", destination: "/", permanent: true },
       { source: "/landing5", destination: "/", permanent: false },

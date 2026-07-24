@@ -1,0 +1,35 @@
+---
+title: "You Appear Exactly Twice"
+summary: "The task loop that ships real features with two human touchpoints: correct a three-line contract at the start, judge an evidence packet at the end. Everything between runs without you."
+date: "2026-07-23"
+thesis: "Human judgment is the scarcest resource in the system — spend it on decisions, never on re-testing."
+refs:
+  - "projects/m-clone#eval-product"
+  - "projects/jim"
+---
+
+## The middle is the failure mode
+
+The way agent-assisted work goes wrong is not bad code — it's the middle. The agent blocks on you (test this, review this, decide this), you start something else while waiting, and interrupts stack until the day is pure supervision. Watching a token stream is not engineering. The fix isn't juggling better; it's a loop where the middle doesn't need you at all.
+
+## Three lines before any code
+
+Every nontrivial task opens with a contract the agent drafts from a messy brief:
+
+**Outcome** — the observable result. **Non-goals** — what not to expand into. **Acceptance evidence** — checks the agent can *run*, not vibes I will have.
+
+Correcting those three lines at plan approval is the first touchpoint, and it's where misalignment dies — before any code exists. The load-bearing trick is the third line: runnable acceptance checks are eval cases wearing a different hat. Write them once at contract time and they outlive the task in the suite, guarding it forever.
+
+## The spec is a file
+
+The approved plan is saved into the repo — contract on top, design below — and committed with the work, so the pull request carries its own spec. It's a living document: when implementation teaches something, the spec updates in the same diff. Iterations and reviews read the file, never the chat's memory of it. And when a spec spans modules, it leads with a diagram, because structural wrongness — a dependency pointing the wrong way, a layer that shouldn't know about another — is visible in boxes and arrows in seconds and invisible in prose for pages.
+
+## Done arrives as evidence
+
+The second touchpoint is a packet, not a claim: the spec cited, each acceptance check with its actual output, the eval delta, a fresh-context critic's adversarial verdict on the diff, and — most important — the honest list of what was *not* verified. An agent that says "everything verified" is less trustworthy than one that names the path it couldn't exercise. Self-assessment is not verification; the agent that wrote the code is the worst judge of it.
+
+<Ref to="projects/m-clone#eval-product" note="the same idea shipped as product: acceptance checks that live on as a scored corpus" />
+
+The packet ends with a proposed contract for the most likely next task, so accepting evidence and approving the next spec is one touch. The strongest run of this loop so far steered a full feature — spec, adversarial critique, five self-paced eval rounds, merged PR — on roughly five human turns across 561 agent events. That ratio is the whole argument.
+
+<Ref to="projects/jim" note="a product whose every deliverable is itself an evidence packet" />

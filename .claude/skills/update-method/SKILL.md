@@ -30,18 +30,22 @@ prose and diagram subs) and `lib/inspect/method.ts` (verbatim excerpts).
   format-on-edit, session-context, guard-commit, …).
 - **LaunchAgents:** `ls ~/Library/LaunchAgents | grep -Ei 'geoandr|^me\.'` —
   the "launchd agents running the loop" figure.
-- **Fleet conventions:** for each focus repo (`jim-agent`, `grocery-buddy`,
-  `procurement-agent`, `dj-agent`): does `.claude/gate.sh` exist and is it
-  executable? `.claude/evals.sh`? That's the "repos gated" figure.
+- **Fleet conventions:** the repo list is
+  `~/.config/agentic-harness/repos.txt` (currently jim-agent, grocery-buddy,
+  procurement-agent, dj-agent, M-Clone) — for each: does `.claude/gate.sh`
+  exist and is it executable? `.claude/evals.sh`? That's the "repos gated"
+  figure.
 - **Eval cases:** count by importing, never by grepping constructors (they
   span lines): `cd ~/dev/jim-agent && .venv/bin/python -c "from
   jim.eval.dataset import GATE_REGRESSION; from jim.eval.dataset_guards
   import GUARD_CASES; from jim.eval.scenarios import SCENARIOS;
   print(len(GATE_REGRESSION)+len(GUARD_CASES)+len(SCENARIOS))"`. If not
   cheaply derivable, leave the existing figure and say so in the summary.
-- **Workflow docs:** `~/dev/docs/TOP_PERCENT_WORKFLOW.md` and
-  `~/dev/docs/OPERATING_MANUAL.md` — skim for conventions the page doesn't
-  yet describe (new rituals, changed cadences).
+- **Workflow docs:** `~/dev/agentic-harness/docs/MANUAL.md` (doctrine) and
+  `~/dev/agentic-harness/docs/OPERATING_MANUAL.md` (runbook) — skim for
+  conventions the page doesn't yet describe (new rituals, changed cadences).
+  These are also mirrored on /library; the manifest features exactly these
+  two.
 
 ## 2 · Update the page
 
@@ -49,14 +53,16 @@ prose and diagram subs) and `lib/inspect/method.ts` (verbatim excerpts).
   the summary line, the deep-dive node subs ("21 front doors", "5 guards"),
   and the `layers` notes ("Twenty-one front doors…", "Five hooks…"). A
   number that appears in three places changes in three places.
-- The page is organized as a day (WHILE I SLEPT → the open → the ladder →
-  lanes → verification → flywheel → the machine). Its UI surfaces carry the
-  facts: the night-shift `TerminalLog` quotes a real morning's digest (keep
-  it a verbatim recent run, timings included); the `Ladder` rungs are the
-  real skill front doors — a new shaping/starter skill gets a rung, a
-  retired one loses it (token lenses and session bookends don't get rungs);
-  the commit-flow and flywheel `ArchitectureDiagram`s name real hooks and
-  files.
+- The page is organized around the task loop (WHILE I SLEPT → the contract →
+  you appear exactly twice → evidence, not vibes → evals from reality →
+  loop engineering → the self-improving system → the machine). Its UI
+  surfaces carry the facts: the night-shift `TerminalLog` quotes a real
+  morning's digest (keep it a verbatim recent run); the contract
+  `TerminalLog` quotes the three lines of a real spec in `docs/specs/`; the
+  `Ladder` rungs are the real skill front doors — a new shaping/starter
+  skill gets a rung, a retired one loses it (token lenses and session
+  bookends don't get rungs); the task-loop, commit-flow, and flywheel
+  `ArchitectureDiagram`s name real hooks, files, and gates.
 - If a harness component was added/removed (a new hook, a new LaunchAgent,
   a retired skill family), update the deep-dive topology and the relevant
   section — smallest truthful edit, never a rewrite.

@@ -137,34 +137,44 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     ],
     verify: ["jim-eval", "ruff", "gate.sh", "evals.sh"],
     metrics: [
-      // mined 2026-07-06: 172 = grep -rc "^def test_" tests/; 88 = 39 gate
-      // + 40 guard + 9 scenario cases (ADR-0009, dataset*.py/scenarios.py)
+      // mined 2026-07-06: 172 = grep -rc "^def test_" tests/; re-measured
+      // 2026-07-23: 98 = 48 gate + 40 guard + 10 scenario cases (python
+      // import of GATE_REGRESSION/GUARD_CASES/SCENARIOS per update-method)
       { k: "test fns", v: "172" },
-      { k: "offline eval cases", v: "88" },
+      { k: "offline eval cases", v: "98" },
       { k: "data budget cap", v: "$0.10", gate: true, money: true },
       { k: "faithfulness gate", v: "≥0.8", gate: true },
     ],
     outputUnpersisted: true,
   },
 
-  "procurement-agent": {
+  "m-clone": {
     mandate:
-      "Restocks what's routine on its own and pauses for your approval on anything risky.",
+      "Answers money questions from real ledgers, entirely on the phone — no cloud model, no backend.",
     operate: [
-      { token: "procurement_agent.demo", unit: "demo run" },
-      { token: "mcp_server.server", unit: "mcp session" },
-      { token: "workflows.worker", unit: "worker run" },
-      { token: "webhook.app", unit: "auth endpoint" },
+      { token: "simctl launch", unit: "app launch" },
+      { token: "devicectl", unit: "device run" },
+      { token: "run-device.sh", unit: "on-device eval sitting" },
+      { token: "mac-harness/run.sh", unit: "harness run" },
     ],
-    verify: ["ruff", "gate.sh"],
+    verify: [
+      "gate.sh",
+      "evals.sh",
+      "-routing.sh",
+      "pytest",
+      "routing-corpus",
+      "xcodebuild test",
+    ],
     metrics: [
-      { k: "tests", v: "57" },
-      { k: "auto-spend cap", v: "$50", gate: true, money: true },
-      { k: "review threshold", v: "$1,000", gate: true, money: true },
-      { k: "mandate TTL", v: "900s", gate: true },
+      // mined 2026-07-23: 604 = grep -rh '@Test' Crown/Tests/CrownKitTests
+      // --include='*.swift' | wc -l; 86.5% + 0/35 = the routing evals'
+      // REPORT.md hybrid-armA-v1 row (live corpus); 81 = line count of
+      // the routing evals' sealed/holdout-v3.jsonl
+      { k: "test fns, model-free", v: "604" },
+      { k: "routing accuracy (family)", v: "86.5%" },
+      { k: "out-of-scope leaks", v: "0/35" },
+      { k: "sealed holdout cases", v: "81" },
     ],
-    outputUnpersisted: true,
-    noGitHistory: true,
   },
 
   "the-archive": {
@@ -180,7 +190,7 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     // three me.* LaunchAgents (ops-report daily, library-sync daily,
     // curator weekly), and the curator/sync publish gate
     metrics: [
-      { k: "mirrored docs", v: "72" },
+      { k: "mirrored docs", v: "67" },
       { k: "automations", v: "3" },
       { k: "publish gate", v: "check+build+scope", gate: true },
     ],

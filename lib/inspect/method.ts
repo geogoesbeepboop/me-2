@@ -493,7 +493,14 @@ run jim-eval run --suite offline --compare-baseline --label nightly`,
         excerpt: `# nightly-gate-digest.sh — run each focus project's .claude/gate.sh and write a dated digest.
 # Exit 0 = all gates green; exit 1 = at least one failure (lets a scheduler/notifier branch on it).
 
-REPOS=(jim-agent grocery-buddy procurement-agent dj-agent)
+# Keep the Mac awake for the whole run. Without this, idle sleep mid-run inflates
+# wall-clock (2026-07-22/23: every gate SLOW, "5589s" for a 31s gate).
+if command -v caffeinate >/dev/null 2>&1 && [ -z "\${DIGEST_CAFFEINATED:-}" ]; then
+  DIGEST_CAFFEINATED=1 exec caffeinate -im "$0" "$@"
+fi
+
+# Repo list: one name per line in ~/.config/agentic-harness/repos.txt
+# (the five focus repos; blank lines and #-comments ok)
 out="$OUT_DIR/$(date +%F).md"
 
 for r in "\${REPOS[@]}"; do
