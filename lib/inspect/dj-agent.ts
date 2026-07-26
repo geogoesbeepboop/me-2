@@ -604,7 +604,7 @@ export const DJ_AGENT: InspectMap = {
 
   verify: {
     path: ".claude/gate.sh",
-    note: "the fast gate, the eval scorecard, and the set history — what keeps the bench honest",
+    note: "the fast gate, the eval scorecard, and the set history — what the bench checks, and what it still doesn't",
     blocks: [
       {
         kind: "rules",
@@ -653,14 +653,48 @@ export const DJ_AGENT: InspectMap = {
         kind: "kv",
         title: "set_history.jsonl — every generated set",
         items: [
-          { k: "record", v: "brief · full plan · approval verdict" },
-          { k: "recently played", v: "last 3 sets excluded from the next pool" },
-          { k: "acceptance metric", v: "approving the plan as data" },
+          { k: "record", v: "brief · full plan · approval verdict — no model id, no prompt version, no offline/live flag" },
+          { k: "recently played", v: "last 3 sets excluded from the next pool — approved or not" },
+          { k: "acceptance metric", v: "approving the plan as data — but the documented run path auto-approves, so the flag is always true" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "What the 2026-07-25 audit found missing",
+        items: [
+          {
+            name: "no case set",
+            value: "missing",
+            fail: true,
+            detail:
+              "nothing anywhere grades a model's output. The A/B that is supposed to protect the Selector defaults to no model, and its only caller never overrides that — so it measures the greedy path and returns 0 whatever the delta.",
+          },
+          {
+            name: "no trajectory",
+            value: "missing",
+            fail: true,
+            detail:
+              "trace() records duration and per-call cost, and it is wired in exactly one place: the curator. The planning stack emits no span, so a revision loop leaves no record of what it tried.",
+          },
+          {
+            name: "no refusal cases",
+            value: "missing",
+            fail: true,
+            detail:
+              "candidate titles and artists — sourced from YouTube — are interpolated straight into the Selector's prompt, and the reply is parsed by matching the first bracketed list. Nothing tests what a title written to look like an instruction does.",
+          },
+          {
+            name: "no nightly eval run",
+            value: "missing",
+            fail: true,
+            detail:
+              "the gate script became a tracked file on 2026-07-07; there is no evals.sh beside it, so this bench sits out the fleet's nightly eval run.",
+          },
         ],
       },
       {
         kind: "note",
-        text: "The gate runs green offline and the scorecard math is unit-tested — but the A/B and the history need an ingested, hand-tagged library, and that hasn't happened yet. Phases 0–5 are code-complete; the next gate is contact with reality, not more code.",
+        text: "The unlock is a committed fixture library — about 120 track rows and their sections, exported once from the real database. The Selector already takes an injected toolbelt, so a fixture toolbelt makes the whole pipeline run offline with no credentials, which is the single change that lets the suite run anywhere.",
       },
     ],
   },

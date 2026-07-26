@@ -4,9 +4,22 @@ import type { InspectMap } from "./types";
  * M-CLONE — click-to-inspect for the on-device banking-copilot dossier.
  * Distilled from /Users/geoandr/dev/M-Clone: names, thresholds, guard
  * behavior, and corpus facts are as coded/measured, never illustrative.
- * (Measured 2026-07-23: 86.5% family / 0/35 OOS = the routing evals'
- * REPORT.md hybrid-armA-v1 row; 81 = sealed/holdout-v3.jsonl; 604 =
- * `grep -rh '@Test' Crown/Tests/CrownKitTests | wc -l`.)
+ * (Re-verified 2026-07-26, unchanged since 2026-07-23: 86.5% family /
+ * 0/35 OOS = the routing evals' REPORT.md hybrid-armA-v1 row; 81 =
+ * sealed/holdout-v3.jsonl; 604 =
+ * `grep -rh '@Test' Crown/Tests/CrownKitTests | wc -l` — Swift only.
+ * 168 Python test fns =
+ * `git grep -hE '^\s*(async )?def test_' -- scripts/tests | wc -l`
+ * across 15 files. Timeline start = `git log --reverse -1` → 2026-02-12.
+ *
+ * The audit verdicts below are quoted from
+ * docs/evals/2026-07-25-methodology-audit.md (D1–D8 scorecard, its
+ * five ranked gaps) and the 2026-07-25 v2 addendum in the same file.
+ * Figures sourced there: 61 scored cases = the gate's coverage assert
+ * in scripts/gate-erica-routing.sh; 2,144 tuning messages = the
+ * holdout leak check; 48 = overrefusal-pack-v1.jsonl; six retracted
+ * claims = the corrections ledger; five sealed reads in four days =
+ * the D4 finding.)
  */
 export const M_CLONE: InspectMap = {
   hosts: {
@@ -70,6 +83,10 @@ export const M_CLONE: InspectMap = {
           { name: "out-of-scope leaks", detail: "attempts that escaped the guarded scope", value: "0/35" },
           { name: "model authority", detail: "family-only — the model never picks the operation, the numbers, or the tool arguments", fail: false },
         ],
+      },
+      {
+        kind: "note",
+        text: "Read these as upper bounds. The repo documents its own matcher as too generous — it requires the answer key's fields but tolerates extra ones the key never asked for — so scores are expected to move down when the ruler gets strict.",
       },
       {
         kind: "note",
@@ -146,6 +163,34 @@ export const M_CLONE: InspectMap = {
       {
         kind: "note",
         text: "The seal earned its keep: development-pack tuning read 55 while the sealed holdout read ~23 — overfitting arrived as a measurement, not a shipped surprise.",
+      },
+      {
+        kind: "note",
+        text: "On 2026.07.25 the suite was scored against an outside eight-part standard for eval work. Met, partial and missing below are the review's own verdicts; ember marks the one part with no coverage at all.",
+      },
+      {
+        kind: "rules",
+        title: "what held — the suite, graded against an outside standard",
+        items: [
+          { name: "how answers are graded", detail: "the accuracy check IS the shipped rule, not a copy of it; the offline rescorer is pinned against it", value: "met" },
+          { name: "failures become cases", detail: "a real failure is written in as a case in the same change that fixes it, and an append-only ledger records six published claims later found wrong, each with a date", value: "met" },
+          { name: "scores as statistics", detail: "repeat runs came back byte-identical on both models, so the noise floor is measured rather than assumed — but only for one deterministic pass, not the three-sample vote the app actually ships", value: "partial" },
+          { name: "suite honesty", detail: "the seal, the leak check against 2,144 tuning messages, and the refusal counterweight all hold; the nightly asserts how many cases were scored, not how many were right", value: "partial" },
+          { name: "multi-turn grading", detail: "a conversation known to be measured wrong still sits inside the certified numbers, its fix parked behind an off-by-default switch to keep the baseline identical", value: "partial" },
+          { name: "refusal safety", detail: "48 benign-but-alarming probes stop a more nervous assistant from scoring as a better one; personal data arriving in the question is uncovered", value: "partial" },
+          { name: "one uniform command", detail: "the nightly resolves its own interpreter and runs unattended — but needs Xcode and a bootable simulator, so a broken machine reads the same as a broken answer", value: "partial" },
+        ],
+      },
+      {
+        kind: "rules",
+        title: "what didn't",
+        items: [
+          { name: "the reviewer as instrument", detail: "the quality gate for insights was closed by the same agent that wrote the change, unblinded, with no rows carrying planted errors to show what the reviewer waves through", value: "missing", fail: true },
+        ],
+      },
+      {
+        kind: "note",
+        text: "Verdicts only — the review changed no corpus, no gate, no threshold and no grading code. It quoted the failing lines, froze a list of what must not be refactored during the repair, and left the numbers standing.",
       },
     ],
   },

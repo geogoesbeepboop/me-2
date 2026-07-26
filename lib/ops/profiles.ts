@@ -137,13 +137,17 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
     ],
     verify: ["jim-eval", "ruff", "gate.sh", "evals.sh"],
     metrics: [
-      // mined 2026-07-06: 172 = grep -rc "^def test_" tests/; re-measured
-      // 2026-07-23: 98 = 48 gate + 40 guard + 10 scenario cases (python
-      // import of GATE_REGRESSION/GUARD_CASES/SCENARIOS per update-method)
-      { k: "test fns", v: "172" },
-      { k: "offline eval cases", v: "98" },
+      // re-measured 2026-07-26: 291 = grep -rE "^\s*(async )?def test_" tests/
+      // — async tests now counted, so this supersedes the 172 mined 2026-07-06
+      // under a sync-only pattern; the like-for-like sync count today is 195.
+      // 99 = 48 gate + 40 guard + 11 scenario cases (python import of
+      // GATE_REGRESSION/GUARD_CASES/SCENARIOS per update-method).
+      // faithfulness gate moved 0.8 → 0.55 in src/jim/config.py:83, set by the
+      // judge-calibrate threshold sweep (run 20260715T003647Z-dea5b09).
+      { k: "test fns", v: "291" },
+      { k: "offline eval cases", v: "99" },
       { k: "data budget cap", v: "$0.10", gate: true, money: true },
-      { k: "faithfulness gate", v: "≥0.8", gate: true },
+      { k: "faithfulness gate", v: "≥0.55", gate: true },
     ],
     outputUnpersisted: true,
   },
@@ -166,11 +170,12 @@ export const AGENT_PROFILES: Record<string, OpsProfile> = {
       "xcodebuild test",
     ],
     metrics: [
-      // mined 2026-07-23: 604 = grep -rh '@Test' Crown/Tests/CrownKitTests
-      // --include='*.swift' | wc -l; 86.5% + 0/35 = the routing evals'
-      // REPORT.md hybrid-armA-v1 row (live corpus); 81 = line count of
-      // the routing evals' sealed/holdout-v3.jsonl
-      { k: "test fns, model-free", v: "604" },
+      // mined 2026-07-23, re-verified unchanged 2026-07-26: 604 = grep -rh
+      // '@Test' Crown/Tests/CrownKitTests --include='*.swift' | wc -l
+      // (Swift only); 86.5% + 0/35 = the routing evals' REPORT.md
+      // hybrid-armA-v1 row (live corpus); 81 = line count of the routing
+      // evals' sealed/holdout-v3.jsonl
+      { k: "swift test fns, model-free", v: "604" },
       { k: "routing accuracy (family)", v: "86.5%" },
       { k: "out-of-scope leaks", v: "0/35" },
       { k: "sealed holdout cases", v: "81" },

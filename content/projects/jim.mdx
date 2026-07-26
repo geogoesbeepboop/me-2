@@ -4,7 +4,7 @@ summary: "An autonomous analyst that sells cited research over x402 micropayment
 question: "Can an agent sell research that proves itself?"
 date: "2026-05-26"
 started: "2026-05-26"
-updated: "2026-07-19"
+updated: "2026-07-26"
 status: "LIVE"
 domain: "MARKETS · AGENT ECONOMY"
 accent: "#62d9e8"
@@ -32,7 +32,7 @@ reflection: "writing/evals-are-the-product"
     },
     {
       k: "state",
-      v: "phase 7 agent economy · 265 test fns · 98 offline eval cases · nightly gate + evals",
+      v: "phase 7 agent economy · 291 test fns (sync + async) · 99 offline eval cases · judge threshold measured, sign-off pending",
     },
   ]}
 />
@@ -114,7 +114,7 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
     {
       id: "judge",
       label: "Faithfulness judge",
-      sub: "haiku · ≥ 0.80",
+      sub: "haiku · ≥ 0.55, provisional",
       col: 4,
       row: 1,
     },
@@ -143,7 +143,7 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
     {
       id: "evals",
       label: "Eval harness",
-      sub: "98 offline cases · nightly",
+      sub: "99 offline cases · nightly",
       col: 3,
       row: 2,
     },
@@ -177,7 +177,7 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
         { id: "debate", label: "debate", col: 3, row: 0 },
         { id: "synth", label: "synthesize", col: 4, row: 0 },
         { id: "gate", label: "sourcing gate", col: 5, row: 0, kind: "gate" },
-        { id: "judge", label: "judge ≥ 0.80", col: 6, row: 0, kind: "gate" },
+        { id: "judge", label: "judge ≥ 0.55", col: 6, row: 0, kind: "gate" },
         {
           id: "billed",
           label: "settled + billed",
@@ -260,7 +260,7 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
       name: "faithfulness judge",
       model: "haiku 4.5",
       shape: "single-shot",
-      does: "semantic check ≥ 0.80 — the soft second layer behind the hard gate",
+      does: "semantic check ≥ 0.55 — the threshold a sweep chose, pending label sign-off",
     },
   ]}
   core={[
@@ -322,9 +322,22 @@ One memo sale, both sides of the counter — JIM gets paid and pays the same way
     "Everything runs offline — API keys only buy prose.",
     "Settlement before service: the route runs only after x402 verifies payment.",
     "A gate-rejected run is never billed — structurally, not by convention.",
-    "98 offline eval cases run nightly with zero keys; a regression fails the night, not a buyer.",
+    "99 offline eval cases run nightly with zero keys; a regression fails the night, not a buyer.",
+    "A judge that can't clear the measured floor doesn't get to co-decide whether a memo ships.",
   ]}
 />
+
+<Update date="2026.07.26" title="The auditor got audited — and the threshold stopped being a guess">
+
+The faithfulness judge decides, together with the sourcing gate, whether a memo ships and whether a buyer is billed. Its bar was `0.80`, set by hand and never measured. So it got measured: a corpus of **40 labeled memos** — 15 faithful, 25 unfaithful across five failure families the deterministic rails cannot see (unsupported claim, editorialization, misleading comparison, causal overreach, wrong citation) — run through the real judge model three times each, at every threshold from 0.50 to 0.95.
+
+At `0.80` the judge caught every planted lie — and wrongly rejected 2 of 15 faithful memos, a 13% false-reject rate on work a buyer had already paid for. The chosen operating point is **0.55**: balanced accuracy 0.96, lie recall 23/25, and **zero** false rejects. The cap that binds is the one protecting the honest memo, because the sourcing gate already stands behind the dishonest one. The threshold is marked provisional in the code until the operator signs off the 40 labels.
+
+The corpus has one design property that keeps it honest, asserted as a test: every case sits in the blind spot the deterministic checks leave — the sourcing gate passes it and so does the no-advice rail. A case that trips a check we already trust isn't measuring the judge, it's inflating it. And a floor sits under the whole thing: below 0.85 balanced accuracy or above 5% false rejects at every threshold, the calibration command exits nonzero and the judge doesn't get to co-decide at all.
+
+Two more things landed with it. A scenario case that had been missing since the harness was built — a failing judge verdict rejecting a run and booking $0 — closed the last unproven revenue-deciding path in the offline suite; that suite is **99** now (48 gate · 40 guard · 11 end-to-end). And a fresh-context critic graded the whole eval methodology and published the result in the repo rather than filing it away. Three gaps, in its words: the run document behind the chosen threshold exists on no machine, so nobody can re-check the numbers; the regression baseline is gitignored, so off this laptop the nightly comparison finds nothing to compare against and passes; and the live suite — the only thing that grades the model rather than the rails — has never run. Those are the next chapters, written down as failures.
+
+</Update>
 
 <Update date="2026.07.19" title="The gate learns to read a hostile filing">
 
@@ -435,7 +448,9 @@ Everything since has been built around that one deterministic promise.
 <OpenQuestions
   items={[
     "The settle-then-record window: if settlement lands and the cache write fails, the datum was bought and lost. Idempotency keys + a reconciliation job, or prepaid balances? (Still on the Phase 6/8 roadmap.)",
-    "Offline evals are the merge gate; the live suite is stochastic, costs real inference, and its regression verdict still needs a human to read the trend. When does a rubric drop become a blocker rather than a morning read?",
+    "The regression baseline never leaves this laptop — it's gitignored. Anywhere else, the comparison finds nothing to compare against and passes. Commit a baseline, or accept that the merge gate only exists on one machine?",
+    "The live suite is still theory: written, thresholded, never run. Everything measured so far grades the deterministic rails; nothing has yet graded the model on unseen tickers with real money.",
+    "The 40 judge labels are one operator's calls, four of them flagged borderline, and the run document behind the chosen threshold exists on no machine — the numbers are recorded in prose, not in a file anyone can re-run. Sign off the labels and commit the run, or re-run the sweep from scratch?",
     "The trust ledger exists — but has it seen a genuinely adversarial peer yet, or only well-behaved test doubles?",
     "Answered by Track 0: a regex gate CAN survive adversarial numerics — the extractor grew notation families instead of a tokenizer, and Hypothesis holds both invariants (no bypass, no false reject).",
   ]}

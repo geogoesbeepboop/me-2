@@ -5,13 +5,13 @@ thesis: "The way we build is as important as what we build."
 status: "ALWAYS ON"
 metrics:
   - k: "skills, one ladder"
-    v: "22"
+    v: "25"
   - k: "hooks on the rim, fail-open"
     v: "5"
   - k: "repos gated on every commit + nightly"
     v: "5"
   - k: "offline eval cases, nightly at $0"
-    v: "98"
+    v: "99"
   - k: "launchd agents running the loop"
     v: "4"
   - k: "token-accounting lenses"
@@ -54,11 +54,11 @@ Ceremony matches stakes. Every piece of work enters through a door on one ladder
 
 <Ladder
   title="which door, when"
-  caption="every rung below the first is a real skill on this machine — click the harness below to read them"
+  caption="every rung below the first is a real door on this machine — click the harness below to read them"
   rungs={[
     { skill: "just ask", when: "trivial — I know exactly what I want", gets: "no ceremony" },
     { skill: "/spike", when: "prototype — can this even work?", gets: "one approach, a flat checklist, kill criteria" },
-    { skill: "/plan", when: "a real feature in an existing project", gets: "a spec: contract on top, phases below" },
+    { skill: "plan mode → /spec", when: "a real feature in an existing project", gets: "a spec in docs/specs/: contract on top, phases below" },
     { skill: "/challenge", when: "a decision worth attacking before it ships", gets: "an adversarial critic's ranked case against" },
     { skill: "/deep-plan · /deep-challenge", when: "architecture on the line — expensive to be wrong", gets: "scripted fan-out: recon, competing designs, a five-lens panel" },
     { skill: "/new-agent", when: "a brand-new agent project", gets: "the whole convention set — first question: what's the gate?" },
@@ -180,13 +180,13 @@ Review depth then tracks **consequence, not habit**: anything touching money or 
 
 <Section id="evals" n="04" title="Evals from reality">
 
-Tests check code paths; evals judge behavior across cases — did the agent make the right decision given this input, this history, this ledger? Anything with an LLM decision carries a scored suite, and suites grow one way only: **every real bug becomes a case before its fix** — written first, watched failing, then fixed in the same diff. jim replays 98 offline cases nightly for $0.00 with a baseline; the flagship carries a whole eval *product* — versioned corpus packs, preregistered experiments, and an 81-case holdout sealed behind a hashing workflow so no tuning session can quietly train on the exam.
+Tests check code paths; evals judge behavior across cases — did the agent make the right decision given this input, this history, this ledger? Anything with an LLM decision carries a scored suite, and suites grow one way only: **every real bug becomes a case before its fix** — written first, watched failing, then fixed in the same diff. jim replays 99 offline cases nightly for $0.00 with a baseline; the flagship carries a whole eval *product* — versioned corpus packs, preregistered experiments, and an 81-case holdout sealed behind a hashing workflow so no tuning session can quietly train on the exam.
 
 Graders are picked by cost curve: deterministic code-graders (free forever), then snapshot-replay, then — last resort — a pinned, calibrated LLM judge with an "Unknown" escape. And the ruler itself gets audited, because a metric once read a perfect score while the output dropped the exact figure the feature existed to surface: score predicates stay byte-identical to production, harness prompts are parity-fenced against app prompts, and shipping-gate suites earn a periodic every-row read.
 
 <Ref to="projects/m-clone#eval-product" note="the eval product in full: corpus packs, sealed holdout, per-row adjudication" />
 
-<Ref to="projects/jim" note="98 cases, zero credentials, every night" />
+<Ref to="projects/jim" note="99 cases, zero credentials, every night" />
 
 </Section>
 
@@ -244,7 +244,7 @@ The design rule underneath all of it: the main context window is the most expens
   nodes={[
     { id: "contract", label: "CLAUDE.md", sub: "contract-first · disagree out loud", col: 0, row: 0, accent: true },
     { id: "cc", label: "Claude Code", sub: "the main loop", col: 1, row: 0 },
-    { id: "skills", label: "The skills", sub: "22 front doors · light → deep", col: 2, row: 0 },
+    { id: "skills", label: "The skills", sub: "25 front doors · light → deep", col: 2, row: 0 },
     { id: "specialists", label: "Specialists", sub: "critic · researcher · explore fleets", col: 0, row: 1 },
     { id: "rim", label: "Hook rim", sub: "5 guards · deterministic · fail-open", col: 1, row: 1, accent: true },
     { id: "memory", label: "Memory & handoffs", sub: "state survives on disk", col: 2, row: 1 },
@@ -328,7 +328,7 @@ The design rule underneath all of it: the main context window is the most expens
   ]}
   layers={[
     { name: "Contract", note: "One global CLAUDE.md: treat my framing as a hypothesis, pressure-test consequential decisions, disagree out loud, resolve trivial choices alone. It makes the default posture adversarial instead of agreeable — and it's where the task loop's rules are canonical." },
-    { name: "Skills", note: "Twenty-two front doors on one ladder: session bookends, the shaping tier (/spike, /plan, /challenge), scripted deep siblings, project starters (/new-agent, /hack), the proposer and /retro, and six token lenses. One shape throughout: frame a self-contained brief, delegate the heavy work, synthesize back." },
+    { name: "Skills", note: "Twenty-five front doors on one ladder: session bookends, the shaping tier (/spike and /challenge around plan mode), the ceremony that turns a plan into a committed spec and a bug into an eval case (/spec, /evals, /evidence-packet), scripted deep siblings, project starters (/new-agent, /hack), the proposer and /retro, and six token lenses. One shape throughout: frame a self-contained brief, delegate the heavy work, synthesize back." },
     { name: "Specialists", note: "A critic paid to attack — self-invoked on high-stakes specs, mandatory before every evidence packet. A researcher paid to read elsewhere. Explore fleets for recon. All return conclusions into the main loop — never their raw material." },
     { name: "Rim", note: "Five hooks wrap every session: catastrophic-command guard, commit gate, secret-write guard, format-on-edit, session-context injection. Deterministic shell, zero model, all fail-open." },
     { name: "Memory & meter", note: "Handoffs make state survive sessions; memory files make taste survive projects; the token ledger makes cost a number instead of a feeling." },

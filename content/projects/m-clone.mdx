@@ -2,6 +2,7 @@
 title: "M-Clone"
 summary: "A full retail-banking app rebuilt as a lab — accounts, cards, budgets, goals, Plaid-linked data — with a money assistant that answers entirely on-device. No backend, no server database, and by hard rule no remote LLM. The assistant's judgment is a shipped eval product: a scored corpus, a sealed holdout, and gates that run on every commit."
 date: "2026-07-23"
+updated: "2026-07-26"
 year: "2026"
 status: "ACTIVE BUILD"
 thesis: "An assistant you can trust with money is an eval product wearing an app."
@@ -19,7 +20,7 @@ stack:
     "Next.js relay",
     "Python eval tooling",
   ]
-timeline: "May — Jul 2026 · ongoing"
+timeline: "Feb — Jul 2026 · ongoing"
 metrics:
   - k: "routing accuracy, on-device"
     v: "86.5%"
@@ -27,7 +28,7 @@ metrics:
     v: "0/35"
   - k: "sealed holdout cases"
     v: "81"
-  - k: "test functions, all model-free"
+  - k: "Swift test functions, model-free"
     v: "604"
 sections:
   - { id: "brief", title: "Brief" }
@@ -49,7 +50,9 @@ Every bank now ships an assistant, and every one of them phones home. This proje
 
 The assistant is a hybrid: a deterministic router with typed financial tools and calculators does the load-bearing work, and Apple's on-device foundation model assists where language helps — with the model's authority capped by construction. On the live corpus, the current arm routes 86.5% of prompts to the right capability family and has leaked **zero** out-of-scope requests in 35 attempts.
 
-The deeper deliverable is the discipline around that number. The router's judgment is governed by a real eval product — versioned corpus packs, preregistered experiments, a failure taxonomy, a cryptographically sealed holdout — and by commit gates that keep every test model-free. The claim isn't "the assistant feels smart." It's "here is the corpus, here is the score, here is the gate that fails if either regresses."
+The deeper deliverable is the discipline around that number. The router's judgment is governed by a real eval product — versioned corpus packs, preregistered experiments, a failure taxonomy, a cryptographically sealed holdout — and by commit gates that keep every test model-free. The claim isn't "the assistant feels smart." It's "here is the corpus, here is the score, here is the evidence."
+
+In July the suite itself went under review, scored against an outside eight-part standard by a reader with no session history — and the verdict shipped before any of it was repaired: two parts met, five partial, one missing.
 
 </Section>
 
@@ -165,7 +168,7 @@ Two host shells share one Swift package; everything that matters lives in the pa
     "Financial data, chat history, budgets, and Plaid tokens live on-device — there is no backend and no server-side database.",
     "The model proposes; deterministic routing and typed tools decide what runs and what the numbers are.",
     "Every routing change is scored against the corpus before it ships; the sealed holdout stays sealed.",
-    "The whole gate stays green on a headless, model-free machine — no network, no Apple Intelligence required.",
+    "No test reaches a live language model — injected doubles and an availability override only, guard-enforced.",
   ]}
 />
 
@@ -189,6 +192,12 @@ Every commit pays a fast toll; the full routing gate runs the expensive machiner
 />
 
 The same discipline covers the insights engine — the feed that turns ledgers into observations. Thirty-five engineered fixtures pin its rules; live narration runs are scored per-row, on device, and adjudicated by actually reading every output rather than trusting the metric. That habit exists because a metric lied once, and the story of how is below.
+
+### Grading the grader
+
+A suite this invested in measurement eventually has to measure itself. A reader with no session history scored it against an outside eight-part standard for eval work and filed the verdicts with the failing lines quoted — then the repair was deliberately left for separate, reviewed work. Nothing in the corpus, the gates, the thresholds or the grading code moved. This entry says **audited**, not fixed, and the eight verdicts are in the deep dive above.
+
+The load-bearing finding is the one worth carrying here: the nightly check asserts that 61 cases were *scored*, not that they were answered correctly, so quality could fall through the floor and the run would still print a pass. And the matcher behind the headline routing numbers is documented in the repo as too generous — it accepts fields the answer key never asked for. Every score on this page, sealed ones included, is an upper bound until that ruler tightens.
 
 <Ref to="projects/jim" note="the same eval-first spine, pointed at cited research memos" />
 
@@ -259,7 +268,16 @@ The same discipline covers the insights engine — the feed that turns ledgers i
   chose="Every test runs against injected doubles with an availability override; a guard fails commits that reach for the live model."
   over="Integration tests against real on-device inference."
   cost="Live-model behavior needs separate, deliberate device sittings to observe."
-  payoff="The whole suite — 604 test functions — runs on a headless machine, every commit, every night, at zero model cost and zero flake from OS asset state."
+  payoff="604 Swift test functions, plus 168 in the Python eval tooling, run every commit and every night at zero model cost and with no flake from the OS's model-asset state."
+/>
+
+<Decision
+  n="05"
+  title="Publish the audit before fixing any of it"
+  chose="Commit the eight-part verdict — two met, five partial, one missing — with the failing lines quoted, and leave the numbers standing until the repair is its own reviewed work."
+  over="Quietly fixing the gate first and reporting the tidy version, or grading the suite in the same session that patches it."
+  cost="The headline routing scores ship labeled as upper bounds, and the open finding stands with no repair attached to it."
+  payoff="The verdict can't be edited by the diff that closes it. A suite that has publicly named its own blind spot is worth more than one that has never been asked."
 />
 
 </Section>
@@ -268,9 +286,12 @@ The same discipline covers the insights engine — the feed that turns ledgers i
 
 <NextUp
   items={[
-    "Grow the capability corpus from real sittings — every confused routing becomes a corpus case before its fix.",
+    "Teach the nightly to fail on wrong answers, not just missing ones — and to report a broken machine differently from a broken answer.",
+    "Tighten the matcher, put the sealed holdout on a read budget, and let no agent grade a change it wrote. Scores are expected to move down; that's the ruler getting honest, not a regression.",
+    "Cover the safety class that isn't covered: personal data arriving in the question, with benign near-misses alongside it so the fix can't just be a more nervous assistant.",
     "Template-first rendering on hardware tiers where the on-device context window stays small.",
     "Deeper insight narration under the same per-row adjudication bar that caught the 1.000 lie.",
+    "Grow the capability corpus from real sittings — every confused routing becomes a case before its fix.",
     "Keep the relay boring: OAuth return, AASA, webhook-to-push — nothing else grows server-side.",
   ]}
 />

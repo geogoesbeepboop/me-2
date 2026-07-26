@@ -2,6 +2,7 @@
 title: "Grocery Buddy"
 summary: "A pantry that runs itself over Telegram — predicts what's low, builds the Amazon cart, stages checkout, and hands a human the final tap. Scaffold to live on Fly.io in seven days."
 date: "2026-06-08"
+updated: "2026-07-26"
 year: "2026"
 status: "LIVE"
 thesis: "It does everything except spend your money. That's the feature."
@@ -15,7 +16,7 @@ timeline: "Jun 2026 — operating"
 metrics:
   - k: "days, scaffold → live"
     v: "7"
-  - k: "cost per run"
+  - k: "estimated cost per run"
     v: "$0.15–0.40"
   - k: "orders placed by the agent"
     v: "0"
@@ -36,7 +37,7 @@ Groceries are a standing tax on attention: notice what's low, remember the brand
 
 Two invariants hold everywhere. **The agent never places an order** — it stages the cart and hands back a checkout link; the human taps "Place order." And **nothing touches the pantry or a cart without the user's say-so** — every purchase passes an approval gate, and imports stage a proposal before a single row is written.
 
-It went from empty repo to live on Fly.io in seven days, and it has been running my household since. A full run — prediction, pricing, briefing — costs between fifteen and forty cents.
+It went from empty repo to live on Fly.io in seven days, and it has been running my household since. A full run — prediction, pricing, briefing — is budgeted at fifteen to forty cents — a planning estimate, with every model call writing a priced row to a ledger so it can eventually be replaced by a measurement.
 
 Here's one of those runs, end to end — the automation made visible:
 
@@ -114,17 +115,21 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
       caption: "GroceryRun · QuickBuy — durable timers, human ending",
       states: [
         { id: "draft", label: "draft", col: 0, row: 0 },
-        { id: "pending", label: "pending_approval", col: 1, row: 0 },
-        { id: "ready", label: "checkout_ready", col: 2, row: 0 },
-        { id: "purchased", label: "purchased", col: 3, row: 0, kind: "terminal" },
+        { id: "pending", label: "pending_approval", col: 1, row: 0, kind: "gate" },
+        { id: "approved", label: "approved", col: 2, row: 0 },
+        { id: "ready", label: "checkout_ready", col: 3, row: 0 },
+        { id: "purchased", label: "purchased", col: 4, row: 0, kind: "terminal" },
         { id: "expired", label: "expired", col: 1, row: 1, kind: "terminal" },
-        { id: "rejected", label: "rejected", col: 2, row: 1, kind: "terminal" }
+        { id: "failed", label: "failed", col: 2, row: 1, kind: "terminal" },
+        { id: "rejected", label: "rejected", col: 3, row: 1, kind: "terminal" }
       ],
       transitions: [
         { from: "draft", to: "pending", label: "briefing sent" },
-        { from: "pending", to: "ready", label: "approve → stage cart" },
+        { from: "pending", to: "approved", label: "approve" },
+        { from: "approved", to: "ready", label: "stage cart" },
         { from: "pending", to: "expired", label: "24h / 6h timeout" },
         { from: "pending", to: "rejected", label: "reject" },
+        { from: "approved", to: "failed", label: "staging failed", dashed: true },
         { from: "ready", to: "purchased", label: "\"I placed the order\"" },
         { from: "ready", to: "rejected", label: "\"didn't order\"" }
       ]
@@ -180,7 +185,7 @@ The pantry is one picture of **on-hand plus on-the-way**: confirm an order and i
 
 <Section id="how-i-built-it" n="02" title="How I built it">
 
-The week was ordered by risk, not by feature list. Day one was scaffold, schema, Temporal, and — before any feature worked — the evals wiring: Langfuse tracing, a cost ledger that prices every model call, and a `prediction_snapshots` table so the predictor's decisions could be graded later. Instrumentation first is the cheapest decision in the whole build; everything after it was measurable by default.
+The week was ordered by risk, not by feature list. Day one was scaffold, schema, Temporal, and — before any feature worked — the evals wiring: Langfuse tracing, a cost ledger that prices every model call, and a `prediction_snapshots` table so the predictor's decisions could be graded later. Instrumentation first is the cheapest decision in the whole build — and it half held. The predictor has been measurable by default ever since; the prompt side turned out to be measurable only on paper, which is §03's newest entry.
 
 The middle of the week went to the two hard surfaces. Onboarding imports two years of Amazon order history: a Playwright scrape, then pure-Python aggregation, then the system's single Sonnet call turns the pile into a pantry proposal — habits learned from every order, on-hand estimated honestly (nobody has three-month-old milk; a stale order teaches the *habit* while contributing zero stock). The user edits the proposal conversationally and nothing is written until they confirm.
 
@@ -217,10 +222,17 @@ The other surface is staying signed in to a website that doesn't want robots. Wh
 
 <Section id="what-broke" n="03" title="What broke">
 
-Filed candidly — every fix below is now load-bearing architecture.
+Filed candidly, newest first. The first entry has no fix yet — what broke was the instrument meant to catch the next one. The three June fixes under it are all load-bearing architecture now.
 
 <WhatBroke
   items={[
+    {
+      title: "The nightly that graded nothing",
+      sev: "SEV-1",
+      what: "No product code has moved since June 8th; what moved is what I know about it. A fresh-context critic read the repo against my eval standard and found the eval layer \"well-designed on paper and has never actually run — the GitHub nightly has reported success 47/47 times while executing zero cases.\" The runner exits early and cleanly when there's no API key, which is right in pull-request CI where paid model calls have no business running. The scheduled job reuses that same entry point, and the repository secret was never set — so forty-seven nights printed a skip line, exited zero, and painted a green check beside twenty-eight labeled cases no model ever saw. Three findings outlive the missing secret: a blocked judgement degrades to a score of 0.0, which isn't neutral but maximal failure; every case runs once at the API's default temperature, so a single sampled mean is compared against a fixed 0.8 bar with no measured noise floor under it; and seller-written Amazon listing titles reach the model that proposes a household's pantry with nothing grading that seam.",
+      fix: "None yet — the audit is the deliverable, and the repair is ten reviewed steps starting with the sensor: make a skipped run visibly not-a-pass, persist results so a baseline exists, then earn the threshold back with repeats. What the audit says to keep is the part built right on purpose: the judge suite sits alongside the deterministic groundedness checks instead of replacing them, and it never gates.",
+      lesson: "A skip that exits zero is worse than a red build, because a red build gets fixed. Measure the measuring instrument first — everything downstream of a green check inherits whatever that check was actually doing."
+    },
     {
       title: "The import that returned nothing",
       sev: "SEV-2",
@@ -291,6 +303,8 @@ Filed candidly — every fix below is now load-bearing architecture.
 
 <NextUp
   items={[
+    "Repair the eval sensor first: make a skipped run visibly not-a-pass, persist results so a baseline exists, and earn the 0.8 threshold back with repeats instead of a single sample.",
+    "Cases against the seam where seller-written product titles reach the model that proposes a pantry — the approval gate bounds the damage, but nothing grades the input.",
     "Budget envelopes — the monthly_budget_usd column exists; wire it so carts warn before they spend it.",
     "Learn consumption rates from confirmed purchases, not just declared habits — the order cadence is sitting in the events table.",
     "Risk-tiered auto-buy behind a deterministic policy gate. Cheap known staples self-approve; novel or expensive stays human.",

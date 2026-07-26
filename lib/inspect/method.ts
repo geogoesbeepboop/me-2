@@ -16,17 +16,24 @@ Treat my framing as a hypothesis, not a spec. I may be missing context, working 
 wrong assumption, or asking for the wrong thing. Your job is the best outcome, not fast agreement.
 
 ## Working guidelines
-- **Pressure-test consequential decisions** When an approach meaningfully affects outcomes,
+- **Pressure-test consequential decisions.** When an approach meaningfully affects outcomes,
   surface assumptions, alternatives, tradeoffs, and failure modes before committing that I may
   not have considered.
-- **Think outside of the box before converging.** Lay out the alternatives worth considering
-  and why you recommend one when they genuinely could lead to a better solution so we're
-  proactive instead of churning later.
 - **Disagree out loud.** Prioritize correctness over agreement. If you see a materially better
   approach, explain it and why you'd choose it.
-- **Decide vs. ask.** Resolve trivial choices yourself with a sensible default and note it.
-- **Balance conciseness and completeness.** Challenge what changes the outcome; don't bikeshed
-  or manufacture objections for the sake of opposing.`,
+
+## How we run tasks
+- **Plans open with the contract.** Any plan (plan mode or otherwise) starts with three lines you
+  draft from my brief: **Outcome** (the observable result), **Non-goals** (what not to expand into),
+  **Acceptance evidence** (checks you can run yourself). I correct these at approval — that's our
+  alignment moment. No time estimates, ever. At approval the plan becomes a living spec in
+  \`docs/specs/\`, and later iterations re-read that file, never the chat's memory of it.
+- **Done means the evidence packet, never "done, please test it."** A task ends with verification you
+  ran yourself, an adversarial review by a fresh-context critic, the eval delta, and an honest list
+  of what you could NOT verify. Gaps never close silently: each one either blocks acceptance or gets
+  my explicit "accepted without X" and becomes a tracked follow-up.
+- **Bugs become eval cases before fixes.** When we hit a real failure in a project with an eval
+  suite, write the failing case into the suite first, watch it fail, then fix — same diff.`,
   },
 
   cc: {
@@ -66,15 +73,17 @@ wrong assumption, or asking for the wrong thing. Your job is the best outcome, n
       {
         path: "~/.claude/skills/spike/SKILL.md",
         lang: "md",
-        note: "the fast sibling of /plan — code within the hour",
+        note: "the fast sibling of plan mode — code within the hour",
         excerpt: `# Spike
 
 Sketch the fastest credible path to a working prototype of: \`$ARGUMENTS\` (if empty, spike
 whatever we've been discussing).
 
 ## Rules
-- **Minutes, not phases.** This is not /plan. No phase structure, no checkpoint ceremony —
-  one recommendation and a flat checklist I can start immediately.
+- **Minutes, not phases.** This is not a plan-mode plan. No phase structure, no checkpoint
+  ceremony — one recommendation and a flat checklist I can start immediately.
+- **Reuse before build.** Check \`~/dev/hackathons/INGREDIENTS.md\` for an existing piece
+  (gates, agent loops, MCP scaffolds, x402, UI shells) before proposing to write one.
 - **Name the throwaway line.** Say explicitly what is mocked/hardcoded/skipped and what it
   would take to make real — so the spike's debt is visible, not discovered.
 
@@ -87,22 +96,29 @@ whatever we've been discussing).
 4. **Kill criteria** — the observation that should make me abandon this approach early.`,
       },
       {
-        path: "~/.claude/skills/plan/SKILL.md",
+        path: "~/.claude/skills/spec/SKILL.md",
         lang: "md",
-        note: "the plan rules — checkpoints, no time estimates",
-        excerpt: `# Plan
+        note: "the approved plan becomes a file — contract on top, committed with the work",
+        excerpt: `# Write (or update) the spec
 
-Produce an implementation plan for: \`$ARGUMENTS\` (if empty, plan whatever we've been discussing).
+The approved plan is a **spec, not a disposable plan**. This skill is the ceremony around it.
 
-## Rules for the plan
-- **No time estimates. Ever.** They're noise.
-- **Phase boundaries are checkpoints, not chapters.** End each phase exactly where *I* should
-  verify it works ("after this, run X and confirm Y") or where you need my hands ("I need you to
-  provision / approve / decide Z before continuing").
-- **Dense phases.** Each phase is roughly one execution request, so pack in coherent, high-value
-  work. Keep the total in the single digits — fold trivial steps together.
-- **Each phase states:** its goal, the concrete changes (files / components), and the explicit
-  checkpoint that ends it.`,
+## At approval — create it
+
+1. **Path:** \`docs/specs/YYYY-MM-DD-<slug>.md\` in the repo the work lands in. If \`docs/specs/\`
+   doesn't exist yet, create it.
+2. **Contract on top**, verbatim as I approved it — **Outcome** (observable result), **Non-goals**
+   (what not to expand into), **Acceptance evidence** (checks you can run yourself). No time
+   estimates, ever. If I corrected any of the three at approval, the correction is what lands.
+3. **Then the design and the phases.** Phases are dense — single digits total, each ending at a
+   checkpoint. Below them, a short **Decisions worth recording** section for the calls that would
+   otherwise only exist in this chat.
+4. **Commit it with the task's first commit** so the PR carries it.
+
+## Diagrams — for work spanning modules or changing structure
+
+Multi-module or structural work leads with a diagram (current → proposed). I review at diagram
+altitude before prose, because structural mistakes show in boxes and arrows long before paragraphs.`,
       },
       {
         path: "~/.claude/skills/challenge/SKILL.md",
@@ -131,9 +147,11 @@ Red-team \`$ARGUMENTS\` (or, if blank, the plan / design / decision we're curren
 Scaffold a new agent project: \`$ARGUMENTS\` (kebab-case name + one-liner; ask if missing).
 
 ## Before scaffolding
-2. **Name the gate.** State the ONE irreversible action this agent will ever take and what
-   pure code owns it. If we can't name it, stop and design that first — it's the nucleus of
-   every project in this portfolio.
+2. **Answer the agent anatomy — the twelve design questions in four buckets** (A Correctness /
+   B Trust & safety / C Economics / D Operability). One or two lines each. The non-negotiable
+   nucleus is #2, **the gate**: the ONE irreversible action this agent will ever take (money /
+   publication / deletion / consent / external message) and the deterministic, no-LLM code that
+   owns it — if we can't name it, stop and design that first. A blank is a phase, not a skip.
 
 ## Scaffold (in \`~/dev/<name>\`)
 - **\`tests/conftest.py\` — hermetic from day one** (the jim-agent lesson): neutralize EVERY
@@ -144,41 +162,48 @@ Scaffold a new agent project: \`$ARGUMENTS\` (kebab-case name + one-liner; ask i
   \`.venv/bin/{ruff,pytest}\` with a uv fallback (**uv is NOT on hook-shell PATH on this
   machine**), ruff check + fast tests, <120s. The global guard-commit hook enforces it from
   the very first commit.
-- **\`.claude/evals.sh\`** stub (clearly marked TODO) + \`evals/cases.jsonl\` — seed ~10 cases the
-  moment the first LLM decision exists. Offline, zero-credential only; the nightly digest
-  runs it.
+- **\`.claude/evals.sh\`** stub (clearly marked TODO) conforming to the \`/evals\` contract (D8:
+  offline, zero-credential, exit code = gate, digest-readable summary). The moment the first LLM
+  decision exists, run **\`/evals bootstrap\`** to seed the suite — the contract (programmatic-first,
+  rates, refusal-as-pass gate cases) is the north star; case format is whatever fits the project.
 - **\`AGENTS.md\`** (60–120 lines): what this is (2 lines) → exact commands + the health-gate
-  line → architecture map (~10 lines) → invariants (the gate first) → DO-NOT list → current
+  line → architecture map (~10 lines) → invariants (the gate first) → the **agent-anatomy
+  answers** (the twelve, one line each — a named "deferred" counts) → DO-NOT list → current
   phase. **\`CLAUDE.md\`** = the single line \`@AGENTS.md\`.`,
       },
       {
         path: "~/.claude/skills/retro/SKILL.md",
         lang: "md",
-        note: "the weekly flywheel — conversion, not review",
+        note: "the flywheel's conversion ritual — on-trigger, not a calendar habit",
         excerpt: `# Retro
 
-Run my weekly harness retro (target: 30 minutes). The goal is **conversion, not review** —
-every friction item leaves as an artifact or a deliberate "accept."
+Run my harness retro. **This is on-trigger, not a calendar ritual** (OPERATING_MANUAL.md §6) —
+the usual reasons we're here: the babysit log has ~5+ open items, a digest shows repeated red on
+the same repo, a gate breached the slow-gate escalation rule (two retros or ~5× budget →
+scheduled work, not another log line), or it's been a month (drift check). If none of those hold,
+say so — a five-minute "nothing has accumulated, stop" is a valid retro.
+
+The goal is **conversion, not review** — every friction item leaves as an artifact or a
+deliberate "accept."
 
 ## Steps
 1. **Collect evidence** (quick, parallel):
    - \`~/dev/docs/BABYSIT_LOG.md\` — the Open list.
-   - The last 7 days of \`~/dev/docs/gate-digests/*.md\` — failures, eval regressions, runtime
-     creep (a gate drifting toward 120s is a finding).
-   - This week's handoffs (\`.claude/handoffs/\` in the focus repos) — scan for *unlogged*
-     babysitting: repeated explanations, hand-verification, the same fix twice.
-2. **Triage each Open item with me, fastest first.** For each, propose exactly ONE fix from
-   the ladder, cheapest rung that kills the recurrence — no gold-plating:
+   - Gate digests since the last retro (\`~/dev/docs/gate-digests/*.md\`) — failures, eval
+     regressions, runtime creep (a gate drifting toward 120s is a finding).
+   - Handoffs since the last retro — scan for *unlogged* babysitting: repeated explanations,
+     hand-verification, the same fix twice.
+2. **Triage each Open item with me, fastest first.** Classify each item into a named failure
+   mode before proposing a fix — **victory-declaration bias**, **context anxiety**,
+   **one-shotting overreach**, **babysat verification**, **re-explained context**. Then propose
+   exactly ONE fix from the ladder, cheapest rung that kills the recurrence — no gold-plating:
    \`hook < gate.sh line < instruction-file line < skill < accept-as-is\`.
 3. **Apply approved fixes immediately, in this session.** Edit the hook/gate/AGENTS.md/skill
-   now, verify it (run the gate; test hooks with a synthetic payload), then move the item to
-   Resolved with the fix named.
+   now, verify it, then move the item to Resolved with the fix named. At most ONE material
+   harness improvement per retro unless an S0/S1 demands more.
 4. **Close with the metric.** Append one line to the log:
-   \`Retro YYYY-MM-DD: N open → M open, K converted (what)\`. The log shrinking month over
-   month is the whole point.
-
-If the log is empty and the digests are green, say so and stop — a five-minute retro is a
-success, not a failure.`,
+   \`Retro YYYY-MM-DD: N open → M open, K converted (what)\`. The log shrinking over time is the
+   whole point.`,
       },
       {
         path: "~/.claude/skills/deep-challenge/workflow.js",
@@ -227,9 +252,18 @@ cost of being wrong is a paragraph, not a rewrite.
 
 ## Stance
 - Argue the strongest honest case AGAINST the proposal. Steelman the opposition; don't nitpick.
-- Be specific and grounded. You may inspect the codebase read-only. Never modify anything.
+- Be specific and grounded. You may inspect the codebase read-only (Read/Grep/Glob and read-only
+  Bash like \`git log\`, \`ls\`, \`rg\`) to make critiques concrete rather than generic. Never modify
+  anything.
 - Be fair, not contrarian. Distinguish "this will bite you" from "this is a matter of taste."
-  Rank by impact.`,
+  Rank by impact.
+
+## If the brief names a rubric
+
+Score against it instead of free-forming. Return the rubric's own output shape — a verdict and the
+evidence per dimension — and honor its scoring rule, including defaulting to \`fail\` on anything you
+cannot verify from the material you were given. The standing rubric for reviewing a finished diff
+against its spec is \`~/.claude/skills/evidence-packet/references/diff-vs-spec.md\`.`,
       },
       {
         path: "~/.claude/agents/researcher.md",

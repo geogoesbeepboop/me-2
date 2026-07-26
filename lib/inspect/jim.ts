@@ -691,7 +691,7 @@ export const JIM: InspectMap = {
 
   judge: {
     path: "src/jim/research/judge.py",
-    note: "the semantic backstop behind the deterministic gate",
+    note: "the semantic backstop behind the deterministic gate — its bar was measured, not guessed",
     blocks: [
       {
         kind: "steps",
@@ -710,7 +710,24 @@ export const JIM: InspectMap = {
           {
             name: "threshold",
             tag: "gate",
-            detail: "passed = score ≥ judge_threshold (0.8 in config)",
+            detail: "passed = score ≥ judge_threshold (0.55 in config, provisional)",
+          },
+        ],
+      },
+      {
+        kind: "quote",
+        text: "Faithfulness score below this fails the run. Set from the `jim-eval judge-calibrate` threshold sweep (docs/EVAL_LADDER.md, Phase E2) — calibration run 20260715T003647Z-dea5b09 (subscription mode, 40 labeled cases × 3 repeats) chose 0.55: balanced accuracy 0.96, false-rejects 0/15. The 5% false-reject cap binds here — 0.70–0.75 scored ba 0.9667 with 100% lie recall but 6.7% false-rejects. Provisional until the operator signs off the corpus labels (EVAL_LADDER Phase E2, remaining item).",
+        cite: "src/jim/config.py — judge_threshold: float = 0.55",
+      },
+      {
+        kind: "kv",
+        title: "The sweep that chose it — 120 real judge calls",
+        items: [
+          { k: "0.80 (old default)", v: "ba 0.9333 · lies 25/25 · false-rejects 2/15" },
+          { k: "0.70–0.75", v: "ba 0.9667 · lies 25/25 · false-rejects 1/15" },
+          {
+            k: "0.55–0.60 (chosen)",
+            v: "ba 0.9600 · lies 23/25 · false-rejects 0/15",
           },
         ],
       },
@@ -722,13 +739,19 @@ export const JIM: InspectMap = {
             detail:
               "a judge response that won't parse returns score 0.0, passed false, issue “judge returned unparseable output” — a broken judge can never silently pass a run.",
           },
+          {
+            name: "both or nothing",
+            detail:
+              "status is ok only if the sourcing gate passed AND the judge passed — one line in the engine, and the only place revenue is decided.",
+          },
         ],
       },
       {
         kind: "kv",
         items: [
           { k: "model", v: "haiku" },
-          { k: "threshold", v: "0.8", accent: true },
+          { k: "threshold", v: "0.55 — measured, provisional", accent: true },
+          { k: "floor to qualify", v: "ba ≥ 0.85 · false-rejects ≤ 5%" },
           { k: "output", v: "strict JSON only" },
         ],
       },
@@ -962,13 +985,13 @@ export const JIM: InspectMap = {
 
   evals: {
     path: "src/jim/eval/runner.py",
-    note: "ADR-0009 — tiered suites, persisted runs, thresholded regression verdicts; offline is the merge gate, live is the trend",
+    note: "ADR-0009 — tiered suites, persisted runs, thresholded regression verdicts; offline is the merge gate, live is the trend, and the judge corpus is its own deliberate spend",
     blocks: [
       {
         kind: "graph",
         title: "The harness, end to end",
         caption:
-          "98 offline cases · ~2s · $0 — the same run the 06:17 night watch executes",
+          "99 offline cases · ~2s · $0 — the run the 06:17 night watch executes. The judge corpus sits outside it: a separate command that needs a key and spends real money.",
         nodes: [
           {
             id: "gatecases",
@@ -987,7 +1010,7 @@ export const JIM: InspectMap = {
           {
             id: "scen",
             label: "scenarios",
-            sub: "10 full-engine runs, scripted i/o",
+            sub: "11 full-engine runs, scripted i/o",
             col: 2,
             row: 0,
           },
@@ -997,6 +1020,20 @@ export const JIM: InspectMap = {
             sub: "8 held-out tickers × 2 variants",
             col: 3,
             row: 0,
+          },
+          {
+            id: "judgecal",
+            label: "judge corpus",
+            sub: "40 labeled memos · 15 faithful, 25 not",
+            col: 4,
+            row: 0,
+          },
+          {
+            id: "calrun",
+            label: "jim-eval judge-calibrate",
+            sub: "its own command · needs a key · costs money",
+            col: 4,
+            row: 1,
           },
           {
             id: "runner",
@@ -1040,6 +1077,11 @@ export const JIM: InspectMap = {
           { from: "guards", to: "runner" },
           { from: "scen", to: "runner" },
           { from: "live", to: "runner", label: "opt-in · real spend" },
+          {
+            from: "judgecal",
+            to: "calrun",
+            label: "never part of the nightly run",
+          },
           { from: "runner", to: "runjson", label: "aggregates + every case" },
           { from: "runjson", to: "baseline", label: "compare" },
           { from: "baseline", to: "verdict" },
@@ -1052,7 +1094,7 @@ export const JIM: InspectMap = {
         items: [
           {
             name: "offline",
-            value: "98 cases · ~2s · $0",
+            value: "99 cases · ~2s · $0",
             detail:
               "zero tolerance — any newly-failing case regresses the run and exits 1.",
             fail: true,
@@ -1066,6 +1108,18 @@ export const JIM: InspectMap = {
             name: "every run persists",
             detail:
               "runs land in eval_runs/ and jim-eval ui plots the trends — which is how a judge max_tokens of 900 (JSON truncating mid-array, every live memo 'rejected') was told apart from a real quality drop. It's 4096 now.",
+          },
+          {
+            name: "the calibration run isn't on disk",
+            detail:
+              "the sweep that chose 0.55 is recorded in a config comment and a doc — the run document itself exists on no machine, so no reviewer or fresh clone can re-check the numbers. The repo's own eval audit names this first.",
+            fail: true,
+          },
+          {
+            name: "the baseline is local",
+            detail:
+              "the stored baseline and every past run are gitignored, so the regression comparison only bites on the machine that made it — anywhere else it finds nothing to compare against and passes. Named as a gap by the repo's own eval audit, not discovered here.",
+            fail: true,
           },
         ],
       },

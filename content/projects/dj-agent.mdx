@@ -4,7 +4,7 @@ summary: "A personal DJ that turns my real library into a vibe database, learns 
 question: "Can we leverage agentic intelligence to curate an authentic vibe?"
 date: "2026-06-01"
 started: "2026-06-01"
-updated: "2026-06-11"
+updated: "2026-07-26"
 status: "LIVE"
 domain: "AUDIO · ML"
 accent: "#c77dff"
@@ -13,6 +13,7 @@ repo: "/Users/geoandr/dev/dj-agent"
 refs:
   - "writing/loop-engineering#the-inner-loop"
   - "writing/agent-anatomy#risk-is-blast-radius"
+  - "writing/evals-are-the-product"
 reflection: "writing/loop-engineering"
 ---
 
@@ -21,7 +22,8 @@ reflection: "writing/loop-engineering"
     { k: "representations", v: "512-d clap (track + section) · 384-d taste · bpm / camelot / lufs columns" },
     { k: "agents", v: "2 llm (architect, selector) — everything else deterministic" },
     { k: "critic gate", v: "≥70% harmonic · ≤6 bpm jump — set per genre · ≤4 lufs arc-rmse · 0 artist repeats — always" },
-    { k: "state", v: "allin1 segments for real · genre-aware sets · 256 fast tests" }
+    { k: "state", v: "allin1 segments for real · genre-aware sets · 256 fast tests" },
+    { k: "graded", v: "the deterministic half · the two models not yet — case set bootstrapping" }
   ]}
 />
 
@@ -44,7 +46,7 @@ Here's the whole idea in one run — watch the booth think:
     { id: "arch", label: "Architect", sub: "llm · brief → arc", col: 1, row: 1 },
     { id: "sel", label: "Selector", sub: "llm · generate→verify→revise", col: 2, row: 1 },
     { id: "critic", label: "Critic", sub: "verifies on the genre's gates", col: 3, row: 1, accent: true },
-    { id: "hitl", label: "HITL gate", sub: "approve the plan as data", col: 4, row: 1, accent: true },
+    { id: "hitl", label: "HITL gate", sub: "plan approved as data — auto-approved today", col: 4, row: 1, accent: true },
     { id: "core", label: "LLM core", sub: "llm.py · tiers, trace, retries", col: 1, row: 2 },
     { id: "verify", label: "Verification", sub: "gate.sh · scorecard · history", col: 3, row: 2 },
     { id: "exp", label: "Export & render", sub: "xml · m3u8 · sheet · .wav", col: 4, row: 2 }
@@ -143,6 +145,19 @@ Here's the whole idea in one run — watch the booth think:
   ]}
 />
 
+<Update date="2026.07.26" title="An audit, not a release: the acceptance metric was a constant">
+
+No code moved in six weeks. What moved is what I know about the code — a fresh-context critic read the repo against my eval standard and filed the verdict (`docs/evals/2026-07-25-methodology-audit.md`). It found the deterministic half in good shape and the model half entirely ungraded, and the sharpest finding takes out the number the project has been steering by since June:
+
+- **Set acceptance was 100% by construction.** The build plan named set-acceptance rate — "% of proposed sets I approve at the HITL gate" — as the number that says whether this is working. But the skill that actually runs a set mandates `HITL_LEVEL=none`, `hitl.confirm` then returns `True` without asking, and that `True` gets written into every history record. The flag can never say no, so it carries no information — and the exports (rekordbox XML, .m3u8, set sheet) get written on every run, before any human has said yes. The human-approves-the-plan rule holds in the architecture and is bypassed by the thing that invokes it.
+- **Both models fail silently.** `architect.plan_arc` catches every exception and passes; the Selector's loop catches and breaks. A live model that times out, returns garbage, or gets talked out of its instructions degrades to the deterministic fallback with no log and no counter. The offline greedy path is the well-tested one; the live path is what ships by default.
+- **The thing called an eval grades the wrong pipeline.** `compare_to_acoustic_baseline` defaults to no model, and its only caller never overrides that — so the A/B meant to protect the Selector never invokes it. The runner then returns 0 regardless of the result, so its exit code gates nothing.
+- **Track titles reach the prompt as-is.** `selector._format_request` interpolates each candidate's title and artist straight into the model's context, and those strings come from YouTube via yt-dlp. A track named to look like an instruction is a live path into set selection. Untested.
+
+What the audit says to keep is the part ADR 0006 got right on purpose: a key clash is a fact, not an opinion, so the verifier is math and never a model. The plan builds the case set *around* the Critic — the approval bug written as a failing case before it's fixed, then an offline tier that gates and a live tier that's allowed to fail while it's still a trend line.
+
+</Update>
+
 <Update date="2026.06.11" title="allin1 runs for real; the critic learns genre">
 
 Two ADRs landed in one day, and both close gaps between what the architecture claimed and what actually executed:
@@ -197,6 +212,7 @@ That last part is the design: a wrong auto-match would poison the taste layer si
     "Does taste propagation hold at ~150 hand tags, or does it quietly need 2,000?",
     "Genre detection is first-keyword matching — good enough for one-genre briefs, but what should ‘melodic techno into trance’ do?",
     "Phase-locked downbeats at the splice: seams currently sit within ~1.5 BPM of each other — is that audible on a real floor or only in a DAW?",
-    "Plan approval is the acceptance metric — does approving a set as data actually predict liking it as audio?"
+    "Plan approval was meant to be the acceptance metric, but every run auto-approves, so the flag has never carried a signal. Fix the record first — then the real question, whether approving a set as data predicts liking it as audio, is finally askable.",
+    "Both models degrade to the deterministic fallback without saying so. How often does that happen on a live run? Nothing counts it today, so a set that looks fine may never have involved a model at all."
   ]}
 />

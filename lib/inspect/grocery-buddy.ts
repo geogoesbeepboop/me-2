@@ -615,13 +615,13 @@ export const GROCERY_BUDDY: InspectMap = {
         { name: "prediction_recall", value: "0.81" },
       ],
       footnote:
-        "score names are exactly what run_evals pushes; money-live needs precision ≥ 0.70 · this run cost $0.21 of the $0.15–0.40 band",
+        "score names are exactly what run_evals pushes; money-live needs precision ≥ 0.70 · every model call writes a priced row to the llm_usage ledger — the $0.15–0.40 band is a planning estimate from docs/ARCHITECTURE.md, not a measurement · span timings and scores are representative of one run",
     },
   },
 
   meas: {
     path: "src/grocery_buddy/evals.py",
-    note: "the agent grades itself with the same tables it works from — and a nightly suite grades the prompts",
+    note: "the agent grades itself with the same tables it works from — the nightly meant to grade the prompts turned out to be grading nothing",
     blocks: [
       {
         kind: "graph",
@@ -647,32 +647,50 @@ export const GROCERY_BUDDY: InspectMap = {
       },
       {
         kind: "rules",
-        title: "The nightly prompt-regression suites — evals/run.py",
+        title: "The sensor — audited 2026-07-25",
+        items: [
+          {
+            name: "cases executed in CI, ever",
+            value: "0 of 28",
+            fail: true,
+            detail:
+              "the nightly reused the runner's key-absent early exit — correct in pull-request CI, fatal as a scheduled job with no repository secret. 47 consecutive green runs, zero model calls. The thresholds below have never graded anything.",
+          },
+        ],
+      },
+      {
+        kind: "quote",
+        text: "No ANTHROPIC_API_KEY set — model evals skipped (this is expected in PR CI).",
+        cite: "evals/run.py — the line that printed 47 green nights, verbatim",
+      },
+      {
+        kind: "rules",
+        title: "The prompt-regression suites — evals/run.py · 28 labeled cases",
         items: [
           {
             name: "intents",
-            value: "gates ≥ 0.8",
+            value: "22 cases · gates ≥ 0.8",
             detail: "parse_request / parse_briefing_reply routing accuracy — exact action match against labeled messages.",
           },
           {
             name: "briefings",
-            value: "gates ≥ 0.8",
+            value: "3 cases · gates ≥ 0.8",
             detail: "compose_briefing groundedness via deterministic checks — no judge in the loop.",
           },
           {
             name: "synthesis",
-            value: "gates ≥ 0.8",
-            detail: "synthesize_grocery_history product-set recall + exclusion against known order histories.",
+            value: "1 case · gates ≥ 0.8",
+            detail: "synthesize_grocery_history product-set recall + exclusion against a known order history.",
           },
           {
             name: "onboarding",
-            value: "gates ≥ 0.8",
+            value: "2 cases · gates ≥ 0.8",
             detail: "onboarding extraction tool-call recall.",
           },
           {
             name: "briefing_quality",
             value: "report-only",
-            detail: "tone and groundedness by LLM-as-judge — reported for the trend, never gates.",
+            detail: "tone and groundedness by LLM-as-judge over the same three briefings — reported for the trend, never gates. Kept alongside the deterministic checks rather than replacing them.",
           },
         ],
       },
@@ -681,13 +699,14 @@ export const GROCERY_BUDDY: InspectMap = {
         items: [
           { k: "precision", v: "flagged ∩ bought ÷ flagged" },
           { k: "recall", v: "flagged ∩ bought ÷ bought" },
+          { k: "hermetic tests", v: "124 · 17 files · every commit" },
           { k: "nightly run", v: "07:00 UTC · github actions" },
           { k: "gating verdict", v: "any suite < 0.8 → exit 1", accent: true },
         ],
       },
       {
         kind: "note",
-        text: "Precision is honest because the snapshot records the predictor's decision for every item — not cart membership — so buying something it never flagged lowers recall, as it should. The $1.00 figure is the per-run cost alert; the money-live gate holds the stricter $0.50 ceiling. Snapshots are best-effort: a telemetry failure never blocks a grocery run.",
+        text: "The two halves diverged. Predictor accuracy is honest and load-bearing: the snapshot records the decision for every item — not cart membership — so buying something it never flagged lowers recall, as it should, and the money-live gate reads that number. The prompt half was well-designed and never ran. The $1.00 figure is the per-run cost alert; the money-live gate holds the stricter $0.50 ceiling. Snapshots are best-effort: a telemetry failure never blocks a grocery run.",
       },
     ],
   },
