@@ -2,14 +2,14 @@
 title: Agent Anatomy — the design reference
 collection: harness
 source: ~/dev/agentic-harness/docs/AGENT_ANATOMY.md
-sourceMtime: '2026-07-14T02:30:29.302Z'
-sourceCommit: cd639d2
-syncedAt: '2026-07-24'
+sourceMtime: '2026-07-26T02:33:10.192Z'
+sourceCommit: 9b68ef9
+syncedAt: '2026-07-26'
 summary: >-
   The timeless agent-design material extracted from the v3 operating manual
   (2026-07-13) so the daily runbook could get short. This is product-design
   knowledge, not daily process: read it when design…
-contentHash: 'sha256:7c02765ce41896d582e54e40f84ead8e0a0a56d88b38a934858f63b523883b2e'
+contentHash: 'sha256:7986ada8a47d3e95fbe1e465f071bd1a288a80c50ee95a029e204c080e8d01a7'
 ---
 # Agent Anatomy — the design reference
 
@@ -89,6 +89,13 @@ Retries after side effects require idempotency keys and leases. Do not retry a p
 side effect without durable state proving what happened. When the side effect cannot be reversed,
 the absence of compensation is part of the risk decision, not an omitted field.
 
+> **Orientation — §3, §4, and §5 are three different axes, not three versions of one idea.**
+> Risk tiers (§3) size the *ceremony a task gets*. Verification surfaces (§4) name the *kind of
+> check* a thing is. Eval layers (§5) grade the *depth of behavior evidence*, and the `/evals`
+> contract (D1–D8) grades that evidence's *trustworthiness*. They compose rather than overlap: a
+> T2 task runs checks from all three surfaces; each behavior eval sits at one L-layer; whether
+> its number can be believed is the D-contract's job.
+
 ## 3. Risk tiers — scale ceremony to blast radius
 
 | Tier | Typical work | Minimum control |
@@ -133,12 +140,16 @@ Three different things get called "the gate." Use precise names:
 | **Runtime action gate** | Own authorization for a consequential side effect | spend cap, consent check, publication mandate | Fails closed before the action |
 
 A build gate should never be mistaken for authorization, and a runtime action gate does not prove
-the implementation is generally correct.
+the implementation is generally correct. The behavior-eval surface is the one §5 grades for
+depth; one deliberate cross-wiring to know: §5's "L0 verifier tests" are build-gate checks
+*pointed at* the other two surfaces, not behavior evals.
 
 ## 5. Eval layers
 
-- **L0 — verifier tests.** Deterministic tests of gates and invariants, including planted
-  failures that prove the verifier catches what it claims.
+- **L0 — verifier tests.** Deterministic tests of the *verification machinery itself* — gates,
+  graders, invariants — including planted failures proving each catches what it claims. (Per
+  §4's taxonomy these are build-gate checks, not behavior evals; they open this ladder because
+  every higher layer's evidence is only as good as the verifier under it.)
 - **L1 — offline replay.** Recorded model/tool outputs re-run without live credentials. Catches
   logic regressions around the model cheaply and reproducibly.
 - **L2 — controlled live-model evaluation.** Versioned cases, repeated trials, scorers,
@@ -147,10 +158,14 @@ the implementation is generally correct.
 - **L3 — production sampling.** Real shipped outputs, traces, user feedback, incidents, A/B
   tests, and periodic human review. Detects distribution shift and gaps in the offline corpus.
 
-The model and prompt under test, judge model, dataset version, environment fingerprint,
-seed/trial, and scorer version belong in the result. Current Anthropic guidance similarly combines
-automated evals, production monitoring, transcript review, and periodic human calibration rather
-than trusting one score:
+What makes any layer's number *trustworthy* is the house **`/evals` contract (D1–D8)** — the
+skill is the spec, `docs/evals-and-tracing-summary.md` the narrative; this section only maps
+depth. Two anatomy-specific rules live here rather than there: every result records the model
+and prompt under test, judge model, dataset version, environment fingerprint, seed/trial, and
+scorer version (D4's versioning applied to anatomy question #3); and a new agent ships its
+gate's refusal-as-pass cases (D6 ↔ question #2) and injection cases (question #5) on day one.
+Anthropic's guidance likewise combines automated evals, production monitoring, transcript
+review, and periodic human calibration rather than trusting one score:
 [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents).
 
 ## 6. What green means
