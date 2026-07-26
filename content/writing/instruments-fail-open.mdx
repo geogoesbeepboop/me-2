@@ -1,0 +1,53 @@
+---
+title: "Instruments Fail Open"
+summary: "Four projects got their eval layers audited by readers with no session history, and all four found the same thing: the product was fine and the instrument watching it was reporting a pass it had never earned. A green check is a claim, and it is the only claim in the system nothing else grades."
+date: "2026-07-26"
+thesis: "A check nobody has checked reports a pass — that's its default, not its verdict."
+refs:
+  - "projects/dj-agent"
+  - "projects/grocery-buddy#what-broke"
+  - "projects/jim"
+  - "projects/m-clone#eval-product"
+---
+
+## Four audits landed on the same day
+
+One weekly sync updated four entries at once, and none of them shipped a feature. A fresh-context reader — no session history, working from the repo and an outside standard — graded each project's eval layer and filed the verdict in the repo. Four unrelated codebases, four different domains, and the finding rhymes every time: the thing being measured was in reasonable shape, and the thing doing the measuring was quietly broken in the direction of good news.
+
+Grocery Buddy's nightly eval job had reported success forty-seven times out of forty-seven while executing zero cases: the runner exits early and cleanly when there's no API key — correct behavior in pull-request CI, where paid model calls have no business running — and the scheduled job reused that same entry point with a repository secret nobody had set. Forty-seven green checks beside twenty-eight labeled cases no model ever saw. DJ Agent's stated acceptance metric, the share of proposed sets approved at the human gate, was 100% by construction: the skill that runs a set mandates `HITL_LEVEL=none`, the confirm call returns `True` without asking, and that `True` is what gets written into every history record. A flag that can never say no carries no information. M-Clone's nightly asserts that sixty-one cases were *scored*, not that they were answered correctly — quality could fall through the floor and the run would still print a pass — and the matcher behind its headline routing numbers is documented in its own repo as too generous, accepting fields the answer key never asked for. JIM's faithfulness judge, which decides alongside the sourcing gate whether a memo ships and whether a buyer is billed, sat at a threshold of `0.80` that had been set by hand and never measured against anything.
+
+<Ref to="projects/grocery-buddy#what-broke" note="forty-seven green nights, zero cases executed" />
+
+## Fail open is the default, not the bug
+
+Look at what each of those instruments did when it had nothing to say, and the pattern is one behavior wearing four costumes. No API key: exit zero. No human at the gate: return `True`. No correctness assertion: count the rows and pass. No measured floor under the number: keep the number. In every case the absence of a signal was rendered as a positive signal, because that is what "no failures found" degrades to when nobody wrote the third state.
+
+This is not carelessness, and it isn't fixed by being more careful. Product code gets exercised constantly — by users, by the tests, by the developer running it — so a silent failure there surfaces fast. Instrument code is exercised only by itself. Its output is a single bit, that bit is usually green, and green is exactly the reading a person is least likely to interrogate. DJ Agent's audit found both of its models catching every exception and passing, degrading to the deterministic fallback with no log and no counter — a set that looks fine may never have involved a model at all. Nothing counts it today. The measurement gap and the silent-fallback gap are the same gap: a system with no way to say "I don't know" says "fine."
+
+The rule that comes out of all four: an instrument's null result must be a distinct, visible, non-passing state. A skip that exits zero is worse than a red build, because a red build gets fixed.
+
+## The rails held; the meters lied
+
+What survived the audits is as consistent as what failed, and it points at the design principle underneath.
+
+DJ Agent's verifier is math and never a model — a key clash is a fact, not an opinion, decided on purpose in ADR 0006 — and it came through the audit intact while the acceptance metric above it collapsed. JIM's sourcing gate polices figures rather than tone and kept refusing to bill a memo that cites a lie the whole time its judge was miscalibrated. Grocery Buddy's judge suite was built to sit *alongside* the deterministic groundedness checks rather than replace them, and it never gates — so the eval layer being asleep for forty-seven nights cost information, not correctness. M-Clone's whole suite is model-free by construction: injected doubles and an availability override, with a guard that fails commits reaching for the live model.
+
+Deterministic rails are load-bearing every single run, so they are continuously proven by the product working at all. Probabilistic judgment and the meters that grade it are proven only by deliberate effort. Put the irreversible decisions on the rails, and an unaudited instrument becomes an information problem instead of a safety problem — which is the difference between four embarrassing findings and four incidents.
+
+## Calibrating down is still calibrating
+
+JIM's is the one project here where the audit ran all the way to a number, and the direction it moved is the point. Forty labeled memos — 15 faithful, 25 unfaithful across five failure families the deterministic rails structurally cannot see — went through the real judge model three times each, at every threshold from 0.50 to 0.95. At the inherited `0.80`, the judge caught every planted lie and wrongly rejected 2 of 15 faithful memos: a 13% false-reject rate on work a buyer had already paid for. The chosen operating point is **0.55** — balanced accuracy 0.96, lie recall 23 of 25, zero false rejects — because the constraint that actually binds is the one protecting the honest memo. The sourcing gate is already standing behind the dishonest one.
+
+A hand-set threshold isn't wrong because 0.80 is a bad number. It's wrong because until the sweep ran, nobody could say which error the system was buying with it. The corpus has one property that keeps the answer honest, asserted as a test: every case sits in the blind spot the deterministic checks leave — the sourcing gate passes it and so does the no-advice rail. A case that trips a check we already trust isn't measuring the judge, it's inflating it. And the whole apparatus has a floor: below 0.85 balanced accuracy or above 5% false rejects at every threshold, the calibration command exits nonzero and the judge doesn't get to co-decide at all. That is what an instrument with an opinion about its own validity looks like.
+
+<Ref to="projects/jim" note="the sweep, the 40 labels, and the threshold that moved down" />
+
+## Publish the verdict before you fix it
+
+The move that makes this repeatable is procedural, and M-Clone wrote it down as a decision: commit the eight-part verdict — two parts met, five partial, one missing — with the failing lines quoted, and leave the numbers standing until the repair is its own reviewed work. Not fixing the gate first and reporting the tidy version. Not grading the suite in the same session that patches it. The cost is real: its headline routing scores now ship labeled as upper bounds, with an open finding and no repair attached. The payoff is that the verdict can't be edited by the diff that closes it.
+
+So this week the archive's numbers got worse. Cost per run on Grocery Buddy is now labeled an *estimate* rather than a measurement — the cost ledger prices every model call and always did; the number on the page just never came from it. M-Clone's scores are upper bounds until its matcher tightens, and the tightening is expected to move them down. JIM's judge threshold is marked provisional in the code until an operator signs off the labels behind it. DJ Agent's headline acceptance number was deleted outright and replaced with the question that's actually open.
+
+Every one of those edits made the page less impressive and more true, which is the only trade in this business that's always worth taking. The reason to keep a scored suite is not the score. It's that when someone with no stake in your last six weeks reads it against an outside standard, there is something concrete for them to be right about.
+
+<Ref to="projects/m-clone#eval-product" note="the audit shipped before the repair, on purpose" />
