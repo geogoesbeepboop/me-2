@@ -2,22 +2,26 @@
 title: Agent Anatomy — the design reference
 collection: harness
 source: ~/dev/agentic-harness/docs/AGENT_ANATOMY.md
-sourceMtime: '2026-07-14T02:30:29.302Z'
-sourceCommit: cd639d2
-syncedAt: '2026-07-24'
+sourceMtime: '2026-07-26T23:59:52.808Z'
+sourceCommit: 422bbf5
+syncedAt: '2026-07-28'
 summary: >-
-  The timeless agent-design material extracted from the v3 operating manual
-  (2026-07-13) so the daily runbook could get short. This is product-design
-  knowledge, not daily process: read it when design…
-contentHash: 'sha256:7c02765ce41896d582e54e40f84ead8e0a0a56d88b38a934858f63b523883b2e'
+  Visual companion:
+  <https://claude.ai/code/artifact/fdca55ab-8424-4d08-8570-05038de13853> — this
+  file is canonical; the visual renders it (docs/visuals/README.md).
+contentHash: 'sha256:5b9712c505e0af8264a9d76249d2218bea50a1f12d39fc55d7b9ffb10f7e87de'
 ---
 # Agent Anatomy — the design reference
+
+*Visual companion: <https://claude.ai/code/artifact/fdca55ab-8424-4d08-8570-05038de13853> —
+this file is canonical; the visual renders it (`docs/visuals/README.md`).*
 
 *The timeless agent-design material extracted from the v3 operating manual (2026-07-13) so the
 daily runbook could get short. This is product-design knowledge, not daily process: read it when
 designing or reviewing an agent, when scoping risky work, or when `/new-agent` and `/hack` point
-you here. Companion docs: `OPERATING_MANUAL.md` (the daily runbook), `ROADMAP.md` (deferred
-platform machinery), `CLAUDE_CODE_BIBLE.md` (the Claude-specific reference).*
+you here. The scope boundary: one agent, one demoable outcome → this doc; an agent fleet plus
+deterministic services plus human surfaces → `PRODUCT_ANATOMY.md`. Other companions:
+`OPERATING_MANUAL.md` (the daily runbook), `MANUAL.md` (why the workflow works).*
 
 The thesis everything below serves: **probabilistic models propose, deterministic systems
 constrain.** This applies to two different systems — the development harness (how agents build
@@ -40,7 +44,10 @@ T0/T1 change. A blank is an assigned design hole, not a surprise reserved for in
 3. **Eval and dependency versions.** Which L0–L3 layers apply? Which model, prompt, policy, tool,
    dataset, environment, and judge versions produced the result? What qualifies an upgrade?
 4. **Loop and state.** What are gather → decide → act steps, gates, exit conditions, maximum
-   turns, retries, and escalation states?
+   turns, retries, and escalation states? Any unattended loop names its five parts before it
+   runs — trigger, goal, verifier, stop rule, memory — and its stop/budget caps are load-bearing:
+   runaway loops are the dominant observed failure class in the wild
+   ([arXiv 2607.01641](https://arxiv.org/abs/2607.01641)).
 
 ### B. Trust and safety
 
@@ -49,6 +56,9 @@ T0/T1 change. A blank is an assigned design hole, not a surprise reserved for in
 6. **Memory and retention.** What working, episodic, semantic, or procedural memory persists? Who
    may write it, when is it stale, how is it verified on read, and when is it deleted? Treat
    memory as an input with the trust level of its least-trusted writer; test poisoned memory.
+   Graph/temporal-KG stores are a named option with a real tradeoff — better multi-hop recall,
+   worse simple-lookup latency and cost (GraphRAG/Zep-class benchmarks) — chosen per retrieval
+   pattern, never per trend.
 7. **Tools, credentials, and child authority.** Which tools are available, what can their
    credentials touch, and which sandbox/allowlist/proxy enforces the boundary? Tool descriptions
    and peer-agent output are untrusted inputs. Children inherit the parent's authority and budget
@@ -88,6 +98,13 @@ code health (see §4 below for the three surfaces).
 Retries after side effects require idempotency keys and leases. Do not retry a possibly completed
 side effect without durable state proving what happened. When the side effect cannot be reversed,
 the absence of compensation is part of the risk decision, not an omitted field.
+
+> **Orientation — §3, §4, and §5 are three different axes, not three versions of one idea.**
+> Risk tiers (§3) size the *ceremony a task gets*. Verification surfaces (§4) name the *kind of
+> check* a thing is. Eval layers (§5) grade the *depth of behavior evidence*, and the `/evals`
+> contract (D1–D8) grades that evidence's *trustworthiness*. They compose rather than overlap: a
+> T2 task runs checks from all three surfaces; each behavior eval sits at one L-layer; whether
+> its number can be believed is the D-contract's job.
 
 ## 3. Risk tiers — scale ceremony to blast radius
 
@@ -133,12 +150,16 @@ Three different things get called "the gate." Use precise names:
 | **Runtime action gate** | Own authorization for a consequential side effect | spend cap, consent check, publication mandate | Fails closed before the action |
 
 A build gate should never be mistaken for authorization, and a runtime action gate does not prove
-the implementation is generally correct.
+the implementation is generally correct. The behavior-eval surface is the one §5 grades for
+depth; one deliberate cross-wiring to know: §5's "L0 verifier tests" are build-gate checks
+*pointed at* the other two surfaces, not behavior evals.
 
 ## 5. Eval layers
 
-- **L0 — verifier tests.** Deterministic tests of gates and invariants, including planted
-  failures that prove the verifier catches what it claims.
+- **L0 — verifier tests.** Deterministic tests of the *verification machinery itself* — gates,
+  graders, invariants — including planted failures proving each catches what it claims. (Per
+  §4's taxonomy these are build-gate checks, not behavior evals; they open this ladder because
+  every higher layer's evidence is only as good as the verifier under it.)
 - **L1 — offline replay.** Recorded model/tool outputs re-run without live credentials. Catches
   logic regressions around the model cheaply and reproducibly.
 - **L2 — controlled live-model evaluation.** Versioned cases, repeated trials, scorers,
@@ -147,10 +168,14 @@ the implementation is generally correct.
 - **L3 — production sampling.** Real shipped outputs, traces, user feedback, incidents, A/B
   tests, and periodic human review. Detects distribution shift and gaps in the offline corpus.
 
-The model and prompt under test, judge model, dataset version, environment fingerprint,
-seed/trial, and scorer version belong in the result. Current Anthropic guidance similarly combines
-automated evals, production monitoring, transcript review, and periodic human calibration rather
-than trusting one score:
+What makes any layer's number *trustworthy* is the house **`/evals` contract (D1–D8)** — the
+skill is the spec, `docs/evals-and-tracing-summary.md` the narrative; this section only maps
+depth. Two anatomy-specific rules live here rather than there: every result records the model
+and prompt under test, judge model, dataset version, environment fingerprint, seed/trial, and
+scorer version (D4's versioning applied to anatomy question #3); and a new agent ships its
+gate's refusal-as-pass cases (D6 ↔ question #2) and injection cases (question #5) on day one.
+Anthropic's guidance likewise combines automated evals, production monitoring, transcript
+review, and periodic human calibration rather than trusting one score:
 [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents).
 
 ## 6. What green means
@@ -190,3 +215,23 @@ broker, network policy, or equivalent. (A remote/cloud session sandbox is one ho
 
 Copying a broad `.env` into every worktree expands authority. Prefer short-lived, task-specific
 credentials outside the worker filesystem, exposed through constrained tools or a proxy.
+
+## 9. Anti-patterns — the same failures, indexed
+
+Every one of these is a misreading of a section above; this is the scannable recap, not new
+rules:
+
+- **Green read as proof** — green is scoped evidence, nothing more (§6).
+- **A build gate mistaken for authorization** — the three surfaces exist because these get
+  conflated (§4).
+- **A worktree treated as a sandbox** — it isolates files, not host, credentials, or network
+  (§8).
+- **A fail-open hook described as protection** — conveniences reduce accidents; they are not
+  walls (§7).
+- **Memory trusted above its least-trusted writer** — and never tested with poisoned entries
+  (question #6).
+- **The model as final allow/deny authority** on a consequential side effect (§2).
+- **Retrying a possibly-completed side effect** without durable state proving what happened
+  (§2, question #12).
+- **An unattended loop with unnamed stop/budget caps** — the five-part spec exists because
+  runaway loops are the dominant observed failure (question #4).
