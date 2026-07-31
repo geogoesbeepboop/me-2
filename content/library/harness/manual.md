@@ -2,16 +2,19 @@
 title: The Manual — why this workflow works
 collection: harness
 source: ~/dev/agentic-harness/docs/MANUAL.md
-sourceMtime: '2026-07-24T06:25:59.673Z'
-sourceCommit: 33e0e89
-syncedAt: '2026-07-24'
+sourceMtime: '2026-07-26T23:59:52.809Z'
+sourceCommit: c90c827
+syncedAt: '2026-07-31'
 summary: >-
-  How I build real products with agents. Me first, shareable second. Every claim
-  in here either carries a receipt from my own systems or is marked > Backlog:
-  with the trigger that will make it real. …
-contentHash: 'sha256:28f9c8770e7c12c6adb752600e871474b3edd423a3d4a2f97aae1f7fec01b039'
+  Visual companion:
+  <https://claude.ai/code/artifact/674b8a51-7bf4-44f4-8ab5-64591f620444> — this
+  file is canonical; the visual renders it (docs/visuals/README.md).
+contentHash: 'sha256:cbf50a62295f975e37a8bc126d945c0eab2973f7b9ff2e435535c8f0cc8800f0'
 ---
 # The Manual — why this workflow works
+
+*Visual companion: <https://claude.ai/code/artifact/674b8a51-7bf4-44f4-8ab5-64591f620444> —
+this file is canonical; the visual renders it (`docs/visuals/README.md`).*
 
 _How I build real products with agents. Me first, shareable second. Every claim in here either
 carries a receipt from my own systems or is marked `> Backlog:` with the trigger that will make
@@ -63,15 +66,18 @@ rule: you always know your _one next move_ — per product, not globally.
 | L3    | Review-absorbed lanes     | Lane count is set by machine-absorbed review capacity, not by your personal re-testing throughput            |
 | L4    | Semi-autonomous meta-loop | The system proposes its own improvements from its own logs; you approve                                      |
 
-My honest placement, updated 2026-07-23:
+My honest placement, updated 2026-07-25 (the fleet eval audit — see §3 — revised several of
+these downward in substance if not in letter; each repo's receipt is its
+`docs/evals/2026-07-25-methodology-audit.md`):
 
 | Product           | Level        | Evidence                                                                                                                                                                                 |
 | ----------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M-Clone           | L2.5         | Living eval product (insights corpus + sealed holdout + per-row adjudication + failure-case dossiers; 7-step routing gate); wired into the nightly 2026-07-20; the PR #48 session ran contract → critic → red-first metric → 5 self-paced eval rounds → evidence packet at ~5 human turns per 561 agent events. Review of native UI still manual — that's the .5 |
-| jim-agent         | L2 (fragile) | 13 eval scenarios, baseline-compare, nightly green — but suite growth stalled; gate SLOW again 2026-07-22 (1919s, the uv-lock signature)                                                  |
-| grocery-buddy     | L1           | 28 eval cases exist in `evals/datasets/` — and still no `.claude/evals.sh`, so the nightly never runs them. Shelf-ware (flagged here since v1 of this manual).                            |
-| procurement-agent | L1           | Gate green, 57 offline tests, zero evals                                                                                                                                                 |
-| dj-agent          | L1           | Zero evals; AGENTS.md still 221 lines of unaudited bloat                                                                                                                                 |
+| M-Clone           | L2.5         | Living eval product (insights corpus + sealed holdout + per-row adjudication + failure-case dossiers; 7-step routing gate); wired into the nightly 2026-07-20. The 07-25 audit found the nightly asserts case *count*, not correctness — it cannot fail on a quality regression — and the insights ship gate was closed by an uncalibrated judge. The .5 holds only until its audit's Phase 1 lands |
+| jim-agent         | L2 (fragile) | 99 offline cases (not 13 — the suite grew), baseline-compare, nightly green — but the 07-25 audit found the revenue-gating judge's calibration artifact exists on no machine and the regression gate silently no-ops off this laptop (baseline gitignored); gate SLOW again 2026-07-22 (1919s, the uv-lock signature)                                                  |
+| grocery-buddy     | L1           | 28 eval cases, judges, runner — still no `.claude/evals.sh`, and the 07-25 audit found the GitHub eval nightly has been a **false green 47/47 runs** (no API key; runner exits 0). Shelf-ware with a broken warning light (flagged here since v1 of this manual).                            |
+| Attest            | L2 (dark)    | Best eval *machinery* in the fleet (signal/provenance schema, enforced sealed holdout, anti-vacuous-green floors) but invisible to the operator: scripts at the repo root instead of behind the `.claude/evals.sh` doorknob, absent from the digest and `repos.txt`, holdout guarding an authored copy of the open suite (07-25 audit). Steps 1–2 are §3's named cheapest fix |
+| procurement-agent | L1           | Gate green, 57 offline tests, zero evals (not yet audited)                                                                                                                               |
+| dj-agent          | L1           | Nothing grades an LLM, and the declared north-star metric (set-acceptance rate) is 100% by construction — the documented path bypasses the HITL gate. Its audit is a full bootstrap plan  |
 
 Overall: **L2 where I actually work, L1 where I don't.** M-Clone proved the loop end-to-end —
 contract, machine verification, adversarial review, eval-backed evidence. The gap is no longer
@@ -140,6 +146,14 @@ across cases_ — did the agent product make the right decision given this input
 this catalog? Tests catch broken code; evals catch a system that confidently does the wrong
 thing. Agent products live and die on the second category.
 
+**The methodology is codified now (2026-07-25).** The operational spec is the **`/evals` skill**
+(`claude/skills/evals/SKILL.md`) — the D1–D8 contract: programmatic-first grading, pass rates
+over single runs, calibrated judges, holdout/versioning honesty, trajectory grading,
+refusal-as-pass safety cases, the flywheel, and the `evals.sh` ops contract. The narrative
+behind it is `docs/evals-and-tracing-summary.md`. This chapter keeps only the *why* and the
+receipts; where it disagrees with the contract, the contract wins, and any project's legacy
+eval convention migrates toward it, never the reverse.
+
 **The maturity ladder for evals** (this is doctrine, decided, not aspirational):
 
 - **Eval-alongside is the default.** While a product is moving fast, every feature task lands
@@ -154,13 +168,20 @@ thing. Agent products live and die on the second category.
 - **Every bug becomes a case before it's fixed.** The failing case is written first, it fails,
   then the fix makes it pass. The suite is a monotonically growing net of everything that has
   ever actually gone wrong. Anthropic's eval guidance says 20–50 cases drawn from real failures
-  beats any elaborate framework — jim-agent's 13 scenarios and grocery-buddy's 28 cases mean I
+  beats any elaborate framework — jim-agent's 99 offline cases and grocery-buddy's 28 mean I
   am _already at_ real-suite scale everywhere; the failure was wiring, not authoring.
 - **Grader hierarchy, by cost.** Deterministic code-grader (free forever) > snapshot/replay
   against recorded traffic (cheap, offline) > LLM-as-judge (a paid call per case per run —
   pinned model version, calibrated against my own grading on a sample, with an "Unknown" escape
   so it never bluffs a verdict). I reach for a judge only when the behavior genuinely can't be
-  code-graded, and grocery-buddy's `evals/judges.py` gets audited against this rule.
+  code-graded. The full judge rules — narrow rubric, cross-family judging, order-swap,
+  verbosity guard, and a calibration artifact committed to the repo rather than living on one
+  laptop — are D3; the 07-25 audits found every existing judge violating at least one of them.
+- **A score is a statistic, not a boolean (D2).** LLM-dependent cases run N times and report
+  rates; a delta smaller than the suite's measured noise floor is not an improvement; anything
+  unattended is held to pass^k, not pass@k. The audits' sharpest illustration: a single-run 0.8
+  threshold on a 22-case suite sits inside one standard error of its own noise — a gate that
+  would flap if it ever ran. (Fully deterministic suites are exempt, and should say so.)
 - **Where suites run.** Full suites run nightly via the gate digest — machine time, while I
   sleep. The commit gate (`gate.sh`) gets only the deterministic sub-second subset. Never pay
   for a full eval run to land a one-line diff; never let a nightly pass mean less than the
@@ -178,18 +199,33 @@ what production enforces; harness/production prompt text gets parity-fenced; and
 that gates shipping earns a periodic every-row read, because the cases you grade are only as
 honest as the ruler.
 
-Receipts: jim-agent runs `jim-eval --suite offline --compare-baseline` nightly — 13 scenarios,
-zero credentials, zero network, 5 seconds, results persisted to `eval_runs/` with a trends UI.
-M-Clone's insights suite is the richer pattern: seeded corpus + engineered fixtures, sealed
-holdout, failure-case dossiers, red-first metric changes, per-row adjudication artifacts
-archived per run. grocery-buddy has judges, datasets, and a runner and **none of it is wired
-into the nightly** — still the single highest-leverage fix in the focus four.
+**Receipts, revised by the 2026-07-25 fleet audit** — five fresh-context critics, one per repo,
+scored D1–D8; every suite had at least one trust-breaking finding, and every one was a *sensor*
+problem (false greens, unversioned baselines, uncalibrated judges), not a case-authoring
+problem. Headlines only — the full verdicts and ranked migration plans live in each repo's
+`docs/evals/2026-07-25-methodology-audit.md`:
 
-> Backlog: write grocery-buddy's `.claude/evals.sh` (trigger: next working day not spent on
-> M-Clone — the 28 cases exist, the digest convention exists, the wiring is an afternoon; the
-> trial that originally scheduled it is retired, the task is not).
-> Backlog: procurement-agent and dj-agent first suites (trigger: first user-visible bug in
-> either — that bug becomes case #1).
+- **jim-agent** — strongest programmatic-first ladder in the fleet (99 model-free cases; the
+  judge-blind-spot property test), but the judge that co-decides revenue traces to a
+  calibration run that exists on no machine, and the regression gate no-ops on any fresh clone.
+- **M-Clone** — deepest eval culture (sealed holdouts, preregistration, corrections ledger),
+  and a nightly that cannot fail on a quality regression: it asserts a case count and silently
+  rewrites its own committed accuracy record. The sealed holdout is being consumed with no read
+  budget — the same pattern that already burned holdout-v1.
+- **grocery-buddy** — the GitHub eval nightly was a **false green 47/47 runs**; a live
+  injection surface (seller-controlled Amazon titles into the pantry-synthesis prompt) has zero
+  adversarial coverage.
+- **dj-agent** — nothing grades an LLM; the north-star metric is 100% by construction; two live
+  injection surfaces untested. Its audit doubles as the bootstrap plan.
+- **Attest** — the best eval *machinery* anywhere in the fleet (signal/provenance schema,
+  enforced sealed holdout, anti-vacuous-green floors), invisible to the operator: scripts at
+  the repo root, absent from the digest, holdout guarding an authored copy of the open suite.
+
+> Backlog: execute each repo's `docs/evals/2026-07-25-methodology-audit.md` migration plan
+> (trigger: next session in that repo). Cheapest highest-value starts: grocery-buddy Step 1
+> (kill the false green) and Attest Steps 1–2 (doorknob placement + `repos.txt`). dj-agent's
+> first suite now has its full bootstrap plan; procurement-agent still waits on its first
+> user-visible bug — that bug becomes case #1, via `/evals case`.
 
 ---
 
@@ -202,7 +238,9 @@ accepting it takes minutes of judgment, not another manual pass through the prod
 
 ### The evidence packet
 
-No task is done on the agent's say-so. Done means a packet:
+No task is done on the agent's say-so. Done means a packet. The shape below is illustrative — the
+**procedure agents actually follow is `/evidence-packet`**, and that skill (not this chapter) is what
+changes when the packet changes:
 
 ```
 ## Evidence packet — <task>
@@ -268,7 +306,7 @@ lanes" (chapter 5) honest instead of reckless.
 
 ---
 
-## 5. Loop engineering
+## 5. The two loops
 
 One discipline, two timescales.
 
@@ -287,17 +325,22 @@ Design what the agent runs inside, instead of prompting harder:
   the task, not deferred.
 - **Stop conditions.** The lane ends at an evidence packet, a blocked-on-input question, or a
   failed retry budget — never at "I think this is probably right." An agent that can't satisfy
-  a check says so in `NOT verified` and stops.
+  a check says so in `NOT verified` and stops. Anything unattended names its five parts before
+  it runs — **trigger, goal, verifier, stop rule, memory** — and the stop/budget caps are
+  load-bearing, not hygiene: a 2026 scan of 6,549 agent repos confirmed 68 runaway-loop
+  failures across 47 of them ([arXiv 2607.01641](https://arxiv.org/abs/2607.01641)).
 - **Two iterations, no new hypothesis → fresh eyes.** The session that produced the confusion
   is the worst place to resolve it. After two failed attempts on the same problem, the next
   move is a fresh-context review (critic or `/challenge`, reading only repo + spec) — not a
   third argument in the same chat.
-- **Fan out for reads, single-lane for writes.** Parallel subagents are for investigation and
-  review — the insights session ran two read-only investigators (~150k tokens of digging) that
-  never touched the main context. Implementation runs single-lane with checkpoints unless the
-  workstreams touch disjoint modules AND disjoint runtimes: worktrees isolate files, not
-  simulators, ports, or datastores. Receipt for the runtime half: two of my own parallel lanes
-  collided on the same explorer HTML and cost a merge-conflict cleanup inside PR #48.
+- **Fan out for reads, single-lane for writes** (the rule itself lives in the global CLAUDE.md;
+  this is why it exists). The reads half earned itself on the insights session: two read-only
+  investigators did ~150k tokens of digging that never touched the main context. The writes half
+  earned itself the expensive way — two of my own parallel lanes collided on the same explorer
+  HTML and cost a merge-conflict cleanup inside PR #48. That's the receipt for "worktrees isolate
+  files, not simulators, ports, or datastores." Topology is also the cost-and-latency lever:
+  pipeline stages by default, add a barrier only when a stage genuinely needs the whole prior
+  set — the slowest branch sets wall-clock, and every fan-in is a context chokepoint.
 - **Self-paced background verification.** Long verification (device eval runs, full XCTest)
   runs as background tasks with scheduled wakeups; the lane sleeps between rounds instead of
   burning context polling. The insights session chained five A/B eval rounds this way —
@@ -314,6 +357,13 @@ Design what the agent runs inside, instead of prompting harder:
 - **On-trigger:** model requalification when a provider ships a new model — rerun the eval
   suites, compare, then switch. Never switch on vibes or launch-day hype.
 
+What earns a place in the outer loop: **regulators, not reference-setters.** A standing loop
+maintains known behavior against a check that already exists — gate drift, eval regressions,
+dependency bumps, digest triage. It does not choose what to build. If a candidate automation's
+output can't be graded by an existing verifier (or one built in the same diff), it isn't a loop
+candidate yet; it's a judgment task — the same line model tiering draws below: the call that
+sets direction never delegates.
+
 ### Model tiering (adopted doctrine)
 
 Willison calls it Judgment-Driven Development: the top model is reserved for what needs
@@ -323,9 +373,53 @@ to runnable-acceptance-check precision doesn't need the smartest model, it needs
 one. My routing: **plans, packet review, eval judging → top tier; contracted execution lanes,
 mechanical refactors, collectors → cheap tier.**
 
+**Where "top tier" points, as of 2026-07-25 (rule in global CLAUDE.md).** When the session runs on
+Fable, Fable stays in the main loop and the latest Opus takes the churn — breadth recon, mechanical
+migrations, doc sweeps, eval babysitting. That inverts the older habit of orchestrating on the
+biggest model and delegating downward to Sonnet, and it follows from where the two models actually
+differ: the orchestrator's job is holding the contract and judging what comes back, which is
+cheapest to get wrong and most expensive to delegate. The one thing that never delegates, on any
+tier, is the judgment call that sets direction.
+
 > Backlog: routing stays manual per lane. The trial scoreboard that was going to instrument it
 > is retired (Appendix B); a routing record earns a config only if the Sunday proposer surfaces
 > tier-mismatch friction (wrong-tier rework showing up in the babysit log).
+
+### Terminology note — the loop/graph wave (2026-06/07)
+
+The discourse label for this chapter changed twice while the chapter existed. "Loop
+engineering" (coined 2026-06-07/08, Steinberger's slogan → Osmani's essay, after Boris Cherny's
+"my job is to write loops") was abandoned by its own coiner 41 days later for "graph
+engineering" — a term launched as satire, carrying three incompatible meanings within its first
+week, and propagated mainly by engagement accounts (the viral "14-step graph roadmap" article
+reused the exact template its author had published for loops six weeks earlier). Anthropic
+published under neither label; the writers with the best track record on rigor (Willison,
+Fowler) kept their own vocabulary. So this manual keeps neutral terms — the inner and outer
+loop, harness design — and adopted only what arrived with evidence: the five-part
+unattended-run spec and its runaway-loop receipt (inner loop, above), the
+regulator/reference-setter test (outer loop, above), the topology-as-cost-lever line (fan-out
+bullet), and the graph-memory tradeoff (`AGENT_ANATOMY.md` question #6). Mechanisms in, labels
+out: a term that can't hold still for six weeks doesn't get written into doctrine.
+
+### Anti-patterns the receipts warn about
+
+Each of these traces to evidence cited in this chapter or right here — they're the two loops
+run wrong:
+
+- **A critic loop with no programmatic verifier.** LLMs don't reliably self-correct without
+  external feedback, and reflection without a real check can degrade output
+  ([Huang et al., ICLR 2024](https://arxiv.org/abs/2310.01798)). An LLM-judged loop is spend
+  without signal until the judge is calibrated —
+  that's `/evals` D1/D3's territory.
+- **An unattended loop without stop and budget caps.** The dominant observed failure class in
+  the wild (the 68 runaway loops, above). Caps are load-bearing, not hygiene.
+- **Premature fan-out.** Reaching for parallel agents before one loop demonstrably isn't
+  enough: tokens multiply, the slowest branch sets wall-clock, and every fan-in is a context
+  chokepoint. The topology lever (above) exists to be pulled late, not first.
+- **Automating a reference-setter.** If no existing verifier can grade the output, it isn't a
+  loop candidate — it's a judgment task wearing a cron schedule (the regulator test, above).
+- **Writing the term-of-the-week into doctrine.** The terminology note above is the standing
+  receipt: mechanisms in, labels out.
 
 ---
 
@@ -341,8 +435,8 @@ What's real and installed today (this repo):
 | Hooks (6, fail-open) | guard-bash (catastrophic commands), guard-commit (runs the repo's gate on every commit), guard-secrets, format-on-edit, session-context (git state + digest + latest handoff's next-steps, per repo, newest by filename timestamp), notify (lane-finished notifications) |
 | Gates                | `.claude/gate.sh` per focus repo (5 repos incl. M-Clone since 2026-07-20), enforced at commit; anti-cheat lines live in jim-agent + M-Clone                                                            |
 | Outer loop           | `nightly-gate-digest.sh` + launchd 6:17am + dated digests + slow-gate flagging + per-repo `.claude/evals.sh` (jim-agent, M-Clone)                                                                      |
-| Skills (22 + project)| planning (spike, brainstorm×2, challenge×2, deep-plan), lifecycle (onboard, handoff, end-session, update-docs, changelog), building (new-agent, setup-verify, retro, hack), meta (propose-improvements), cost (token-breakdown ×6); per-project `verify` skills (M-Clone) |
-| Agents (2)           | critic (adversarial, read-only, top tier — self-invoked via `/challenge` on high-stakes specs), researcher (cited web synthesis)                                                                       |
+| Skills (24 + project)| task loop (**spec, evidence-packet** — the two procedures extracted from CLAUDE.md on 2026-07-25), planning (spike, brainstorm×2, challenge×2, deep-plan), lifecycle (onboard, handoff, end-session, update-docs, changelog), building (new-agent, setup-verify, retro, hack), meta (propose-improvements), cost (token-breakdown ×6); per-project `verify` skills (M-Clone) |
+| Agents (2)           | critic (adversarial, read-only, top tier — self-invoked via `/challenge` on high-stakes specs, and via `/evidence-packet` on every finished diff, scored against `skills/evidence-packet/references/diff-vs-spec.md`), researcher (cited web synthesis) |
 
 Two orientation notes that keep getting re-derived (full versions: OPERATING_MANUAL.md §0):
 gate.sh and evals.sh are *time slots*, not check types — deterministic code checks fit the
@@ -362,15 +456,21 @@ Two standing rules:
    its own contract — Willison's move: make autonomy a _sandbox_ question (disposable, sealed,
    budgeted environments), not a trust question.
 
-**The harness backlog** (methodology currently leading reality — each with its trigger):
+**The harness backlog** (methodology currently leading reality — each with its trigger). This
+table is the harness's trigger registry, the one deliberate carve-out from "this manual never
+specifies": a deferred item is recorded next to its why, and graduates into a skill, gate line,
+or hook when its trigger fires.
 
-| Gap                         | Status 2026-07-23 / trigger                                                                        | Cheapest build                                           |
+| Gap                         | Status 2026-07-25 / trigger                                                                        | Cheapest build                                           |
 | --------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | grocery-buddy evals unwired | **Still open** — flagged since v1; next M-Clone-free working day                                    | `.claude/evals.sh` calling the existing runner           |
 | Anti-cheat gate lines       | **Shipped** in jim-agent + M-Clone; procurement/dj on first eval suite                              | grep-level checks in gate.sh                             |
 | Weekly improvement proposer | **Shipped** (propose-improvements + Sunday launchd) — but one run on record; 07-19 missing → check the launchd job | `launchctl print` the job; kickstart if dead             |
 | Model routing record        | Deferred with the trial (Appendix B status)                                                         | a column in the scoreboard, then a config if it earns it |
-| Mobile verification path    | **Partial**: M-Clone `/verify` runs gate + XCTest + eval delta with a mandatory UI-honesty line; eye-check stays manual | Maestro, on the first UI regression the evals miss       |
+| Mobile verification path    | **Partial**: M-Clone `/verify` runs gate + XCTest + eval delta with a mandatory UI-honesty line; eye-check stays manual — trigger: manual mobile testing reappears as a top babysit-log item, or the first UI regression the evals miss | build + launch + screenshot smoke on simulator (`xcrun simctl`) first; grow into Maestro flows for the 2–3 most-tested journeys only |
+| Remote session experiment   | Trigger: a self-contained Next.js project and one T1 feature to delegate end-to-end. Remote sandboxes give real containment (the honest answer to "worktree is not sandbox") plus preinstalled Chromium for browser verification; costs draw from existing subscription usage | one remote lane; promote to default-for-web-lanes only if the first evidence packets come back clean |
+| Portable deep-* skills      | Trigger: running `/deep-plan`, `/deep-challenge`, or `/deep-brainstorm` anywhere but the primary Mac. Skill files hardcode `/Users/geoandr/...` paths (install.sh rewrites them in copy mode only, macOS-specific `sed -i ''`) and lean on `~/dev/docs/DEEP_SKILLS.md`, outside this repo | path indirection or install-time rewrite that works beyond copy-mode macOS |
+| Nightly-loop upgrades       | Not yet live: content-addressed skipping of unchanged repos, repeated-trial eval handling, live-model canaries — trigger: digest wall-clock growth, or a drift incident the zero-spend nightly structurally can't catch | one at a time, cheapest first |
 
 ---
 
