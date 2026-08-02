@@ -32,19 +32,20 @@ sections:
 The day starts before I do. Four launchd agents run the outer loop overnight — no server, no cloud, just this machine keeping its own house across five gated repos.
 
 <TerminalLog
-  title="the night shift — this morning's digest, as it ran"
+  title="the night shift — the 2026-08-02 digest, as it ran"
   lines={[
     { t: "06:17", k: "sys", s: "launchd: com.geoandr.nightly-gate-digest — every focus repo's gate.sh + evals.sh, caffeinated" },
-    { t: "06:17", k: "out", s: "jim-agent — pass · evals — ✅ pass (2s)" },
-    { t: "06:17", k: "out", s: "grocery-buddy — ✅ pass (7s)" },
-    { t: "06:17", k: "out", s: "dj-agent — pass · M-Clone — pass · M-Clone evals — ✅ pass" },
+    { t: "06:26", k: "out", s: "jim-agent — 🟡 pass — SLOW (budget 120s) (1591s) · evals — ✅ evals pass (2s)" },
+    { t: "06:26", k: "out", s: "grocery-buddy — ✅ pass (3s) · procurement-agent — 🟡 pass — SLOW (259s) · dj-agent — ✅ pass (73s)" },
+    { t: "06:26", k: "out", s: "M-Clone — 🟡 pass — SLOW (budget 120s) (3547s)" },
+    { t: "06:26", k: "out", s: "M-Clone evals — 🟡 EVAL REGRESSION (4071s) — CapabilityExecutorAcceptanceTests, 3 issues" },
     { t: "06:45", k: "sys", s: "launchd: me.ops-report — the fleet report measures, sanitizes, commits, pushes; the site redeploys" },
     { t: "07:00", k: "sys", s: "launchd: me.library-sync — the mirrored docs re-sync into the archive, deterministic" },
     { t: "07:15", k: "sys", s: "sundays: me.curator — every entry drift-checked against its repo; publishes only through its own gates" },
   ]}
 />
 
-Drift gets caught within 24 hours instead of at the worst possible moment — including the outer loop's own drift. When idle sleep quietly inflated every gate's wall-clock, the digest's dated trend line turned "9 seconds" into "5,589 seconds" in plain sight; the fix (the run now caffeinates itself) is permanent, and the incident is exactly what the machinery exists to catch. The first session of the day opens with the digest already in hand — a red gate is the first task, green means start from the handoff.
+Drift gets caught within 24 hours instead of at the worst possible moment — including the outer loop's own drift. When idle sleep quietly inflated every gate's wall-clock, the digest's dated trend line turned "9 seconds" into "5,589 seconds" in plain sight; the run now caffeinates itself, and the trend line keeps watching — a gate that passes over its 120-second budget files amber rather than red, so runtime creep stays visible without crying wolf. The morning above is what that looks like when it is working: a real eval regression named, with the failing suite attached. The first session of the day opens with the digest already in hand — an amber or red line is the first task, green means start from the handoff.
 
 </Section>
 

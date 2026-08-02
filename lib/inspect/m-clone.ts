@@ -4,10 +4,13 @@ import type { InspectMap } from "./types";
  * M-CLONE — click-to-inspect for the on-device banking-copilot dossier.
  * Distilled from /Users/geoandr/dev/M-Clone: names, thresholds, guard
  * behavior, and corpus facts are as coded/measured, never illustrative.
- * (Re-verified 2026-07-26, unchanged since 2026-07-23: 86.5% family /
- * 0/35 OOS = the routing evals' REPORT.md hybrid-armA-v1 row; 81 =
- * sealed/holdout-v3.jsonl; 604 =
- * `grep -rh '@Test' Crown/Tests/CrownKitTests | wc -l` — Swift only.
+ * (Re-verified 2026-08-02; main has not moved since 2026-07-25. 86.5%
+ * family / 0/35 OOS = the routing evals' REPORT.md hybrid-armA-v1 row;
+ * 81 = sealed/holdout-v3.jsonl; 601 =
+ * `git grep -hE '^[[:space:]]*@Test' main -- '*.swift' | wc -l` — Swift
+ * only, anchored (the old unanchored grep read 604). The nightly's own
+ * run reports 603 tests in 76 suites (gate digest 2026-08-02); both
+ * numbers are recorded, the bridge between them is not guessed at.
  * 168 Python test fns =
  * `git grep -hE '^\s*(async )?def test_' -- scripts/tests | wc -l`
  * across 15 files. Timeline start = `git log --reverse -1` → 2026-02-12.
@@ -91,6 +94,10 @@ export const M_CLONE: InspectMap = {
       {
         kind: "note",
         text: "Typed error chains replaced stringified errors after an OS-level failure hid inside 'available': the guardrail asset gate (FB19844387) was invisible until the harness typed every error.",
+      },
+      {
+        kind: "note",
+        text: "Native tool calling was measured on a physical phone on 2026.07.29: 9/9 attempts invoked and reflected a tool, zero capability rejections, the right tool picked out of twelve 3/3, guided arguments correct 3/3 — and the twelve-tool payload the app would really attach ran 5,895 ms at the median against a 4,000 ms turn budget. It stays off, now for the latency rather than the capability. The rewritten comment sits on an unmerged branch; the shipping file still carries the old claim.",
       },
     ],
   },
@@ -187,6 +194,10 @@ export const M_CLONE: InspectMap = {
         items: [
           { name: "the reviewer as instrument", detail: "the quality gate for insights was closed by the same agent that wrote the change, unblinded, with no rows carrying planted errors to show what the reviewer waves through", value: "missing", fail: true },
         ],
+      },
+      {
+        kind: "note",
+        text: "The nightly eval run went red on 2026.08.01 and again on 08.02 with the app untouched since 25 July: one test of 603 fails because the demo ledgers are date-shifted to end at today, and the test hands the executor a plan with no period slot — which defaults to the current calendar month, nearly empty on the 1st. Read off the fixtures and the resolver, not reproduced by a run.",
       },
       {
         kind: "note",

@@ -2,7 +2,7 @@
 title: "M-Clone"
 summary: "A full retail-banking app rebuilt as a lab — accounts, cards, budgets, goals, Plaid-linked data — with a money assistant that answers entirely on-device. No backend, no server database, and by hard rule no remote LLM. The assistant's judgment is a shipped eval product: a scored corpus, a sealed holdout, and gates that run on every commit."
 date: "2026-07-23"
-updated: "2026-07-26"
+updated: "2026-08-02"
 year: "2026"
 status: "ACTIVE BUILD"
 thesis: "An assistant you can trust with money is an eval product wearing an app."
@@ -29,7 +29,7 @@ metrics:
   - k: "sealed holdout cases"
     v: "81"
   - k: "Swift test functions, model-free"
-    v: "604"
+    v: "601"
 sections:
   - { id: "brief", title: "Brief" }
   - { id: "system", title: "The system" }
@@ -197,7 +197,9 @@ The same discipline covers the insights engine — the feed that turns ledgers i
 
 A suite this invested in measurement eventually has to measure itself. A reader with no session history scored it against an outside eight-part standard for eval work and filed the verdicts with the failing lines quoted — then the repair was deliberately left for separate, reviewed work. Nothing in the corpus, the gates, the thresholds or the grading code moved. This entry says **audited**, not fixed, and the eight verdicts are in the deep dive above.
 
-The load-bearing finding is the one worth carrying here: the nightly check asserts that 61 cases were *scored*, not that they were answered correctly, so quality could fall through the floor and the run would still print a pass. And the matcher behind the headline routing numbers is documented in the repo as too generous — it accepts fields the answer key never asked for. Every score on this page, sealed ones included, is an upper bound until that ruler tightens.
+The load-bearing finding is the one worth carrying here: the nightly check asserts that 61 cases were *scored*, not that they were answered correctly, so quality could fall through the floor and the run would still print a pass. And the matcher behind the headline routing numbers is documented in the repo as too generous — it accepts fields the answer key never asked for. Every score on this page, sealed ones included, is an upper bound until that ruler tightens. None of it has been repaired yet — the fixes named at the bottom of this page are still open work.
+
+One blind spot the audit didn't name arrived from the nightly instead. The demo ledgers are date-shifted so they always look fresh, which means they end at today; a test that asks about the current month can therefore fail on the first of a month with nothing actually broken, and it reads to the nightly exactly like a real regression. Not a wrong answer, not a broken machine — a fixture that isn't hermetic against the clock. Hermetic fixtures are on the list below.
 
 <Ref to="projects/jim" note="the same eval-first spine, pointed at cited research memos" />
 
@@ -207,6 +209,13 @@ The load-bearing finding is the one worth carrying here: the nightly check asser
 
 <WhatBroke
   items={[
+    {
+      title: "The +7.0 that was really +2.1",
+      sev: "EVAL-02",
+      what: "On the routing branch — this one hasn't merged — a candidate improvement was measured on a research arm rather than the call site the app actually uses, and came back +7.0 points. Re-run through the shipping path the same day, it was +2.1, under its own preregistered +3.0 bar. Measuring off-path had inflated the benefit roughly 3× and the side effect roughly 5×.",
+      fix: "The session that promoted it refuted it: a paired A/B, both legs through the real client, committed with the numbers that killed it. The flag was default-off and stayed off. The cause was the clock — the extra text cost +1,152 ms and pushed the call past its own four-second budget, so the failures stopped being refusals and became timeouts.",
+      lesson: "A result is only as real as the surface it was measured on. The spec had named this exact defect class on page one, and the phase's own headline result reproduced it anyway.",
+    },
     {
       title: "The metric that read 1.000 while the answer lost its number",
       sev: "EVAL-01",
@@ -268,7 +277,7 @@ The load-bearing finding is the one worth carrying here: the nightly check asser
   chose="Every test runs against injected doubles with an availability override; a guard fails commits that reach for the live model."
   over="Integration tests against real on-device inference."
   cost="Live-model behavior needs separate, deliberate device sittings to observe."
-  payoff="604 Swift test functions, plus 168 in the Python eval tooling, run every commit and every night at zero model cost and with no flake from the OS's model-asset state."
+  payoff="601 Swift test functions, plus 168 in the Python eval tooling, run every commit and every night at zero model cost and with no flake from the OS's model-asset state."
 />
 
 <Decision
@@ -280,6 +289,15 @@ The load-bearing finding is the one worth carrying here: the nightly check asser
   payoff="The verdict can't be edited by the diff that closes it. A suite that has publicly named its own blind spot is worth more than one that has never been asked."
 />
 
+<Decision
+  n="06"
+  title="Tool calling works on device — and stays off"
+  chose="Leaving the model's native tool calling switched off — and, on the branch that closed the question (not yet merged), replacing the code comment that claimed the device couldn't do it with what a device run actually measured."
+  over="Turning it on. The capability is real on this cohort: 9 of 9 attempts invoked and reflected a tool with zero rejections, the right tool was picked out of twelve without being named, and guided arguments came back correct 3 of 3."
+  cost="A capability that demonstrably works sits unused, and the deterministic router keeps carrying work the model could plausibly do itself."
+  payoff="The twelve-tool payload the app would really attach measured 5,895 ms at the median on the 2026.07.29 device probe, against a 4,000 ms turn budget. The answer is still no — now for a dated, measured reason instead of a stale assumption about what the hardware supports."
+/>
+
 </Section>
 
 <Section id="whats-next" n="05" title="What's next">
@@ -288,6 +306,7 @@ The load-bearing finding is the one worth carrying here: the nightly check asser
   items={[
     "Teach the nightly to fail on wrong answers, not just missing ones — and to report a broken machine differently from a broken answer.",
     "Tighten the matcher, put the sealed holdout on a read budget, and let no agent grade a change it wrote. Scores are expected to move down; that's the ruler getting honest, not a regression.",
+    "Make the fixtures hermetic against the calendar, so a test can't fail on the first of the month and heal itself by the fifth.",
     "Cover the safety class that isn't covered: personal data arriving in the question, with benign near-misses alongside it so the fix can't just be a more nervous assistant.",
     "Template-first rendering on hardware tiers where the on-device context window stays small.",
     "Deeper insight narration under the same per-row adjudication bar that caught the 1.000 lie.",

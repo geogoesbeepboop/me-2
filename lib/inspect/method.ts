@@ -147,11 +147,12 @@ Red-team \`$ARGUMENTS\` (or, if blank, the plan / design / decision we're curren
 Scaffold a new agent project: \`$ARGUMENTS\` (kebab-case name + one-liner; ask if missing).
 
 ## Before scaffolding
-2. **Answer the agent anatomy — the twelve design questions in four buckets** (A Correctness /
-   B Trust & safety / C Economics / D Operability). One or two lines each. The non-negotiable
+2. **Answer the agent anatomy — the twelve questions in four buckets** (AGENT_ANATOMY.md §1,
+   "The twelve design questions": A Correctness / B Trust & safety / C Economics / D Operability).
+   One or two lines each, captured into the new \`AGENTS.md\` and first ADR. The non-negotiable
    nucleus is #2, **the gate**: the ONE irreversible action this agent will ever take (money /
    publication / deletion / consent / external message) and the deterministic, no-LLM code that
-   owns it — if we can't name it, stop and design that first. A blank is a phase, not a skip.
+   owns it — if we can't name it, stop and design that first.
 
 ## Scaffold (in \`~/dev/<name>\`)
 - **\`tests/conftest.py\` — hermetic from day one** (the jim-agent lesson): neutralize EVERY
@@ -528,17 +529,25 @@ run jim-eval run --suite offline --compare-baseline --label nightly`,
 # Exit 0 = all gates green; exit 1 = at least one failure (lets a scheduler/notifier branch on it).
 
 # Keep the Mac awake for the whole run. Without this, idle sleep mid-run inflates
-# wall-clock (2026-07-22/23: every gate SLOW, "5589s" for a 31s gate).
+# wall-clock (2026-07-22/23: every gate SLOW, M-Clone "5589s" for a 31s gate) and
+# suspends the perl alarm() so the 900s timeout can't fire on time. caffeinate -i
+# blocks idle sleep for the duration; lid-closed battery sleep still wins.
 if command -v caffeinate >/dev/null 2>&1 && [ -z "\${DIGEST_CAFFEINATED:-}" ]; then
   DIGEST_CAFFEINATED=1 exec caffeinate -im "$0" "$@"
 fi
 
-# Repo list: one name per line in ~/.config/agentic-harness/repos.txt
-# (the five focus repos; blank lines and #-comments ok)
-out="$OUT_DIR/$(date +%F).md"
+# Repo list: one name per line in ~/.config/agentic-harness/repos.txt (blank lines and
+# #-comments ok), falling back to the built-in default. Names are directories under $ROOT.
+
+# A gate that passes but exceeds this is flagged 🟡 in the digest heading, so the session
+# banner surfaces runtime creep (the <120s gate budget) without failing the run.
+SLOW_GATE_SECS="\${SLOW_GATE_SECS:-120}"
 
 for r in "\${REPOS[@]}"; do
-  if log=$(cd "$ROOT/$r" && "$gate" 2>&1); then status="✅ pass"; else status="❌ FAIL"; overall=1; fi
+  if log=$(cd "$ROOT/$r" && run_bounded "$gate" 2>&1); then status="✅ pass"; else status="❌ FAIL"; overall=1; fi
+  if [ "$status" = "✅ pass" ] && [ "$dur" -gt "$SLOW_GATE_SECS" ]; then
+    status="🟡 pass — SLOW (budget \${SLOW_GATE_SECS}s)"
+  fi
   printf '## %s — %s (%ss)\\n' "$r" "$status" "$dur" >> "$out"
 
   # Optional per-repo offline evals (.claude/evals.sh): zero-credential, zero-LLM-cost suites
@@ -572,11 +581,14 @@ npm run build >/dev/null 2>&1 || GATES_OK=0`,
         lang: "bash",
         note: "the mirrored docs re-sync daily at 07:00 — a copy, not a judgment; same deterministic triple gate, no model in the loop",
         excerpt: `# library-sync.sh — the stacks mirror themselves, daily.
-# Scheduled at 07:00 — after the gate digest (06:17) and the ops report
-# (06:45), so the morning's publishing rhythm is digest → report → library.
+# Scheduled by ~/Library/LaunchAgents/me.library-sync.plist at 07:00 —
+# after the gate digest (06:17) and the ops report (06:45), so the
+# morning's publishing rhythm is digest → report → library.
+#
 # Publishes through its own detached worktree pinned to origin/main
-# (~/dev/me-2--library), separate from the reports pad so the two daily
-# automations can never race.
+# (~/dev/me-2--library): separate from the reports pad so the two daily
+# automations can never race, and pinned to MERGED main because the
+# manifest that governs what may publish is the merged one.
 
 # Autonomy (George, 2026-07-09): pushes straight to main behind the same
 # deterministic triple gate the curator earned —
