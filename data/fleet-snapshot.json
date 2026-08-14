@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-08-13T13:54:13.148Z",
+  "generatedAt": "2026-08-14T13:59:15.053Z",
   "windowHours": 24,
   "agents": [
     {
@@ -31,9 +31,133 @@
       "branch": "main",
       "dirty": 4,
       "state": "waiting",
-      "stateDetail": "stopped mid-work — last event was a tool result",
-      "lastActiveAt": "2026-08-12T18:38:13.842Z",
+      "stateDetail": "turn finished — a human decides next",
+      "lastActiveAt": "2026-08-14T01:07:10.650Z",
       "sessions": [
+        {
+          "id": "538983a9-e942-4c7d-aea1-048a9d89742f",
+          "title": "Fix corrupt plaid LinkKit SPM artifact blocking routing gate",
+          "titleSource": "custom",
+          "branch": "claude/advisor-insights-quality-20260721",
+          "startedAt": "2026-07-22T03:56:55.822Z",
+          "lastActiveAt": "2026-08-14T01:07:10.650Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 208,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 37,
+            "edits": 4,
+            "filesTouched": 3,
+            "commands": 21,
+            "reads": 10,
+            "testRuns": 6,
+            "operateRuns": 0,
+            "activeMinutes": 23
+          }
+        },
+        {
+          "id": "96a140c5-864e-4717-a636-767d6cad8103",
+          "title": "Financial app feature roadmap",
+          "titleSource": "custom",
+          "worktree": "new-session-0f1fd8",
+          "branch": "claude/financial-app-roadmap-2e6244",
+          "startedAt": "2026-08-04T04:36:38.841Z",
+          "lastActiveAt": "2026-08-14T01:06:55.976Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 149,
+          "subagents": 2,
+          "work": {
+            "toolCalls": 45,
+            "edits": 33,
+            "filesTouched": 2,
+            "commands": 1,
+            "reads": 1,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 30
+          }
+        },
+        {
+          "id": "d40e9c23-30c3-453b-9875-d768b455e4b6",
+          "title": "Financial advisor page insights refinement",
+          "titleSource": "custom",
+          "worktree": "model-limits-eval-analysis-0664c2",
+          "branch": "claude/financial-advisor-insights-b72b3f",
+          "startedAt": "2026-07-21T22:08:12.152Z",
+          "lastActiveAt": "2026-08-14T01:06:50.041Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 1188,
+          "subagents": 6,
+          "work": {
+            "toolCalls": 255,
+            "edits": 83,
+            "filesTouched": 25,
+            "commands": 69,
+            "reads": 60,
+            "testRuns": 6,
+            "operateRuns": 1,
+            "activeMinutes": 161,
+            "operateUnits": {
+              "device run": 1
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/44",
+          "prNumber": 44
+        },
+        {
+          "id": "dc898a3e-99bc-44d8-8668-18f2a3f63a95",
+          "title": "Insight visibility rules",
+          "titleSource": "custom",
+          "worktree": "insight-visibility-rules-fc8403",
+          "branch": "claude/insight-visibility-rules-fc8403",
+          "startedAt": "2026-07-22T04:03:26.115Z",
+          "lastActiveAt": "2026-08-14T01:04:49.627Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 94,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 18,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 14,
+            "reads": 4,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 18
+          }
+        },
+        {
+          "id": "d1d55302-44f5-4b8f-a129-f7ecca196b66",
+          "title": "Entity-guard parity + revisit narration eligibility gate",
+          "titleSource": "custom",
+          "worktree": "clever-bouman-721811",
+          "branch": "claude/affectionate-gagarin-1ae4b9",
+          "startedAt": "2026-07-21T18:45:06.811Z",
+          "lastActiveAt": "2026-08-13T19:33:51.707Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 735,
+          "subagents": 1,
+          "work": {
+            "toolCalls": 179,
+            "edits": 43,
+            "filesTouched": 17,
+            "commands": 88,
+            "reads": 25,
+            "testRuns": 10,
+            "operateRuns": 1,
+            "activeMinutes": 73,
+            "operateUnits": {
+              "device run": 1
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/43",
+          "prNumber": 43
+        },
         {
           "id": "54ebf178-29bc-45a2-9488-5ad5b4192d1f",
           "title": "Insights architecture documentation cleanup",
@@ -42,8 +166,8 @@
           "branch": "claude/insights-architecture-cleanup-a3ddff",
           "startedAt": "2026-07-22T04:02:53.684Z",
           "lastActiveAt": "2026-08-12T18:38:13.842Z",
-          "state": "waiting",
-          "stateDetail": "stopped mid-work — last event was a tool result",
+          "state": "parked",
+          "stateDetail": "no activity for a day",
           "events": 230,
           "subagents": 0,
           "work": {
@@ -67,8 +191,8 @@
           "branch": "claude/accordion-persona-profiles-ea9253",
           "startedAt": "2026-07-22T07:50:09.672Z",
           "lastActiveAt": "2026-08-12T18:03:41.499Z",
-          "state": "waiting",
-          "stateDetail": "turn finished — a human decides next",
+          "state": "parked",
+          "stateDetail": "no activity for a day",
           "events": 424,
           "subagents": 1,
           "work": {
@@ -96,7 +220,7 @@
           "startedAt": "2026-07-22T04:31:04.527Z",
           "lastActiveAt": "2026-08-08T04:21:21.364Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 6 days",
           "events": 255,
           "subagents": 1,
           "work": {
@@ -122,7 +246,7 @@
           "startedAt": "2026-07-22T21:22:24.635Z",
           "lastActiveAt": "2026-08-07T05:23:02.420Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 249,
           "subagents": 0,
           "work": {
@@ -139,29 +263,6 @@
           "prNumber": 50
         },
         {
-          "id": "96a140c5-864e-4717-a636-767d6cad8103",
-          "title": "Financial app feature roadmap",
-          "titleSource": "custom",
-          "worktree": "new-session-0f1fd8",
-          "branch": "claude/financial-app-roadmap-2e6244",
-          "startedAt": "2026-08-04T04:36:38.841Z",
-          "lastActiveAt": "2026-08-05T01:07:37.072Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 149,
-          "subagents": 2,
-          "work": {
-            "toolCalls": 45,
-            "edits": 33,
-            "filesTouched": 2,
-            "commands": 1,
-            "reads": 1,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 30
-          }
-        },
-        {
           "id": "82be8384-3fcc-46f6-b3b4-433476a61c6c",
           "title": "Financial advisor insights redundancy",
           "titleSource": "custom",
@@ -170,7 +271,7 @@
           "startedAt": "2026-07-22T05:22:32.157Z",
           "lastActiveAt": "2026-08-04T04:59:45.815Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 949,
           "subagents": 5,
           "work": {
@@ -187,29 +288,6 @@
           "prNumber": 48
         },
         {
-          "id": "dc898a3e-99bc-44d8-8668-18f2a3f63a95",
-          "title": "Insight visibility rules",
-          "titleSource": "custom",
-          "worktree": "insight-visibility-rules-fc8403",
-          "branch": "claude/insight-visibility-rules-fc8403",
-          "startedAt": "2026-07-22T04:03:26.115Z",
-          "lastActiveAt": "2026-08-04T04:43:50.657Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 94,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 18,
-            "edits": 0,
-            "filesTouched": 0,
-            "commands": 14,
-            "reads": 4,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 18
-          }
-        },
-        {
           "id": "4adbaab3-b4a8-400d-ba59-b504c7e0dc44",
           "title": "Ship anchor descriptions + commit research phase",
           "titleSource": "custom",
@@ -218,7 +296,7 @@
           "startedAt": "2026-07-31T00:56:41.900Z",
           "lastActiveAt": "2026-08-04T04:35:31.774Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 619,
           "subagents": 0,
           "work": {
@@ -239,34 +317,6 @@
           "prNumber": 53
         },
         {
-          "id": "d1d55302-44f5-4b8f-a129-f7ecca196b66",
-          "title": "Entity-guard parity + revisit narration eligibility gate",
-          "titleSource": "custom",
-          "worktree": "clever-bouman-721811",
-          "branch": "claude/affectionate-gagarin-1ae4b9",
-          "startedAt": "2026-07-21T18:45:06.811Z",
-          "lastActiveAt": "2026-08-04T04:31:02.661Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 735,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 179,
-            "edits": 43,
-            "filesTouched": 17,
-            "commands": 88,
-            "reads": 25,
-            "testRuns": 10,
-            "operateRuns": 1,
-            "activeMinutes": 73,
-            "operateUnits": {
-              "device run": 1
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/43",
-          "prNumber": 43
-        },
-        {
           "id": "faae55aa-0dc3-4f00-a04f-8fa25d6b2d75",
           "title": "Advisor insights loading state",
           "titleSource": "custom",
@@ -275,7 +325,7 @@
           "startedAt": "2026-07-22T00:27:46.811Z",
           "lastActiveAt": "2026-08-04T04:18:01.920Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 577,
           "subagents": 0,
           "work": {
@@ -293,62 +343,18 @@
           },
           "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/45",
           "prNumber": 45
-        },
-        {
-          "id": "538983a9-e942-4c7d-aea1-048a9d89742f",
-          "title": "Fix corrupt plaid LinkKit SPM artifact blocking routing gate",
-          "titleSource": "custom",
-          "branch": "claude/advisor-insights-quality-20260721",
-          "startedAt": "2026-07-22T03:56:55.822Z",
-          "lastActiveAt": "2026-08-04T04:18:00.763Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 208,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 37,
-            "edits": 4,
-            "filesTouched": 3,
-            "commands": 21,
-            "reads": 10,
-            "testRuns": 6,
-            "operateRuns": 0,
-            "activeMinutes": 23
-          }
-        },
-        {
-          "id": "d7f7a744-8ac8-4dc2-96b3-9152695705bf",
-          "title": "Fix tool-latch text heuristic misfiring on refusals",
-          "titleSource": "custom",
-          "worktree": "accordion-persona-profiles-ea9253",
-          "branch": "claude/compassionate-hypatia-fb0f53",
-          "startedAt": "2026-07-29T23:47:15.312Z",
-          "lastActiveAt": "2026-08-04T04:05:27.260Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 399,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 104,
-            "edits": 21,
-            "filesTouched": 8,
-            "commands": 75,
-            "reads": 4,
-            "testRuns": 5,
-            "operateRuns": 0,
-            "activeMinutes": 44
-          }
         }
       ],
       "commits": [],
       "nightly": {
         "repo": "M-Clone",
         "gate": "pass",
-        "gateSeconds": 26,
+        "slow": true,
+        "gateSeconds": 2416,
         "evals": "pass",
-        "evalSeconds": 1025,
+        "evalSeconds": 13617,
         "slug": "m-clone",
-        "at": "2026-08-12T13:17:00.000Z"
+        "at": "2026-08-13T13:20:00.000Z"
       }
     },
     {
@@ -382,10 +388,59 @@
       "outputUnpersisted": true,
       "branch": "main",
       "dirty": 2,
-      "state": "parked",
-      "stateDetail": "no activity for 8 days",
-      "lastActiveAt": "2026-08-05T01:10:29.031Z",
+      "state": "waiting",
+      "stateDetail": "turn finished — a human decides next",
+      "lastActiveAt": "2026-08-14T01:06:47.291Z",
       "sessions": [
+        {
+          "id": "b1213888-2238-4217-bd2e-43fd47bfbaa1",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-07-08T04:49:25.834Z",
+          "lastActiveAt": "2026-08-14T01:06:47.291Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 236,
+          "subagents": 2,
+          "work": {
+            "toolCalls": 59,
+            "edits": 30,
+            "filesTouched": 9,
+            "commands": 13,
+            "reads": 13,
+            "testRuns": 5,
+            "operateRuns": 0,
+            "activeMinutes": 39
+          }
+        },
+        {
+          "id": "5f9309bf-288f-4075-8297-9cffda8f9631",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-07-08T01:52:11.909Z",
+          "lastActiveAt": "2026-08-14T01:06:46.933Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 139,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 35,
+            "edits": 2,
+            "filesTouched": 2,
+            "commands": 28,
+            "reads": 1,
+            "testRuns": 4,
+            "operateRuns": 5,
+            "activeMinutes": 10,
+            "operateUnits": {
+              "seller run": 5
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/11",
+          "prNumber": 11
+        },
         {
           "id": "52b78c38-3911-44bd-bbdd-1b77caaacc8c",
           "title": "Agent SDK subscription login support",
@@ -395,7 +450,7 @@
           "startedAt": "2026-07-14T17:14:17.616Z",
           "lastActiveAt": "2026-08-05T01:10:29.031Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 507,
           "subagents": 3,
           "work": {
@@ -423,7 +478,7 @@
           "startedAt": "2026-07-04T21:27:18.560Z",
           "lastActiveAt": "2026-08-04T04:43:51.665Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 293,
           "subagents": 0,
           "work": {
@@ -446,7 +501,7 @@
           "startedAt": "2026-07-02T19:31:36.376Z",
           "lastActiveAt": "2026-08-04T04:43:44.615Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 760,
           "subagents": 7,
           "work": {
@@ -474,7 +529,7 @@
           "startedAt": "2026-06-29T02:29:45.292Z",
           "lastActiveAt": "2026-08-04T04:31:56.745Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 70,
           "subagents": 1,
           "work": {
@@ -497,7 +552,7 @@
           "startedAt": "2026-07-02T18:03:35.544Z",
           "lastActiveAt": "2026-08-04T04:31:56.575Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 500,
           "subagents": 0,
           "work": {
@@ -524,7 +579,7 @@
           "startedAt": "2026-06-28T02:49:56.024Z",
           "lastActiveAt": "2026-08-04T04:31:56.405Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 265,
           "subagents": 0,
           "work": {
@@ -546,7 +601,7 @@
           "startedAt": "2026-06-28T21:04:10.019Z",
           "lastActiveAt": "2026-08-04T04:31:48.407Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 10 days",
           "events": 1130,
           "subagents": 4,
           "work": {
@@ -567,33 +622,6 @@
           "prNumber": 3
         },
         {
-          "id": "5f9309bf-288f-4075-8297-9cffda8f9631",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-07-08T01:52:11.909Z",
-          "lastActiveAt": "2026-08-04T04:06:02.566Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 139,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 35,
-            "edits": 2,
-            "filesTouched": 2,
-            "commands": 28,
-            "reads": 1,
-            "testRuns": 4,
-            "operateRuns": 5,
-            "activeMinutes": 10,
-            "operateUnits": {
-              "seller run": 5
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/11",
-          "prNumber": 11
-        },
-        {
           "id": "513d390b-eac0-4021-b0db-0e05ea6dc1b6",
           "title": "untitled session",
           "titleSource": "prompt",
@@ -602,7 +630,7 @@
           "startedAt": "2026-07-04T16:05:00.016Z",
           "lastActiveAt": "2026-08-01T04:04:22.360Z",
           "state": "parked",
-          "stateDetail": "no activity for 12 days",
+          "stateDetail": "no activity for 13 days",
           "events": 445,
           "subagents": 1,
           "work": {
@@ -625,7 +653,7 @@
           "startedAt": "2026-07-25T17:21:54.893Z",
           "lastActiveAt": "2026-07-31T09:40:12.719Z",
           "state": "parked",
-          "stateDetail": "no activity for 13 days",
+          "stateDetail": "no activity for 14 days",
           "events": 1938,
           "subagents": 8,
           "work": {
@@ -651,7 +679,7 @@
           "startedAt": "2026-07-06T17:30:10.008Z",
           "lastActiveAt": "2026-07-31T07:32:29.905Z",
           "state": "parked",
-          "stateDetail": "no activity for 13 days",
+          "stateDetail": "no activity for 14 days",
           "events": 31,
           "subagents": 0,
           "work": {
@@ -664,40 +692,17 @@
             "operateRuns": 0,
             "activeMinutes": 2
           }
-        },
-        {
-          "id": "b1213888-2238-4217-bd2e-43fd47bfbaa1",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-07-08T04:49:25.834Z",
-          "lastActiveAt": "2026-07-31T07:31:50.730Z",
-          "state": "parked",
-          "stateDetail": "no activity for 13 days",
-          "events": 236,
-          "subagents": 2,
-          "work": {
-            "toolCalls": 59,
-            "edits": 30,
-            "filesTouched": 9,
-            "commands": 13,
-            "reads": 13,
-            "testRuns": 5,
-            "operateRuns": 0,
-            "activeMinutes": 39
-          }
         }
       ],
       "commits": [],
       "nightly": {
         "repo": "jim-agent",
         "gate": "pass",
-        "slow": true,
-        "gateSeconds": 929,
+        "gateSeconds": 10,
         "evals": "pass",
-        "evalSeconds": 1069,
+        "evalSeconds": 959,
         "slug": "jim",
-        "at": "2026-08-13T13:20:00.000Z"
+        "at": "2026-08-14T13:24:00.000Z"
       }
     },
     {
@@ -730,41 +735,19 @@
       "outputUnpersisted": true,
       "branch": "clap-first-rescope",
       "dirty": 4,
-      "state": "parked",
-      "stateDetail": "no activity for 9 days",
-      "lastActiveAt": "2026-08-04T04:31:50.118Z",
+      "state": "waiting",
+      "stateDetail": "interrupted mid-turn — the last word was the operator's",
+      "lastActiveAt": "2026-08-14T01:06:48.492Z",
       "sessions": [
-        {
-          "id": "254314ad-29db-4f96-b3cb-0c93639b7722",
-          "title": "DJ agent set quality improvements",
-          "titleSource": "custom",
-          "branch": "clap-first-rescope",
-          "startedAt": "2026-06-11T09:55:58.904Z",
-          "lastActiveAt": "2026-08-04T04:31:50.118Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 567,
-          "subagents": 2,
-          "work": {
-            "toolCalls": 150,
-            "edits": 52,
-            "filesTouched": 21,
-            "commands": 53,
-            "reads": 25,
-            "testRuns": 5,
-            "operateRuns": 0,
-            "activeMinutes": 68
-          }
-        },
         {
           "id": "d0253cad-be6d-450b-8fad-00c40066f491",
           "title": "DJ agent downbeat and form detection",
           "titleSource": "custom",
           "branch": "clap-first-rescope",
           "startedAt": "2026-06-11T02:35:02.826Z",
-          "lastActiveAt": "2026-07-31T09:25:06.904Z",
-          "state": "parked",
-          "stateDetail": "no activity for 13 days",
+          "lastActiveAt": "2026-08-14T01:06:48.492Z",
+          "state": "waiting",
+          "stateDetail": "interrupted mid-turn — the last word was the operator's",
           "events": 335,
           "subagents": 2,
           "work": {
@@ -779,6 +762,28 @@
           }
         },
         {
+          "id": "254314ad-29db-4f96-b3cb-0c93639b7722",
+          "title": "DJ agent set quality improvements",
+          "titleSource": "custom",
+          "branch": "clap-first-rescope",
+          "startedAt": "2026-06-11T09:55:58.904Z",
+          "lastActiveAt": "2026-08-04T04:31:50.118Z",
+          "state": "parked",
+          "stateDetail": "no activity for 10 days",
+          "events": 567,
+          "subagents": 2,
+          "work": {
+            "toolCalls": 150,
+            "edits": 52,
+            "filesTouched": 21,
+            "commands": 53,
+            "reads": 25,
+            "testRuns": 5,
+            "operateRuns": 0,
+            "activeMinutes": 68
+          }
+        },
+        {
           "id": "263a80a5-c45d-4528-a729-0f6c35a87213",
           "title": "untitled session",
           "titleSource": "prompt",
@@ -786,7 +791,7 @@
           "startedAt": "2026-06-11T00:29:30.967Z",
           "lastActiveAt": "2026-07-31T08:39:25.930Z",
           "state": "parked",
-          "stateDetail": "no activity for 13 days",
+          "stateDetail": "no activity for 14 days",
           "events": 613,
           "subagents": 0,
           "work": {
@@ -814,7 +819,7 @@
           "startedAt": "2026-06-10T20:59:35.777Z",
           "lastActiveAt": "2026-07-31T08:23:29.890Z",
           "state": "parked",
-          "stateDetail": "no activity for 13 days",
+          "stateDetail": "no activity for 14 days",
           "events": 424,
           "subagents": 0,
           "work": {
@@ -838,9 +843,10 @@
       "nightly": {
         "repo": "dj-agent",
         "gate": "pass",
-        "gateSeconds": 10,
+        "slow": true,
+        "gateSeconds": 923,
         "slug": "dj-agent",
-        "at": "2026-08-12T13:17:00.000Z"
+        "at": "2026-08-14T13:24:00.000Z"
       }
     },
     {
@@ -875,7 +881,7 @@
       "branch": "main",
       "dirty": 60,
       "state": "parked",
-      "stateDetail": "no activity for 19 days",
+      "stateDetail": "no activity for 20 days",
       "lastActiveAt": "2026-07-25T04:15:33.016Z",
       "sessions": [
         {
@@ -887,7 +893,7 @@
           "startedAt": "2026-06-09T23:21:06.245Z",
           "lastActiveAt": "2026-07-25T04:15:33.016Z",
           "state": "parked",
-          "stateDetail": "no activity for 19 days",
+          "stateDetail": "no activity for 20 days",
           "events": 17,
           "subagents": 0,
           "work": {
@@ -906,9 +912,9 @@
       "nightly": {
         "repo": "grocery-buddy",
         "gate": "pass",
-        "gateSeconds": 3,
+        "gateSeconds": 2,
         "slug": "grocery-buddy",
-        "at": "2026-08-13T13:20:00.000Z"
+        "at": "2026-08-14T13:24:00.000Z"
       }
     },
     {
@@ -936,7 +942,7 @@
       "branch": "main",
       "dirty": 2,
       "state": "parked",
-      "stateDetail": "no activity for 3 days",
+      "stateDetail": "no activity for 4 days",
       "lastActiveAt": "2026-08-09T15:04:10.799Z",
       "sessions": [
         {
@@ -948,7 +954,7 @@
           "startedAt": "2026-08-09T15:04:10.737Z",
           "lastActiveAt": "2026-08-09T15:04:10.799Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -971,7 +977,7 @@
           "startedAt": "2026-08-09T15:04:09.730Z",
           "lastActiveAt": "2026-08-09T15:04:09.810Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -994,7 +1000,7 @@
           "startedAt": "2026-08-09T15:04:08.582Z",
           "lastActiveAt": "2026-08-09T15:04:08.650Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1017,7 +1023,7 @@
           "startedAt": "2026-08-09T14:48:34.055Z",
           "lastActiveAt": "2026-08-09T14:48:34.123Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1040,7 +1046,7 @@
           "startedAt": "2026-08-09T14:48:31.355Z",
           "lastActiveAt": "2026-08-09T14:48:33.086Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1063,7 +1069,7 @@
           "startedAt": "2026-08-02T16:29:17.039Z",
           "lastActiveAt": "2026-08-02T16:31:32.424Z",
           "state": "parked",
-          "stateDetail": "no activity for 10 days",
+          "stateDetail": "no activity for 11 days",
           "events": 41,
           "subagents": 0,
           "work": {
@@ -1086,7 +1092,7 @@
           "startedAt": "2026-08-02T16:24:28.529Z",
           "lastActiveAt": "2026-08-02T16:29:00.870Z",
           "state": "parked",
-          "stateDetail": "no activity for 10 days",
+          "stateDetail": "no activity for 11 days",
           "events": 99,
           "subagents": 0,
           "work": {
@@ -1109,7 +1115,7 @@
           "startedAt": "2026-08-02T16:07:36.465Z",
           "lastActiveAt": "2026-08-02T16:24:27.552Z",
           "state": "parked",
-          "stateDetail": "no activity for 10 days",
+          "stateDetail": "no activity for 11 days",
           "events": 109,
           "subagents": 2,
           "work": {
@@ -1132,7 +1138,7 @@
           "startedAt": "2026-08-02T15:14:06.754Z",
           "lastActiveAt": "2026-08-02T16:07:35.174Z",
           "state": "parked",
-          "stateDetail": "no activity for 10 days",
+          "stateDetail": "no activity for 11 days",
           "events": 25,
           "subagents": 1,
           "work": {
@@ -1155,7 +1161,7 @@
           "startedAt": "2026-08-02T14:58:00.804Z",
           "lastActiveAt": "2026-08-02T15:14:05.448Z",
           "state": "parked",
-          "stateDetail": "no activity for 10 days",
+          "stateDetail": "no activity for 11 days",
           "events": 16,
           "subagents": 0,
           "work": {
@@ -1178,7 +1184,7 @@
           "startedAt": "2026-08-02T14:41:34.707Z",
           "lastActiveAt": "2026-08-02T14:57:59.592Z",
           "state": "parked",
-          "stateDetail": "no activity for 10 days",
+          "stateDetail": "no activity for 11 days",
           "events": 16,
           "subagents": 0,
           "work": {
@@ -1201,7 +1207,7 @@
           "startedAt": "2026-07-26T15:17:15.384Z",
           "lastActiveAt": "2026-07-26T15:17:51.273Z",
           "state": "parked",
-          "stateDetail": "no activity for 17 days",
+          "stateDetail": "no activity for 18 days",
           "events": 30,
           "subagents": 0,
           "work": {
@@ -1218,18 +1224,51 @@
       ],
       "commits": [
         {
-          "hash": "62e2c8f1d6f3ed4857c6e8bfc26519fd2ac38621",
-          "shortHash": "62e2c8f",
-          "subject": "library: mirror the stacks (2026-08-12 07:00)",
-          "at": "2026-08-12T07:00:10-07:00",
+          "hash": "3ca0cbe2068816df4b70158d6eac4cf825c4ea94",
+          "shortHash": "3ca0cbe",
+          "subject": "library: mirror the stacks (2026-08-13 07:28)",
+          "at": "2026-08-13T07:28:37-07:00",
           "files": 8,
           "ins": 3222,
-          "del": 970
+          "del": 970,
+          "refs": "origin/site/library-sync-20260813"
         }
       ]
     }
   ],
   "gateDigests": [
+    {
+      "at": "2026-08-14T13:24:00.000Z",
+      "runs": [
+        {
+          "repo": "jim-agent",
+          "gate": "pass",
+          "gateSeconds": 10,
+          "evals": "pass",
+          "evalSeconds": 959,
+          "slug": "jim"
+        },
+        {
+          "repo": "grocery-buddy",
+          "gate": "pass",
+          "gateSeconds": 2,
+          "slug": "grocery-buddy"
+        },
+        {
+          "repo": "procurement-agent",
+          "gate": "pass",
+          "slow": true,
+          "gateSeconds": 183
+        },
+        {
+          "repo": "dj-agent",
+          "gate": "pass",
+          "slow": true,
+          "gateSeconds": 923,
+          "slug": "dj-agent"
+        }
+      ]
+    },
     {
       "at": "2026-08-13T13:20:00.000Z",
       "runs": [
@@ -1247,6 +1286,27 @@
           "gate": "pass",
           "gateSeconds": 3,
           "slug": "grocery-buddy"
+        },
+        {
+          "repo": "procurement-agent",
+          "gate": "pass",
+          "gateSeconds": 1
+        },
+        {
+          "repo": "dj-agent",
+          "gate": "pass",
+          "slow": true,
+          "gateSeconds": 2065,
+          "slug": "dj-agent"
+        },
+        {
+          "repo": "M-Clone",
+          "gate": "pass",
+          "slow": true,
+          "gateSeconds": 2416,
+          "evals": "pass",
+          "evalSeconds": 13617,
+          "slug": "m-clone"
         }
       ]
     },
@@ -1729,48 +1789,6 @@
           "gateSeconds": 26,
           "evals": "regression",
           "evalSeconds": 96,
-          "slug": "m-clone"
-        }
-      ]
-    },
-    {
-      "at": "2026-07-31T13:32:00.000Z",
-      "runs": [
-        {
-          "repo": "jim-agent",
-          "gate": "pass",
-          "slow": true,
-          "gateSeconds": 681,
-          "evals": "pass",
-          "evalSeconds": 734,
-          "slug": "jim"
-        },
-        {
-          "repo": "grocery-buddy",
-          "gate": "pass",
-          "gateSeconds": 3,
-          "slug": "grocery-buddy"
-        },
-        {
-          "repo": "procurement-agent",
-          "gate": "pass",
-          "slow": true,
-          "gateSeconds": 1046
-        },
-        {
-          "repo": "dj-agent",
-          "gate": "pass",
-          "slow": true,
-          "gateSeconds": 1084,
-          "slug": "dj-agent"
-        },
-        {
-          "repo": "M-Clone",
-          "gate": "pass",
-          "slow": true,
-          "gateSeconds": 4767,
-          "evals": "pass",
-          "evalSeconds": 11179,
           "slug": "m-clone"
         }
       ]
