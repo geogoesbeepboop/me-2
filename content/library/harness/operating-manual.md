@@ -2,27 +2,33 @@
 title: 'The Operating Manual — how the day runs (solo runbook, v4)'
 collection: harness
 source: ~/dev/agentic-harness/docs/OPERATING_MANUAL.md
-sourceMtime: '2026-07-24T07:11:29.467Z'
-sourceCommit: c7ba1f1
-syncedAt: '2026-07-24'
+sourceMtime: '2026-08-04T04:18:50.687Z'
+sourceCommit: 35c12f5
+syncedAt: '2026-08-19'
 summary: >-
-  Rewritten 2026-07-13. The v3 manual grew into a 1,100-line platform spec that
-  taxed every read and got skipped under pressure — which showed up as burnout
-  from juggling sessions, manual UI testing …
-contentHash: 'sha256:c40235561fee622600f6fd2d59be6d72216a01c2b8519d3a01bdbde5046f4a56'
+  Visual companion:
+  <https://claude.ai/code/artifact/9dd825bf-3846-4015-bbc8-2430455e3a9a> — this
+  file is canonical; the visual renders it (docs/visuals/README.md).
+contentHash: 'sha256:b3d7c50dab9bebdc857a179c4159d0e71317b05a255a07712c9b626ce1a671f5'
 ---
 # The Operating Manual — how the day runs (solo runbook, v4)
+
+*Visual companion: <https://claude.ai/code/artifact/9dd825bf-3846-4015-bbc8-2430455e3a9a> —
+this file is canonical; the visual renders it (`docs/visuals/README.md`).*
 
 *Rewritten 2026-07-13. The v3 manual grew into a 1,100-line platform spec that taxed every read
 and got skipped under pressure — which showed up as burnout from juggling sessions, manual UI
 testing as the bottleneck, and rework from skipped planning. v4 keeps only what changes daily
-behavior. The agent-design material lives in `AGENT_ANATOMY.md`; the deferred platform machinery
-and its triggers live in `ROADMAP.md`; the Claude-specific reference is `CLAUDE_CODE_BIBLE.md`.*
+behavior. The agent-design material lives in `AGENT_ANATOMY.md`; the platform-scope design
+material (fleet, tracing at scale, eval portfolio, model routing) lives in `PRODUCT_ANATOMY.md`.*
 
-*Ownership rule (2026-07-23): workflow rules are canonical in global CLAUDE.md and each repo's
-AGENTS.md — the only copies agents obey. This runbook summarizes them for human use and must
-never redefine them; MANUAL.md argues why they work and must never specify them. When a rule
-changes, CLAUDE.md/AGENTS.md change first; the manuals follow.*
+*Ownership rule (2026-07-23, amended 2026-07-25): workflow rules are canonical in global CLAUDE.md
+and each repo's AGENTS.md; **procedures** are canonical in the skill that runs them (`/spec`,
+`/evidence-packet`, `/verify`), which CLAUDE.md points to rather than restates. Those are the only
+copies agents obey. This runbook summarizes them for human use and must never redefine them;
+MANUAL.md argues why they work and must never specify them. When a rule changes, CLAUDE.md /
+AGENTS.md / the skill changes first; the manuals follow. One rule, one home — a rule stated in two
+loaded layers is a bug (Claude 5 context engineering, 2026-07-24).*
 
 ## 0. The stack at a glance
 
@@ -30,18 +36,20 @@ Every piece of the harness, one line each. Details: MANUAL.md §6 (doctrine), se
 
 | Layer | What it is | Fires |
 |---|---|---|
-| Global CLAUDE.md | The workflow rules: specs in `docs/specs/`, evidence packets (eval delta + critic verdict + next contract), fan-out for reads only, diagram-altitude review, gaps never close silently | Every session |
+| Global CLAUDE.md | Stance + the receipts-backed rules, thin: fan-out for reads only, rendered-artifact diagrams, Fable-orchestrates model tiering, two-iterations-then-fresh-eyes, bugs-become-eval-cases, gaps never close silently. The spec and packet *procedures* live in skills it points to | Every session |
+| `/spec` + `/evidence-packet` | The two extracted procedures: contract → living spec in `docs/specs/` with a rendered diagram; and verify → rubric-scored critic → eval delta → NOT-verified → next contract | Per task, at both ends |
+| `/evals` | The eval methodology contract (D1–D8) and its ceremonies: `case` (bug → failing case before the fix), `plan` (eval delta drafted at plan time), `audit`, `bootstrap`. North star over any repo's legacy eval convention | Plan time for LLM-touching work; failure time, before the fix; suite work |
 | Per-repo AGENTS.md | Project map, invariants, run/verify commands (CLAUDE.md → `@AGENTS.md`) | Every session in that repo |
 | Specs (`docs/specs/`) | Approved plans as living documents, Mermaid-led for multi-module work, committed with the work | Per task |
 | Handoffs (`.claude/handoffs/`) | Resumable session state; latest one's next-steps auto-injected at session start | Per session |
 | Hooks (6, fail-open) | session-context (briefing in), guard-commit (gate on commit), guard-bash / guard-secrets (catastrophe filters), format-on-edit, notify | Automatically, on their events |
 | Gates (`.claude/gate.sh` ×5) | Per-repo fast health check (<120s): tests, validators, guards, anti-cheat | Every `git commit` + nightly |
-| Evals (`.claude/evals.sh` + suites) | Per-repo behavior suites (jim: 13 scenarios; M-Clone: routing gate + insights corpus) | Nightly + per task |
+| Evals (`.claude/evals.sh` + suites) | Per-repo behavior suites held to the `/evals` D8 ops contract (jim: 99 offline cases; M-Clone: routing gate + insights corpus) | Nightly + per task |
 | Verify skills (per project) | The agent proving its own work end-to-end (M-Clone: gate + XCTest + eval delta + UI-honesty line) | Before every evidence packet |
 | Nightly gate digest | 6:17 launchd (caffeinated): every repo's gate + evals → dated digest → session-start banner | Nightly |
 | Weekly proposer | Sunday launchd: mines digests + babysit log + handoffs, files improvement proposals; propose-only | Weekly |
-| Subagents (2) | critic (adversarial, self-invoked via /challenge), researcher (cited web synthesis) | On demand / self-invoked |
-| Skills (22) | Planning, lifecycle, building, meta, cost — see MANUAL.md §6 | Slash or self-invoked |
+| Subagents (2) | critic (adversarial, self-invoked via /challenge; scores diffs against `skills/evidence-packet/references/diff-vs-spec.md` when handed a rubric), researcher (cited web synthesis) | On demand / self-invoked |
+| Skills (24) | Planning, lifecycle, building, meta, cost — see MANUAL.md §6 | Slash or self-invoked |
 | Exhaust | BABYSIT_LOG.md, gate-digests/, trial scoreboard, token breakdowns → fuel for /retro and the proposer | Continuous |
 
 **Mental models — clarifications already needed once (2026-07-23), kept so they aren't needed twice:**
@@ -59,7 +67,16 @@ Every piece of the harness, one line each. Details: MANUAL.md §6 (doctrine), se
 - **`evals.sh` is the nightly's doorknob, not the only door.** In-session, agents run the
   fitting entry point — targeted slices while iterating, the affected suite end-to-end for the
   packet's eval delta. The repo's AGENTS.md "Run / verify" section is where the entry points
-  are listed.
+  are listed. What a valid run *reports* — rates for LLM-dependent cases, delta vs a committed
+  baseline — is defined by the `/evals` contract (D8), not by whatever the runner happens to print.
+- **The `/evals` contract is the north star; suites migrate toward it (2026-07-25).** D1–D8:
+  programmatic-first, rates-not-booleans with a measured noise floor, calibrated judges,
+  holdouts + committed baselines, trajectory grading, refusal-as-pass safety cases, the
+  flywheel, the `evals.sh` ops contract. Contract over format — native harnesses (jim-eval,
+  XCTest corpora, jsonl + judges) stay, reshaped to report honestly. Each focus repo carries a
+  scored audit + ranked migration plan at `docs/evals/2026-07-25-methodology-audit.md`; read it
+  before touching that repo's suite. Details live in the skill and
+  `docs/evals-and-tracing-summary.md`, not here.
 - **AGENTS.md vs CLAUDE.md is naming, not function.** One project instruction file per repo:
   content lives in `AGENTS.md` (the cross-tool standard), and the repo's `CLAUDE.md` is an
   11-byte `@AGENTS.md` pointer so Claude Code auto-loads it. The axis that matters is
@@ -72,7 +89,8 @@ Every piece of the harness, one line each. Details: MANUAL.md §6 (doctrine), se
   in-diff automatically is the *suites they run* (bugs-become-cases), never the runners.
 - **Known gap, deliberate:** M-Clone's `evals.sh` covers assistant routing only; the insights
   corpus needs the on-device model and is re-run per-session, not nightly. Revisit if the mac
-  harness proves headless-safe.
+  harness proves headless-safe. (Its 07-25 audit proposes a partial fix: the offline
+  `rescore.py --verify` slice is pure Python and could join the nightly today.)
 
 ## 1. The outcome
 
@@ -140,14 +158,14 @@ part of the task.
 - **Native mobile (iOS/Android):** the verify skill covers what machines can prove — M-Clone's
   runs the fast gate, the full XCTest routing gate on a simulator, and the eval delta — with a
   mandatory **UI-honesty line** naming the screens/flows not exercised. UI eye-checks stay
-  manual, deliberately (see `ROADMAP.md` for the Maestro escalation trigger).
+  manual, deliberately (the Maestro escalation trigger lives in `MANUAL.md` §6's harness backlog).
 - **Every repo:** the commit build gate (`.claude/gate.sh`, enforced by guard-commit) stays the
   floor. `git commit --no-verify` remains a deliberate escape hatch; use it only with the reason
   recorded in the commit/handoff.
 
 Green means the checks that ran passed where they ran — scoped evidence, not proof of security,
-usefulness, or integration (`AGENT_ANATOMY.md` §6). Scale extra review to risk tier
-(`AGENT_ANATOMY.md` §3).
+usefulness, or integration — green means the checks that ran passed where they ran. Scale
+extra review to risk tier (`AGENT_ANATOMY.md` §2.1).
 
 ## 4. The day
 
@@ -205,7 +223,8 @@ skill < accept-as-is` — and verify the fix before closing. One material harnes
 retro unless an S0/S1 demands more.
 
 **Model requalification — on trigger only** (a relevant release, degrading route evidence, a
-repeated escalation pattern, a new task class). Procedure and routing tables: `ROADMAP.md` §5.
+repeated escalation pattern, a new task class). Procedure and routing tables: `PRODUCT_ANATOMY.md`
+§8, the model control plane.
 
 **Instruction hygiene — as you go.** New invariants land in the repo's `AGENTS.md` as small
 scoped deltas; dated guidance gets an expiry; rules better enforced by code become hooks or gate
@@ -219,13 +238,13 @@ lines. `AGENTS.md` is a lean map, not a diary.
 | Unknown feasibility / prototype | `/spike` — one approach, one alternative, kill criteria |
 | Ordinary feature (T1) | The task loop above — plan mode + spec is the whole ceremony |
 | High-stakes plan worth attacking | `/challenge` (critic subagent) or `/deep-challenge` |
-| Architecture, cross-module, high ambiguity (T2) | `/deep-plan`; independent fresh-context review; rollback plan; walk the T2/T3 checklist (`AGENT_ANATOMY.md` §3.1) |
+| Architecture, cross-module, high ambiguity (T2) | `/deep-plan`; independent fresh-context review; rollback plan; walk the T2/T3 checklist (`AGENT_ANATOMY.md` §2.2) |
 | Irreversible or high-trust actions (T3) | Full checklist + enforced containment + deterministic runtime gate + human approval — see `AGENT_ANATOMY.md` |
-| New agent project | `/new-agent` — answer the twelve questions (`AGENT_ANATOMY.md` §1) |
+| New agent project | `/new-agent` — walk the decisions (`AGENT_ANATOMY.md` §3) |
 | Hackathon | `/hack` — compressed anatomy, demo-freeze discipline |
 
 Risk is blast radius, not code size. The deep-* skills currently depend on machine-local paths
-and run reliably only on the primary Mac (`ROADMAP.md` §1.12).
+and run reliably only on the primary Mac (`MANUAL.md` §6 harness backlog).
 
 **Failure quick-moves:** build gate fails → read the exact check, reproduce, fix or classify —
 never reflexive `--no-verify`. Eval regresses → re-run controlled, separate product/provider/
@@ -236,15 +255,19 @@ back to last known good, preserve provenance, add the escaped scenario to a veri
 
 ## 8. Standing cautions
 
-**The public library syncs daily and is default-public** (target policy is default-private —
-`ROADMAP.md` §7). A saved half-draft in a mirrored tree may publish at the next sync. Mark drafts
+**The public library syncs daily and is default-public** (target: default-private or explicit
+public allowlisting, with a preview, provenance, and fast takedown; until then the rules below
+are the policy). A saved half-draft in a mirrored tree may publish at the next sync. Mark drafts
 `<!-- me2: private -->` (first ten lines) or `site: private` frontmatter *before* first save;
-keep career/babysit/personal paths behind manifest `deny[]` walls; treat visibility-automation
-changes as T3 publication work. Scanning is not proof private content cannot publish.
+keep career/resume/babysit/secret/personal-data paths behind manifest `deny[]` walls; **sample
+the actual public shelf periodically** (the only detection, not just prevention, in this
+caution); treat
+visibility-automation changes as T3 publication work. Scanning is not proof private content
+cannot publish.
 
 **Hooks are conveniences, not walls.** Format/session/notify/secret/bash hooks fail open by
-design. A worktree is not a sandbox (`AGENT_ANATOMY.md` §8). Runtime authority — spend, send,
-publish, delete — always has a deterministic owner (`AGENT_ANATOMY.md` §2).
+design. A worktree is not a sandbox (`AGENT_ANATOMY.md` §1.3). Runtime authority — spend, send,
+publish, delete — always has a deterministic owner (`AGENT_ANATOMY.md` §1.1).
 
 ## 9. Is the automation alive?
 
@@ -260,6 +283,12 @@ launchctl bootstrap gui/$(id -u) \
 Asleep at 6:17 → runs on wake; powered off → that day skips. Read the actual digest, not
 historical claims. Harness config: `~/dev/agentic-harness`, focus repos in
 `~/.config/agentic-harness/repos.txt`.
+
+**Any new unattended run names five parts before it ships:** trigger (what starts it), goal
+(a result, not an activity), verifier (the check that grades its output — programmatic first),
+stop rule (iteration/budget/wall-clock caps; load-bearing, not hygiene), and memory (what
+persists between runs and who may write it). The digest and the Sunday proposer already answer
+all five; the next scheduled job answers them in its PR description (why: `MANUAL.md` §5).
 
 ## 10. Quick reference
 
