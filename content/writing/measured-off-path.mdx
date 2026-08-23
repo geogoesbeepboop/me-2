@@ -1,0 +1,43 @@
+---
+title: "Measured Off-Path"
+summary: "In one week an app whose code never moved gave up four different numbers — the arm, the payload, the calendar, the grep. Every one of them changed because the measurement surface changed, and a result is always a claim about the surface it was taken on."
+date: "2026-08-02"
+thesis: "A number measured off the shipping path isn't a weaker number — it's a number about something else."
+refs:
+  - "projects/m-clone#what-broke"
+  - "projects/m-clone#decisions"
+---
+
+## Four numbers moved; the app didn't
+
+M-Clone's main branch hasn't moved since 25 July. In the week since, four of its published numbers did. A candidate improvement worth +7.0 points became +2.1. A capability the repo documented as impossible turned out to work nine times out of nine. The nightly eval run went red two mornings running. And the Swift test count on the entry dropped from 604 to 601 — not because three tests were deleted, but because the grep that counts them got anchored to the start of a line.
+
+That last one has a tail worth keeping. The nightly's own runner reports 603 tests in 76 suites. Two honest counts of the same suite, taken by two instruments, and the bridge between them isn't understood yet — so both are recorded and the gap is named rather than split. Nothing in the app changed this week. Four measurement surfaces did, and the numbers followed them.
+
+## The research arm is not the call site
+
+The +7.0 came off a research arm — a path the app doesn't take. Re-run the same day through the client the app actually calls, the same change scored +2.1, under its own preregistered +3.0 bar. Measuring off-path had inflated the benefit roughly 3× and the side effect roughly 5×. The flag was default-off and stayed off, killed by a paired A/B with both legs through the real client, committed with the numbers that did the killing.
+
+The cause is worth more than the correction. The extra text cost +1,152 ms and pushed the call past its own four-second budget, so the failures stopped being refusals and became timeouts. On the research arm there was no budget to blow. The improvement was real in a world with no clock; the shipping path has a clock.
+
+And the spec had named this exact defect class on page one, while the phase's own headline result reproduced it anyway. Knowing about off-path measurement does not prevent off-path measurement. Routing the harness through the same client the app calls does.
+
+<Ref to="projects/m-clone#what-broke" note="the +7.0 that was really +2.1, filed with the numbers that killed it" />
+
+## A capability is not a budget
+
+The same week produced the opposite shape. A code comment in the repo said the on-device model couldn't do native tool calling. A device probe on 29 July says otherwise: 9 of 9 attempts invoked and reflected a tool with zero capability rejections, the right tool picked out of twelve without being named, guided arguments correct 3 of 3. The capability is real.
+
+It stays off anyway. The twelve-tool payload the app would really attach measured 5,895 ms at the median against a 4,000 ms turn budget — a question answered on the capability surface, then asked again on the latency surface where the app actually lives. The decision didn't change. The reason did, from a stale assumption about the hardware to a dated measurement, and that swap is the entire gain. A right decision resting on a wrong reason expires without telling you. When a future OS release makes that payload cheap, a measured reason with a date on it says *look again*; an assumption would have quietly held the door shut.
+
+<Ref to="projects/m-clone#decisions" note="the tool-calling decision, re-grounded on a dated device probe" />
+
+## The clock is part of the surface
+
+Then the nightly went red on 1 August, and again on 2 August, against code nobody had touched since 25 July. One test out of 603. The demo ledgers are date-shifted so they always end at today, and the failing test hands the executor a plan with no period slot — which defaults to the current calendar month, nearly empty on the first. Not a wrong answer and not a broken machine: a fixture that isn't hermetic against the calendar, and that heals itself by the fifth whether or not anyone looks.
+
+It is also the suite's own known blind spot arriving from the other direction. The nightly asserts that cases were *scored*, not that they were answered correctly — it cannot tell a broken machine from a broken answer, so it prints both in the same color. A red meaning "the calendar turned over" costs exactly as much attention as a red meaning "the assistant lost the plot," and attention is the one budget you can't preregister.
+
+Which is why the headline numbers on that project — 86.5% family routing accuracy, zero out-of-scope leaks in 35 attempts, an 81-case sealed holdout — still ship labeled as upper bounds, with the too-generous matcher behind them named and not yet tightened. The label isn't modesty. It's the only version of a number that survives being measured somewhere else.
+
+<Ref to="writing/evals-are-the-product#audit-the-ruler" note="the sibling argument — auditing the ruler, not the surface it was laid against" />
