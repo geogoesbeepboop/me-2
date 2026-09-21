@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-09-20T13:45:06.487Z",
+  "generatedAt": "2026-09-21T13:56:04.683Z",
   "windowHours": 24,
   "agents": [
     {
@@ -30,8 +30,8 @@
       ],
       "branch": "main",
       "dirty": 0,
-      "state": "waiting",
-      "stateDetail": "turn finished — a human decides next",
+      "state": "parked",
+      "stateDetail": "no activity for a day",
       "lastActiveAt": "2026-09-19T20:07:36.429Z",
       "sessions": [
         {
@@ -42,8 +42,8 @@
           "branch": "claude/plugin-vercel-cloudflare-tools-242ddf",
           "startedAt": "2026-09-02T20:18:51.573Z",
           "lastActiveAt": "2026-09-19T20:07:36.429Z",
-          "state": "waiting",
-          "stateDetail": "turn finished — a human decides next",
+          "state": "parked",
+          "stateDetail": "no activity for a day",
           "events": 2087,
           "subagents": 4,
           "work": {
@@ -66,7 +66,7 @@
           "startedAt": "2026-09-15T04:30:02.648Z",
           "lastActiveAt": "2026-09-17T10:39:09.725Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 4 days",
           "events": 451,
           "subagents": 6,
           "work": {
@@ -90,7 +90,7 @@
           "startedAt": "2026-09-09T06:37:15.042Z",
           "lastActiveAt": "2026-09-15T16:44:52.424Z",
           "state": "parked",
-          "stateDetail": "no activity for 4 days",
+          "stateDetail": "no activity for 5 days",
           "events": 312,
           "subagents": 6,
           "work": {
@@ -105,236 +105,234 @@
           }
         },
         {
-          "id": "6791cfd5-62b5-4d8c-9e6d-7ba59f27164a",
-          "title": "Product tool widget links",
+          "id": "2d83cfb0-cbf6-41bc-8f99-bf658abf3b79",
+          "title": "Insights AI feature rebuild guide",
           "titleSource": "custom",
-          "worktree": "new-session-0f1fd8",
-          "branch": "claude/product-tool-widget-links-e34bbc",
-          "startedAt": "2026-09-04T07:06:51.329Z",
-          "lastActiveAt": "2026-09-14T06:34:57.310Z",
+          "worktree": "accordion-persona-profiles-ea9253",
+          "branch": "claude/insights-ai-rebuild-guide-07bfc9",
+          "startedAt": "2026-07-22T21:22:24.635Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
-          "events": 1582,
-          "subagents": 5,
-          "work": {
-            "toolCalls": 236,
-            "edits": 6,
-            "filesTouched": 5,
-            "commands": 193,
-            "reads": 1,
-            "testRuns": 55,
-            "operateRuns": 0,
-            "activeMinutes": 210
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/56",
-          "prNumber": 56
-        },
-        {
-          "id": "c5584f59-1aff-46f9-946d-9c3c72c7468a",
-          "title": "Fix narration \"you're already doing it\" fabrication",
-          "titleSource": "custom",
-          "worktree": "model-limits-eval-analysis-0664c2",
-          "branch": "claude/hopeful-rubin-a23a6c",
-          "startedAt": "2026-07-22T03:32:35.228Z",
-          "lastActiveAt": "2026-09-14T06:34:56.241Z",
-          "state": "parked",
-          "stateDetail": "no activity for 6 days",
-          "events": 452,
+          "stateDetail": "no activity for 7 days",
+          "events": 249,
           "subagents": 0,
           "work": {
-            "toolCalls": 93,
-            "edits": 22,
+            "toolCalls": 60,
+            "edits": 14,
+            "filesTouched": 2,
+            "commands": 21,
+            "reads": 19,
+            "testRuns": 3,
+            "operateRuns": 0,
+            "activeMinutes": 54
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/50",
+          "prNumber": 50
+        },
+        {
+          "id": "d7f7a744-8ac8-4dc2-96b3-9152695705bf",
+          "title": "Fix tool-latch text heuristic misfiring on refusals",
+          "titleSource": "custom",
+          "worktree": "accordion-persona-profiles-ea9253",
+          "branch": "claude/compassionate-hypatia-fb0f53",
+          "startedAt": "2026-07-29T23:47:15.312Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 399,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 104,
+            "edits": 21,
+            "filesTouched": 8,
+            "commands": 75,
+            "reads": 4,
+            "testRuns": 5,
+            "operateRuns": 0,
+            "activeMinutes": 44
+          }
+        },
+        {
+          "id": "faae55aa-0dc3-4f00-a04f-8fa25d6b2d75",
+          "title": "Advisor insights loading state",
+          "titleSource": "custom",
+          "worktree": "advisor-insights-loading-eb1863",
+          "branch": "claude/advisor-insights-loading-eb1863",
+          "startedAt": "2026-07-22T00:27:46.811Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 577,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 112,
+            "edits": 25,
             "filesTouched": 10,
-            "commands": 56,
-            "reads": 10,
-            "testRuns": 6,
+            "commands": 51,
+            "reads": 28,
+            "testRuns": 2,
             "operateRuns": 2,
-            "activeMinutes": 62,
+            "activeMinutes": 88,
             "operateUnits": {
               "device run": 2
             }
           },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/46",
-          "prNumber": 46
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/45",
+          "prNumber": 45
         },
         {
-          "id": "538983a9-e942-4c7d-aea1-048a9d89742f",
-          "title": "Fix corrupt plaid LinkKit SPM artifact blocking routing gate",
+          "id": "d1d55302-44f5-4b8f-a129-f7ecca196b66",
+          "title": "Entity-guard parity + revisit narration eligibility gate",
           "titleSource": "custom",
-          "branch": "claude/advisor-insights-quality-20260721",
-          "startedAt": "2026-07-22T03:56:55.822Z",
-          "lastActiveAt": "2026-09-14T06:34:55.794Z",
-          "state": "parked",
-          "stateDetail": "no activity for 6 days",
-          "events": 208,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 37,
-            "edits": 4,
-            "filesTouched": 3,
-            "commands": 21,
-            "reads": 10,
-            "testRuns": 6,
-            "operateRuns": 0,
-            "activeMinutes": 23
-          }
-        },
-        {
-          "id": "a8182bd9-48d1-4507-a667-80ea457ed075",
-          "title": "Accordion persona profiles in insight architecture",
-          "titleSource": "custom",
-          "worktree": "accordion-persona-profiles-ea9253",
-          "branch": "claude/accordion-persona-profiles-ea9253",
-          "startedAt": "2026-07-22T07:50:09.672Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
+          "worktree": "clever-bouman-721811",
+          "branch": "claude/affectionate-gagarin-1ae4b9",
+          "startedAt": "2026-07-21T18:45:06.811Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
           "state": "parked",
           "stateDetail": "no activity for 7 days",
-          "events": 424,
+          "events": 735,
           "subagents": 1,
           "work": {
-            "toolCalls": 117,
-            "edits": 12,
-            "filesTouched": 8,
-            "commands": 33,
-            "reads": 11,
-            "testRuns": 1,
+            "toolCalls": 179,
+            "edits": 43,
+            "filesTouched": 17,
+            "commands": 88,
+            "reads": 25,
+            "testRuns": 10,
             "operateRuns": 1,
-            "activeMinutes": 23,
-            "operateUnits": {
-              "app launch": 1
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/49",
-          "prNumber": 49
-        },
-        {
-          "id": "a571f5c6-bc64-4139-b0f6-8ac174c2fe09",
-          "title": "Advisor Insights card generation flow",
-          "titleSource": "custom",
-          "worktree": "advisor-insights-generation-167671",
-          "branch": "claude/advisor-insights-generation-167671",
-          "startedAt": "2026-07-22T04:31:04.527Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 255,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 46,
-            "edits": 11,
-            "filesTouched": 6,
-            "commands": 28,
-            "reads": 5,
-            "testRuns": 3,
-            "operateRuns": 1,
-            "activeMinutes": 60,
+            "activeMinutes": 73,
             "operateUnits": {
               "device run": 1
             }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/43",
+          "prNumber": 43
+        },
+        {
+          "id": "4becc8ac-7ed5-43b3-b698-1e4c66459f54",
+          "title": "Financial plugin use cases and personas",
+          "titleSource": "custom",
+          "worktree": "financial-advisor-insights-bc4b18",
+          "branch": "claude/financial-plugin-usecases-b5a8ea",
+          "startedAt": "2026-09-03T17:53:41.144Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 844,
+          "subagents": 11,
+          "work": {
+            "toolCalls": 126,
+            "edits": 14,
+            "filesTouched": 11,
+            "commands": 74,
+            "reads": 2,
+            "testRuns": 12,
+            "operateRuns": 0,
+            "activeMinutes": 197
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/55",
+          "prNumber": 55
+        },
+        {
+          "id": "d31f7ac9-0421-406e-b7e2-f678b7a7ead6",
+          "title": "Chat intent extraction at production scale",
+          "titleSource": "custom",
+          "worktree": "financial-advisor-insights-bc4b18",
+          "branch": "claude/chat-intent-extraction-scale-70b08e",
+          "startedAt": "2026-07-29T22:30:32.121Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 1369,
+          "subagents": 5,
+          "work": {
+            "toolCalls": 290,
+            "edits": 44,
+            "filesTouched": 16,
+            "commands": 206,
+            "reads": 1,
+            "testRuns": 4,
+            "operateRuns": 55,
+            "activeMinutes": 509,
+            "operateUnits": {
+              "device run": 53,
+              "on-device eval sitting": 2
+            }
           }
         },
         {
-          "id": "8edbf66e-b170-4ad3-b73e-a77801909db6",
-          "title": "Add rule-pack v2: five data-backed insight rules",
+          "id": "0de7729b-c425-49e4-abdd-e482f1807130",
+          "title": "Strip InsightSeeds JSON from release builds",
           "titleSource": "custom",
-          "worktree": "affectionate-jackson-75a455",
-          "branch": "claude/affectionate-jackson-75a455",
-          "startedAt": "2026-07-21T07:09:17.397Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
+          "worktree": "happy-sanderson-1294f3",
+          "branch": "claude/happy-sanderson-1294f3",
+          "startedAt": "2026-07-21T23:18:56.259Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
           "state": "parked",
           "stateDetail": "no activity for 7 days",
-          "events": 348,
+          "events": 234,
           "subagents": 1,
           "work": {
-            "toolCalls": 109,
-            "edits": 28,
-            "filesTouched": 11,
-            "commands": 47,
-            "reads": 14,
-            "testRuns": 2,
+            "toolCalls": 57,
+            "edits": 19,
+            "filesTouched": 10,
+            "commands": 21,
+            "reads": 11,
+            "testRuns": 5,
+            "operateRuns": 0,
+            "activeMinutes": 33
+          }
+        },
+        {
+          "id": "dc898a3e-99bc-44d8-8668-18f2a3f63a95",
+          "title": "Insight visibility rules",
+          "titleSource": "custom",
+          "worktree": "insight-visibility-rules-fc8403",
+          "branch": "claude/insight-visibility-rules-fc8403",
+          "startedAt": "2026-07-22T04:03:26.115Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 94,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 18,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 14,
+            "reads": 4,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 18
+          }
+        },
+        {
+          "id": "d40e9c23-30c3-453b-9875-d768b455e4b6",
+          "title": "Financial advisor page insights refinement",
+          "titleSource": "custom",
+          "worktree": "model-limits-eval-analysis-0664c2",
+          "branch": "claude/financial-advisor-insights-b72b3f",
+          "startedAt": "2026-07-21T22:08:12.152Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 1188,
+          "subagents": 6,
+          "work": {
+            "toolCalls": 255,
+            "edits": 83,
+            "filesTouched": 25,
+            "commands": 69,
+            "reads": 60,
+            "testRuns": 6,
             "operateRuns": 1,
-            "activeMinutes": 31,
+            "activeMinutes": 161,
             "operateUnits": {
-              "harness run": 1
+              "device run": 1
             }
           },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/39",
-          "prNumber": 39
-        },
-        {
-          "id": "effa8874-e7ed-4195-b58b-00ee852a4719",
-          "title": "Fix limit-less card utilization bug + fixture gaps",
-          "titleSource": "custom",
-          "worktree": "eloquent-perlman-23db42",
-          "branch": "claude/eloquent-perlman-23db42",
-          "startedAt": "2026-07-21T07:09:12.313Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 275,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 74,
-            "edits": 24,
-            "filesTouched": 11,
-            "commands": 43,
-            "reads": 5,
-            "testRuns": 3,
-            "operateRuns": 0,
-            "activeMinutes": 22
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/38",
-          "prNumber": 38
-        },
-        {
-          "id": "daaa0f01-5174-433a-bf44-e08bd9d66c8f",
-          "title": "Firewall the receipt-image chat surface",
-          "titleSource": "custom",
-          "worktree": "fervent-tu-cace47",
-          "branch": "claude/fervent-tu-cace47",
-          "startedAt": "2026-07-21T05:08:39.084Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 247,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 63,
-            "edits": 11,
-            "filesTouched": 6,
-            "commands": 43,
-            "reads": 8,
-            "testRuns": 4,
-            "operateRuns": 0,
-            "activeMinutes": 34
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/36",
-          "prNumber": 36
-        },
-        {
-          "id": "82be8384-3fcc-46f6-b3b4-433476a61c6c",
-          "title": "Financial advisor insights redundancy",
-          "titleSource": "custom",
-          "worktree": "financial-advisor-insights-bc4b18",
-          "branch": "claude/financial-advisor-insights-4853f3",
-          "startedAt": "2026-07-22T05:22:32.157Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 949,
-          "subagents": 5,
-          "work": {
-            "toolCalls": 253,
-            "edits": 93,
-            "filesTouched": 19,
-            "commands": 85,
-            "reads": 38,
-            "testRuns": 9,
-            "operateRuns": 0,
-            "activeMinutes": 144
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/48",
-          "prNumber": 48
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/44",
+          "prNumber": 44
         }
       ],
       "commits": [],
@@ -382,8 +380,59 @@
       "dirty": 2,
       "state": "parked",
       "stateDetail": "no activity for 7 days",
-      "lastActiveAt": "2026-09-13T11:24:30.655Z",
+      "lastActiveAt": "2026-09-14T11:37:52.397Z",
       "sessions": [
+        {
+          "id": "e57ba757-940f-40ac-ba10-9bdc9d2065d9",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-06-28T21:04:10.019Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 1130,
+          "subagents": 4,
+          "work": {
+            "toolCalls": 300,
+            "edits": 128,
+            "filesTouched": 50,
+            "commands": 100,
+            "reads": 64,
+            "testRuns": 37,
+            "operateRuns": 4,
+            "activeMinutes": 117,
+            "operateUnits": {
+              "memo": 3,
+              "seller run": 1
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/3",
+          "prNumber": 3
+        },
+        {
+          "id": "ad763ec7-3a72-487c-aa55-abce2dd79e06",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "silly-dijkstra-efb1cf",
+          "branch": "claude/silly-dijkstra-efb1cf",
+          "startedAt": "2026-07-04T21:27:18.560Z",
+          "lastActiveAt": "2026-09-14T11:37:52.397Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 293,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 72,
+            "edits": 15,
+            "filesTouched": 11,
+            "commands": 39,
+            "reads": 16,
+            "testRuns": 9,
+            "operateRuns": 0,
+            "activeMinutes": 19
+          }
+        },
         {
           "id": "5d003495-5c52-48cd-91b5-fb6694de6182",
           "title": "untitled session",
@@ -392,7 +441,7 @@
           "startedAt": "2026-06-28T02:49:56.024Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 265,
           "subagents": 0,
           "work": {
@@ -414,7 +463,7 @@
           "startedAt": "2026-07-08T01:52:11.909Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 139,
           "subagents": 0,
           "work": {
@@ -441,7 +490,7 @@
           "startedAt": "2026-07-06T17:30:10.008Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 31,
           "subagents": 0,
           "work": {
@@ -463,7 +512,7 @@
           "startedAt": "2026-07-08T07:29:06.891Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 108,
           "subagents": 0,
           "work": {
@@ -485,7 +534,7 @@
           "startedAt": "2026-07-08T04:49:25.834Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 236,
           "subagents": 2,
           "work": {
@@ -507,7 +556,7 @@
           "startedAt": "2026-06-29T02:29:45.292Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 70,
           "subagents": 1,
           "work": {
@@ -530,7 +579,7 @@
           "startedAt": "2026-07-04T16:05:00.016Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 445,
           "subagents": 1,
           "work": {
@@ -553,7 +602,7 @@
           "startedAt": "2026-07-14T17:14:17.616Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 507,
           "subagents": 3,
           "work": {
@@ -581,7 +630,7 @@
           "startedAt": "2026-07-25T17:21:54.893Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 1938,
           "subagents": 8,
           "work": {
@@ -608,7 +657,7 @@
           "startedAt": "2026-07-03T21:27:59.620Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 551,
           "subagents": 0,
           "work": {
@@ -627,62 +676,6 @@
           },
           "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/8",
           "prNumber": 8
-        },
-        {
-          "id": "838ade23-12d0-418d-898e-b6a7f033c081",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "quirky-bhabha-8e1bbb",
-          "branch": "claude/quirky-bhabha-8e1bbb",
-          "startedAt": "2026-07-02T18:03:35.544Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 500,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 125,
-            "edits": 19,
-            "filesTouched": 14,
-            "commands": 82,
-            "reads": 17,
-            "testRuns": 13,
-            "operateRuns": 1,
-            "activeMinutes": 119,
-            "operateUnits": {
-              "market op": 1
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/4",
-          "prNumber": 4
-        },
-        {
-          "id": "e3ac254d-d5da-4f39-aa19-097472d001d0",
-          "title": "Jim agent capabilities review",
-          "titleSource": "custom",
-          "worktree": "silly-dijkstra-efb1cf",
-          "branch": "claude/jim-agent-capabilities-7a4794",
-          "startedAt": "2026-07-10T09:56:09.773Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 328,
-          "subagents": 13,
-          "work": {
-            "toolCalls": 80,
-            "edits": 8,
-            "filesTouched": 6,
-            "commands": 18,
-            "reads": 5,
-            "testRuns": 3,
-            "operateRuns": 1,
-            "activeMinutes": 100,
-            "operateUnits": {
-              "seller run": 1
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/13",
-          "prNumber": 13
         }
       ],
       "commits": [],
@@ -728,7 +721,7 @@
       "branch": "clap-first-rescope",
       "dirty": 4,
       "state": "parked",
-      "stateDetail": "no activity for 7 days",
+      "stateDetail": "no activity for 8 days",
       "lastActiveAt": "2026-09-13T11:24:30.655Z",
       "sessions": [
         {
@@ -739,7 +732,7 @@
           "startedAt": "2026-06-10T20:59:35.777Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 424,
           "subagents": 0,
           "work": {
@@ -766,7 +759,7 @@
           "startedAt": "2026-06-11T09:55:58.904Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 567,
           "subagents": 2,
           "work": {
@@ -788,7 +781,7 @@
           "startedAt": "2026-06-11T00:29:30.967Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 613,
           "subagents": 0,
           "work": {
@@ -816,7 +809,7 @@
           "startedAt": "2026-06-11T02:35:02.826Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 335,
           "subagents": 2,
           "work": {
@@ -873,7 +866,7 @@
       "branch": "main",
       "dirty": 60,
       "state": "parked",
-      "stateDetail": "no activity for 7 days",
+      "stateDetail": "no activity for 8 days",
       "lastActiveAt": "2026-09-13T11:24:30.655Z",
       "sessions": [
         {
@@ -885,7 +878,7 @@
           "startedAt": "2026-06-09T23:21:06.245Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 17,
           "subagents": 0,
           "work": {
@@ -934,10 +927,125 @@
       ],
       "branch": "main",
       "dirty": 2,
-      "state": "parked",
-      "stateDetail": "no activity for 6 days",
-      "lastActiveAt": "2026-09-13T14:33:47.678Z",
+      "state": "waiting",
+      "stateDetail": "turn finished — a human decides next",
+      "lastActiveAt": "2026-09-20T14:15:15.323Z",
       "sessions": [
+        {
+          "id": "df4c911a-8456-428c-b0ac-084392351baf",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "curator",
+          "branch": "HEAD",
+          "startedAt": "2026-09-20T14:15:15.264Z",
+          "lastActiveAt": "2026-09-20T14:15:15.323Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 11,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 0,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 0,
+            "reads": 0,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 0
+          }
+        },
+        {
+          "id": "01c10efe-ac5a-4615-8ebd-3b6b73e0b3ac",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "curator",
+          "branch": "HEAD",
+          "startedAt": "2026-09-20T14:15:14.271Z",
+          "lastActiveAt": "2026-09-20T14:15:14.327Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 11,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 0,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 0,
+            "reads": 0,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 0
+          }
+        },
+        {
+          "id": "d6f7e019-0bd5-4b8e-bdc8-58f76f62436f",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "curator",
+          "branch": "HEAD",
+          "startedAt": "2026-09-20T14:15:13.295Z",
+          "lastActiveAt": "2026-09-20T14:15:13.361Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 11,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 0,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 0,
+            "reads": 0,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 0
+          }
+        },
+        {
+          "id": "f0747f02-5887-479b-a864-7d802a740412",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "curator",
+          "branch": "HEAD",
+          "startedAt": "2026-09-20T14:15:12.245Z",
+          "lastActiveAt": "2026-09-20T14:15:12.308Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 11,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 0,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 0,
+            "reads": 0,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 0
+          }
+        },
+        {
+          "id": "fe2f0f87-2941-4cc6-b017-46412d30baba",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "curator",
+          "branch": "HEAD",
+          "startedAt": "2026-09-20T14:15:11.141Z",
+          "lastActiveAt": "2026-09-20T14:15:11.225Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 11,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 0,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 0,
+            "reads": 0,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 0
+          }
+        },
         {
           "id": "70872531-79af-4c11-ba68-1c63a294502d",
           "title": "untitled session",
@@ -947,7 +1055,7 @@
           "startedAt": "2026-09-13T14:33:47.617Z",
           "lastActiveAt": "2026-09-13T14:33:47.678Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -970,7 +1078,7 @@
           "startedAt": "2026-09-13T14:33:46.578Z",
           "lastActiveAt": "2026-09-13T14:33:46.641Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -993,7 +1101,7 @@
           "startedAt": "2026-09-13T14:16:56.443Z",
           "lastActiveAt": "2026-09-13T14:16:56.508Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1016,7 +1124,7 @@
           "startedAt": "2026-09-13T14:16:55.340Z",
           "lastActiveAt": "2026-09-13T14:16:55.426Z",
           "state": "parked",
-          "stateDetail": "no activity for 6 days",
+          "stateDetail": "no activity for 7 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1038,7 +1146,7 @@
           "startedAt": "2026-06-11T10:57:07.731Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 964,
           "subagents": 5,
           "work": {
@@ -1060,7 +1168,7 @@
           "startedAt": "2026-06-12T05:27:51.309Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 702,
           "subagents": 0,
           "work": {
@@ -1082,7 +1190,7 @@
           "startedAt": "2026-06-26T04:37:20.797Z",
           "lastActiveAt": "2026-09-13T11:24:30.655Z",
           "state": "parked",
-          "stateDetail": "no activity for 7 days",
+          "stateDetail": "no activity for 8 days",
           "events": 701,
           "subagents": 2,
           "work": {
@@ -1095,143 +1203,18 @@
             "operateRuns": 0,
             "activeMinutes": 88
           }
-        },
-        {
-          "id": "6cef429f-0244-4850-9c81-c548c33149fd",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "site/landing-umph",
-          "startedAt": "2026-06-12T08:35:34.476Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 478,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 146,
-            "edits": 52,
-            "filesTouched": 12,
-            "commands": 26,
-            "reads": 13,
-            "testRuns": 4,
-            "operateRuns": 3,
-            "activeMinutes": 56,
-            "operateUnits": {
-              "report": 3
-            }
-          }
-        },
-        {
-          "id": "7f7beb04-3b07-443c-afc0-a4f95ff85dc5",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-06-10T15:48:28.355Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 357,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 100,
-            "edits": 15,
-            "filesTouched": 8,
-            "commands": 21,
-            "reads": 9,
-            "testRuns": 3,
-            "operateRuns": 0,
-            "activeMinutes": 49
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/2",
-          "prNumber": 2
-        },
-        {
-          "id": "9573bf77-c9d4-4970-a0b0-a85a706d7635",
-          "title": "Website UI and documentation updates",
-          "titleSource": "custom",
-          "branch": "main",
-          "startedAt": "2026-07-09T23:35:02.313Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 226,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 63,
-            "edits": 7,
-            "filesTouched": 4,
-            "commands": 32,
-            "reads": 11,
-            "testRuns": 3,
-            "operateRuns": 2,
-            "activeMinutes": 8,
-            "operateUnits": {
-              "mirror pass": 2
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/10",
-          "prNumber": 10
-        },
-        {
-          "id": "a674992f-ed8a-403a-a4ee-d805826b8d3a",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-07-06T16:22:41.644Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 546,
-          "subagents": 6,
-          "work": {
-            "toolCalls": 164,
-            "edits": 57,
-            "filesTouched": 18,
-            "commands": 20,
-            "reads": 18,
-            "testRuns": 5,
-            "operateRuns": 0,
-            "activeMinutes": 65
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/5",
-          "prNumber": 5
-        },
-        {
-          "id": "d658fa18-b010-4bba-acca-6d1e49e6b6a8",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "site/landing-umph",
-          "startedAt": "2026-06-12T07:23:10.506Z",
-          "lastActiveAt": "2026-09-13T11:24:30.655Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 1761,
-          "subagents": 3,
-          "work": {
-            "toolCalls": 520,
-            "edits": 214,
-            "filesTouched": 40,
-            "commands": 77,
-            "reads": 39,
-            "testRuns": 10,
-            "operateRuns": 9,
-            "activeMinutes": 187,
-            "operateUnits": {
-              "report": 9
-            }
-          }
         }
       ],
       "commits": [
         {
-          "hash": "5ffdd21b2f536e2fa14a8ecc5736c14d6d6f29e6",
-          "shortHash": "5ffdd21",
-          "subject": "library: mirror the stacks (2026-09-19 07:18)",
-          "at": "2026-09-19T07:18:40-07:00",
+          "hash": "fcb324b509c76d7518db00257d8d1e6a5e448afb",
+          "shortHash": "fcb324b",
+          "subject": "library: mirror the stacks (2026-09-20 07:00)",
+          "at": "2026-09-20T07:00:07-07:00",
           "files": 8,
-          "ins": 3222,
-          "del": 970,
-          "refs": "origin/site/library-sync-20260919"
+          "ins": 3182,
+          "del": 1636,
+          "refs": "origin/site/library-sync-20260920"
         }
       ]
     }
