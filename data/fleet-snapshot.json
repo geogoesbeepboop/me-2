@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-10-13T13:59:02.571Z",
+  "generatedAt": "2026-10-15T13:58:43.183Z",
   "windowHours": 24,
   "agents": [
     {
@@ -30,10 +30,37 @@
       ],
       "branch": "main",
       "dirty": 0,
-      "state": "parked",
-      "stateDetail": "no activity for 3 days",
-      "lastActiveAt": "2026-10-09T23:22:55.173Z",
+      "state": "waiting",
+      "stateDetail": "stopped mid-work — last event was a tool result",
+      "lastActiveAt": "2026-10-15T00:22:39.773Z",
       "sessions": [
+        {
+          "id": "d31f7ac9-0421-406e-b7e2-f678b7a7ead6",
+          "title": "Chat intent extraction at production scale",
+          "titleSource": "custom",
+          "worktree": "financial-advisor-insights-bc4b18",
+          "branch": "claude/chat-intent-extraction-scale-70b08e",
+          "startedAt": "2026-07-29T22:30:32.121Z",
+          "lastActiveAt": "2026-10-15T00:22:39.773Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 1369,
+          "subagents": 5,
+          "work": {
+            "toolCalls": 290,
+            "edits": 44,
+            "filesTouched": 16,
+            "commands": 206,
+            "reads": 1,
+            "testRuns": 4,
+            "operateRuns": 55,
+            "activeMinutes": 509,
+            "operateUnits": {
+              "device run": 53,
+              "on-device eval sitting": 2
+            }
+          }
+        },
         {
           "id": "fbea2a21-8ffa-4365-981c-8b7723fc1c59",
           "title": "Plugin extension v2 marketing space",
@@ -44,7 +71,7 @@
           "startedAt": "2026-10-08T21:16:20.593Z",
           "lastActiveAt": "2026-10-09T23:22:55.173Z",
           "state": "parked",
-          "stateDetail": "no activity for 3 days",
+          "stateDetail": "no activity for 5 days",
           "events": 2295,
           "subagents": 5,
           "work": {
@@ -70,7 +97,7 @@
           "startedAt": "2026-10-08T00:43:38.139Z",
           "lastActiveAt": "2026-10-09T01:01:56.590Z",
           "state": "parked",
-          "stateDetail": "no activity for 4 days",
+          "stateDetail": "no activity for 6 days",
           "events": 4625,
           "subagents": 9,
           "work": {
@@ -95,7 +122,7 @@
           "startedAt": "2026-09-02T04:16:38.443Z",
           "lastActiveAt": "2026-10-08T04:00:31.266Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 1134,
           "subagents": 11,
           "work": {
@@ -118,7 +145,7 @@
           "startedAt": "2026-07-31T00:56:41.900Z",
           "lastActiveAt": "2026-10-08T04:00:30.346Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 619,
           "subagents": 0,
           "work": {
@@ -147,7 +174,7 @@
           "startedAt": "2026-08-04T04:36:38.841Z",
           "lastActiveAt": "2026-10-08T04:00:30.256Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 149,
           "subagents": 2,
           "work": {
@@ -170,7 +197,7 @@
           "startedAt": "2026-09-02T20:18:51.573Z",
           "lastActiveAt": "2026-10-08T04:00:30.154Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 2087,
           "subagents": 4,
           "work": {
@@ -193,7 +220,7 @@
           "startedAt": "2026-09-03T17:53:41.144Z",
           "lastActiveAt": "2026-10-08T04:00:29.850Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 844,
           "subagents": 11,
           "work": {
@@ -218,7 +245,7 @@
           "startedAt": "2026-09-15T04:30:02.648Z",
           "lastActiveAt": "2026-10-08T04:00:29.105Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 451,
           "subagents": 6,
           "work": {
@@ -244,7 +271,7 @@
           "startedAt": "2026-09-24T16:14:47.134Z",
           "lastActiveAt": "2026-10-08T04:00:28.689Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 966,
           "subagents": 7,
           "work": {
@@ -270,7 +297,7 @@
           "startedAt": "2026-09-28T16:29:02.023Z",
           "lastActiveAt": "2026-10-08T04:00:27.596Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 7 days",
           "events": 80,
           "subagents": 0,
           "work": {
@@ -285,54 +312,26 @@
           }
         },
         {
-          "id": "f319749c-79d5-4444-807f-82806d446d03",
-          "title": "MCP architecture and design",
+          "id": "538983a9-e942-4c7d-aea1-048a9d89742f",
+          "title": "Fix corrupt plaid LinkKit SPM artifact blocking routing gate",
           "titleSource": "custom",
-          "agentName": "MCP architecture and design",
-          "worktree": "mcp-architecture-design-607987",
-          "branch": "claude/mcp-architecture-design-607987",
-          "startedAt": "2026-10-01T07:11:23.428Z",
-          "lastActiveAt": "2026-10-06T03:49:24.996Z",
+          "branch": "claude/advisor-insights-quality-20260721",
+          "startedAt": "2026-07-22T03:56:55.822Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
           "stateDetail": "no activity for 7 days",
-          "events": 383,
-          "subagents": 2,
+          "events": 208,
+          "subagents": 0,
           "work": {
-            "toolCalls": 42,
+            "toolCalls": 37,
             "edits": 4,
-            "filesTouched": 2,
-            "commands": 11,
-            "reads": 4,
-            "testRuns": 0,
+            "filesTouched": 3,
+            "commands": 21,
+            "reads": 10,
+            "testRuns": 6,
             "operateRuns": 0,
-            "activeMinutes": 20
+            "activeMinutes": 23
           }
-        },
-        {
-          "id": "572964f7-3f46-4152-8e83-1ea3f2b9e2ca",
-          "title": "Plugin integration with Claude",
-          "titleSource": "custom",
-          "agentName": "Plugin integration with Claude",
-          "worktree": "serene-visvesvaraya-a2b6e8",
-          "branch": "claude/plugin-integration-1e481f",
-          "startedAt": "2026-09-25T06:50:49.963Z",
-          "lastActiveAt": "2026-10-06T03:49:24.996Z",
-          "state": "parked",
-          "stateDetail": "no activity for 7 days",
-          "events": 1565,
-          "subagents": 3,
-          "work": {
-            "toolCalls": 189,
-            "edits": 5,
-            "filesTouched": 4,
-            "commands": 163,
-            "reads": 1,
-            "testRuns": 63,
-            "operateRuns": 0,
-            "activeMinutes": 70
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/60",
-          "prNumber": 60
         }
       ],
       "commits": [],
@@ -378,19 +377,41 @@
       "outputUnpersisted": true,
       "branch": "main",
       "dirty": 2,
-      "state": "parked",
-      "stateDetail": "no activity for 8 days",
-      "lastActiveAt": "2026-10-05T03:38:47.983Z",
+      "state": "waiting",
+      "stateDetail": "interrupted mid-turn — the last word was the operator's",
+      "lastActiveAt": "2026-10-15T02:03:14.934Z",
       "sessions": [
+        {
+          "id": "5d003495-5c52-48cd-91b5-fb6694de6182",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-06-28T02:49:56.024Z",
+          "lastActiveAt": "2026-10-15T02:03:14.934Z",
+          "state": "waiting",
+          "stateDetail": "interrupted mid-turn — the last word was the operator's",
+          "events": 265,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 37,
+            "edits": 0,
+            "filesTouched": 0,
+            "commands": 6,
+            "reads": 30,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 191
+          }
+        },
         {
           "id": "e57ba757-940f-40ac-ba10-9bdc9d2065d9",
           "title": "untitled session",
           "titleSource": "prompt",
           "branch": "main",
           "startedAt": "2026-06-28T21:04:10.019Z",
-          "lastActiveAt": "2026-10-05T03:38:47.983Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "lastActiveAt": "2026-10-15T00:53:55.594Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
           "events": 1130,
           "subagents": 4,
           "work": {
@@ -411,30 +432,26 @@
           "prNumber": 3
         },
         {
-          "id": "57553c5d-602a-439f-bb84-c87467760d72",
-          "title": "Jim agent UI and eval suite revamp",
-          "titleSource": "custom",
-          "worktree": "magical-northcutt-aa329a",
-          "branch": "claude/jim-agent-ui-evals-4c61c0",
-          "startedAt": "2026-07-25T17:21:54.893Z",
-          "lastActiveAt": "2026-10-05T03:38:47.983Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 1938,
-          "subagents": 8,
+          "id": "513d390b-eac0-4021-b0db-0e05ea6dc1b6",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "gallant-heyrovsky-e3a209",
+          "branch": "claude/gallant-heyrovsky-e3a209",
+          "startedAt": "2026-07-04T16:05:00.016Z",
+          "lastActiveAt": "2026-10-15T00:14:56.038Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 445,
+          "subagents": 1,
           "work": {
-            "toolCalls": 526,
-            "edits": 155,
-            "filesTouched": 83,
-            "commands": 254,
-            "reads": 19,
-            "testRuns": 120,
-            "operateRuns": 3,
-            "activeMinutes": 172,
-            "operateUnits": {
-              "monitor run": 1,
-              "seller run": 2
-            }
+            "toolCalls": 142,
+            "edits": 38,
+            "filesTouched": 23,
+            "commands": 45,
+            "reads": 23,
+            "testRuns": 11,
+            "operateRuns": 0,
+            "activeMinutes": 33
           }
         },
         {
@@ -444,9 +461,9 @@
           "worktree": "silly-dijkstra-efb1cf",
           "branch": "claude/silly-dijkstra-efb1cf",
           "startedAt": "2026-07-04T21:27:18.560Z",
-          "lastActiveAt": "2026-10-05T03:38:47.983Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "lastActiveAt": "2026-10-15T00:01:31.212Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
           "events": 293,
           "subagents": 0,
           "work": {
@@ -461,25 +478,132 @@
           }
         },
         {
-          "id": "5d003495-5c52-48cd-91b5-fb6694de6182",
+          "id": "913f76c8-3715-4bf9-89e5-9edf46ba7f21",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "sweet-chatterjee-04e00e",
+          "branch": "claude/sweet-chatterjee-04e00e",
+          "startedAt": "2026-07-02T19:31:36.376Z",
+          "lastActiveAt": "2026-10-14T23:57:40.695Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 760,
+          "subagents": 7,
+          "work": {
+            "toolCalls": 227,
+            "edits": 99,
+            "filesTouched": 47,
+            "commands": 45,
+            "reads": 38,
+            "testRuns": 15,
+            "operateRuns": 3,
+            "activeMinutes": 87,
+            "operateUnits": {
+              "memo": 1,
+              "market op": 2
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/7",
+          "prNumber": 7
+        },
+        {
+          "id": "838ade23-12d0-418d-898e-b6a7f033c081",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "worktree": "quirky-bhabha-8e1bbb",
+          "branch": "claude/quirky-bhabha-8e1bbb",
+          "startedAt": "2026-07-02T18:03:35.544Z",
+          "lastActiveAt": "2026-10-14T23:57:40.587Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 500,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 125,
+            "edits": 19,
+            "filesTouched": 14,
+            "commands": 82,
+            "reads": 17,
+            "testRuns": 13,
+            "operateRuns": 1,
+            "activeMinutes": 119,
+            "operateUnits": {
+              "market op": 1
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/4",
+          "prNumber": 4
+        },
+        {
+          "id": "d55cdca7-6af1-4e8e-92b6-661a0dc3cef9",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "feat/data-sources",
+          "startedAt": "2026-06-29T02:29:45.292Z",
+          "lastActiveAt": "2026-10-14T23:57:40.233Z",
+          "state": "waiting",
+          "stateDetail": "turn finished — a human decides next",
+          "events": 70,
+          "subagents": 1,
+          "work": {
+            "toolCalls": 14,
+            "edits": 2,
+            "filesTouched": 2,
+            "commands": 2,
+            "reads": 6,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 26
+          }
+        },
+        {
+          "id": "e3ac254d-d5da-4f39-aa19-097472d001d0",
+          "title": "Jim agent capabilities review",
+          "titleSource": "custom",
+          "worktree": "silly-dijkstra-efb1cf",
+          "branch": "claude/jim-agent-capabilities-7a4794",
+          "startedAt": "2026-07-10T09:56:09.773Z",
+          "lastActiveAt": "2026-10-14T23:56:17.632Z",
+          "state": "waiting",
+          "stateDetail": "interrupted mid-turn — the last word was the operator's",
+          "events": 328,
+          "subagents": 13,
+          "work": {
+            "toolCalls": 80,
+            "edits": 8,
+            "filesTouched": 6,
+            "commands": 18,
+            "reads": 5,
+            "testRuns": 3,
+            "operateRuns": 1,
+            "activeMinutes": 100,
+            "operateUnits": {
+              "seller run": 1
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/13",
+          "prNumber": 13
+        },
+        {
+          "id": "96a529b1-eb2f-448e-a9b6-bcb2cc84cdcf",
           "title": "untitled session",
           "titleSource": "prompt",
           "branch": "main",
-          "startedAt": "2026-06-28T02:49:56.024Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 265,
+          "startedAt": "2026-07-06T17:30:10.008Z",
+          "lastActiveAt": "2026-10-14T23:56:17.466Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 31,
           "subagents": 0,
           "work": {
-            "toolCalls": 37,
+            "toolCalls": 5,
             "edits": 0,
             "filesTouched": 0,
-            "commands": 6,
-            "reads": 30,
+            "commands": 4,
+            "reads": 1,
             "testRuns": 0,
             "operateRuns": 0,
-            "activeMinutes": 191
+            "activeMinutes": 2
           }
         },
         {
@@ -488,9 +612,9 @@
           "titleSource": "prompt",
           "branch": "main",
           "startedAt": "2026-07-08T01:52:11.909Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 139,
           "subagents": 0,
           "work": {
@@ -510,36 +634,14 @@
           "prNumber": 11
         },
         {
-          "id": "96a529b1-eb2f-448e-a9b6-bcb2cc84cdcf",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "main",
-          "startedAt": "2026-07-06T17:30:10.008Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 31,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 5,
-            "edits": 0,
-            "filesTouched": 0,
-            "commands": 4,
-            "reads": 1,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 2
-          }
-        },
-        {
           "id": "ad7c3b83-83a9-4748-81eb-539012fafb75",
           "title": "untitled session",
           "titleSource": "prompt",
           "branch": "main",
           "startedAt": "2026-07-08T07:29:06.891Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 108,
           "subagents": 0,
           "work": {
@@ -559,9 +661,9 @@
           "titleSource": "prompt",
           "branch": "main",
           "startedAt": "2026-07-08T04:49:25.834Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 236,
           "subagents": 2,
           "work": {
@@ -574,108 +676,6 @@
             "operateRuns": 0,
             "activeMinutes": 39
           }
-        },
-        {
-          "id": "d55cdca7-6af1-4e8e-92b6-661a0dc3cef9",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "feat/data-sources",
-          "startedAt": "2026-06-29T02:29:45.292Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 70,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 14,
-            "edits": 2,
-            "filesTouched": 2,
-            "commands": 2,
-            "reads": 6,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 26
-          }
-        },
-        {
-          "id": "513d390b-eac0-4021-b0db-0e05ea6dc1b6",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "gallant-heyrovsky-e3a209",
-          "branch": "claude/gallant-heyrovsky-e3a209",
-          "startedAt": "2026-07-04T16:05:00.016Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 445,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 142,
-            "edits": 38,
-            "filesTouched": 23,
-            "commands": 45,
-            "reads": 23,
-            "testRuns": 11,
-            "operateRuns": 0,
-            "activeMinutes": 33
-          }
-        },
-        {
-          "id": "52b78c38-3911-44bd-bbdd-1b77caaacc8c",
-          "title": "Agent SDK subscription login support",
-          "titleSource": "custom",
-          "worktree": "magical-northcutt-aa329a",
-          "branch": "claude/brave-shaw-b41ba8",
-          "startedAt": "2026-07-14T17:14:17.616Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 507,
-          "subagents": 3,
-          "work": {
-            "toolCalls": 129,
-            "edits": 53,
-            "filesTouched": 22,
-            "commands": 31,
-            "reads": 32,
-            "testRuns": 9,
-            "operateRuns": 3,
-            "activeMinutes": 31,
-            "operateUnits": {
-              "memo": 3
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/14",
-          "prNumber": 14
-        },
-        {
-          "id": "f736e3c8-436b-4c01-88fe-2f4e5a3fd9e0",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "magical-northcutt-aa329a",
-          "branch": "claude/magical-northcutt-aa329a",
-          "startedAt": "2026-07-03T21:27:59.620Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 551,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 166,
-            "edits": 27,
-            "filesTouched": 9,
-            "commands": 106,
-            "reads": 25,
-            "testRuns": 11,
-            "operateRuns": 2,
-            "activeMinutes": 46,
-            "operateUnits": {
-              "memo": 1,
-              "seller run": 1
-            }
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/jim-agent/pull/8",
-          "prNumber": 8
         }
       ],
       "commits": [],
@@ -720,92 +720,19 @@
       "outputUnpersisted": true,
       "branch": "clap-first-rescope",
       "dirty": 5,
-      "state": "parked",
-      "stateDetail": "no activity for 8 days",
-      "lastActiveAt": "2026-10-05T03:38:47.983Z",
+      "state": "waiting",
+      "stateDetail": "stopped mid-work — last event was a tool result",
+      "lastActiveAt": "2026-10-15T00:01:29.310Z",
       "sessions": [
-        {
-          "id": "66a7fa5b-4aef-4291-ab7d-9cbae1d23e82",
-          "title": "Running mix project viability",
-          "titleSource": "custom",
-          "agentName": "Running mix project viability",
-          "worktree": "running-mix-project-review-94ee01",
-          "branch": "claude/running-mix-project-review-94ee01",
-          "startedAt": "2026-09-27T19:12:25.213Z",
-          "lastActiveAt": "2026-10-05T03:38:47.983Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 173,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 16,
-            "edits": 2,
-            "filesTouched": 2,
-            "commands": 10,
-            "reads": 0,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 9
-          }
-        },
-        {
-          "id": "1e0dc97f-cb9b-410f-9798-50a9a61a070d",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "branch": "clap-first-rescope",
-          "startedAt": "2026-06-10T20:59:35.777Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 424,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 123,
-            "edits": 48,
-            "filesTouched": 27,
-            "commands": 37,
-            "reads": 27,
-            "testRuns": 7,
-            "operateRuns": 6,
-            "activeMinutes": 63,
-            "operateUnits": {
-              "ingest": 3,
-              "taste review": 2,
-              "judge": 1
-            }
-          }
-        },
-        {
-          "id": "254314ad-29db-4f96-b3cb-0c93639b7722",
-          "title": "DJ agent set quality improvements",
-          "titleSource": "custom",
-          "branch": "clap-first-rescope",
-          "startedAt": "2026-06-11T09:55:58.904Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
-          "events": 567,
-          "subagents": 2,
-          "work": {
-            "toolCalls": 150,
-            "edits": 52,
-            "filesTouched": 21,
-            "commands": 53,
-            "reads": 25,
-            "testRuns": 5,
-            "operateRuns": 0,
-            "activeMinutes": 68
-          }
-        },
         {
           "id": "263a80a5-c45d-4528-a729-0f6c35a87213",
           "title": "untitled session",
           "titleSource": "prompt",
           "branch": "clap-first-rescope",
           "startedAt": "2026-06-11T00:29:30.967Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "lastActiveAt": "2026-10-15T00:01:29.310Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
           "events": 613,
           "subagents": 0,
           "work": {
@@ -831,9 +758,9 @@
           "titleSource": "custom",
           "branch": "clap-first-rescope",
           "startedAt": "2026-06-11T02:35:02.826Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
-          "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "lastActiveAt": "2026-10-15T00:01:29.223Z",
+          "state": "waiting",
+          "stateDetail": "interrupted mid-turn — the last word was the operator's",
           "events": 335,
           "subagents": 2,
           "work": {
@@ -845,6 +772,79 @@
             "testRuns": 5,
             "operateRuns": 0,
             "activeMinutes": 24
+          }
+        },
+        {
+          "id": "254314ad-29db-4f96-b3cb-0c93639b7722",
+          "title": "DJ agent set quality improvements",
+          "titleSource": "custom",
+          "branch": "clap-first-rescope",
+          "startedAt": "2026-06-11T09:55:58.904Z",
+          "lastActiveAt": "2026-10-14T23:56:17.803Z",
+          "state": "waiting",
+          "stateDetail": "stopped mid-work — last event was a tool result",
+          "events": 567,
+          "subagents": 2,
+          "work": {
+            "toolCalls": 150,
+            "edits": 52,
+            "filesTouched": 21,
+            "commands": 53,
+            "reads": 25,
+            "testRuns": 5,
+            "operateRuns": 0,
+            "activeMinutes": 68
+          }
+        },
+        {
+          "id": "1e0dc97f-cb9b-410f-9798-50a9a61a070d",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "clap-first-rescope",
+          "startedAt": "2026-06-10T20:59:35.777Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 424,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 123,
+            "edits": 48,
+            "filesTouched": 27,
+            "commands": 37,
+            "reads": 27,
+            "testRuns": 7,
+            "operateRuns": 6,
+            "activeMinutes": 63,
+            "operateUnits": {
+              "ingest": 3,
+              "taste review": 2,
+              "judge": 1
+            }
+          }
+        },
+        {
+          "id": "66a7fa5b-4aef-4291-ab7d-9cbae1d23e82",
+          "title": "Running mix project viability",
+          "titleSource": "custom",
+          "agentName": "Running mix project viability",
+          "worktree": "running-mix-project-review-94ee01",
+          "branch": "claude/running-mix-project-review-94ee01",
+          "startedAt": "2026-09-27T19:12:25.213Z",
+          "lastActiveAt": "2026-10-05T03:38:47.983Z",
+          "state": "parked",
+          "stateDetail": "no activity for 10 days",
+          "events": 173,
+          "subagents": 1,
+          "work": {
+            "toolCalls": 16,
+            "edits": 2,
+            "filesTouched": 2,
+            "commands": 10,
+            "reads": 0,
+            "testRuns": 0,
+            "operateRuns": 0,
+            "activeMinutes": 9
           }
         }
       ],
@@ -890,8 +890,8 @@
       "branch": "main",
       "dirty": 60,
       "state": "parked",
-      "stateDetail": "no activity for 9 days",
-      "lastActiveAt": "2026-10-04T03:38:48.171Z",
+      "stateDetail": "no activity for 7 days",
+      "lastActiveAt": "2026-10-07T18:50:31.715Z",
       "sessions": [
         {
           "id": "1cc1132e-e42a-40d1-ac69-df6d1a30aadd",
@@ -900,9 +900,9 @@
           "worktree": "objective-boyd-c57558",
           "branch": "claude/objective-boyd-c57558",
           "startedAt": "2026-06-09T23:21:06.245Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 17,
           "subagents": 0,
           "work": {
@@ -952,7 +952,7 @@
       "branch": "main",
       "dirty": 2,
       "state": "parked",
-      "stateDetail": "no activity for a day",
+      "stateDetail": "no activity for 3 days",
       "lastActiveAt": "2026-10-11T14:15:12.339Z",
       "sessions": [
         {
@@ -964,7 +964,7 @@
           "startedAt": "2026-10-11T14:15:12.268Z",
           "lastActiveAt": "2026-10-11T14:15:12.339Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 3 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -987,7 +987,7 @@
           "startedAt": "2026-10-11T14:15:11.275Z",
           "lastActiveAt": "2026-10-11T14:15:11.346Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 3 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1010,7 +1010,7 @@
           "startedAt": "2026-10-11T14:15:10.222Z",
           "lastActiveAt": "2026-10-11T14:15:10.290Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
+          "stateDetail": "no activity for 3 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1033,99 +1033,7 @@
           "startedAt": "2026-10-11T14:15:09.165Z",
           "lastActiveAt": "2026-10-11T14:15:09.230Z",
           "state": "parked",
-          "stateDetail": "no activity for a day",
-          "events": 11,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 0,
-            "edits": 0,
-            "filesTouched": 0,
-            "commands": 0,
-            "reads": 0,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 0
-          }
-        },
-        {
-          "id": "94dfc50d-18e7-41e3-8657-7ae13f2a193c",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "curator",
-          "branch": "HEAD",
-          "startedAt": "2026-10-04T14:44:48.578Z",
-          "lastActiveAt": "2026-10-04T14:44:48.642Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 11,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 0,
-            "edits": 0,
-            "filesTouched": 0,
-            "commands": 0,
-            "reads": 0,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 0
-          }
-        },
-        {
-          "id": "574ef47b-2f65-4e47-990d-1973604d451c",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "curator",
-          "branch": "HEAD",
-          "startedAt": "2026-10-04T14:44:47.453Z",
-          "lastActiveAt": "2026-10-04T14:44:47.516Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 11,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 0,
-            "edits": 0,
-            "filesTouched": 0,
-            "commands": 0,
-            "reads": 0,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 0
-          }
-        },
-        {
-          "id": "8ceac7e6-eb3f-42ce-97f5-946dad5d7774",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "curator",
-          "branch": "HEAD",
-          "startedAt": "2026-10-04T14:44:46.297Z",
-          "lastActiveAt": "2026-10-04T14:44:46.370Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 11,
-          "subagents": 0,
-          "work": {
-            "toolCalls": 0,
-            "edits": 0,
-            "filesTouched": 0,
-            "commands": 0,
-            "reads": 0,
-            "testRuns": 0,
-            "operateRuns": 0,
-            "activeMinutes": 0
-          }
-        },
-        {
-          "id": "27c22675-0741-4c58-8aa3-458bcdcf8215",
-          "title": "untitled session",
-          "titleSource": "prompt",
-          "worktree": "curator",
-          "branch": "HEAD",
-          "startedAt": "2026-10-04T14:27:30.170Z",
-          "lastActiveAt": "2026-10-04T14:27:30.234Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 3 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1145,9 +1053,9 @@
           "titleSource": "prompt",
           "branch": "site/projects-merge-and-dj-console",
           "startedAt": "2026-06-11T10:57:07.731Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 964,
           "subagents": 5,
           "work": {
@@ -1167,9 +1075,9 @@
           "titleSource": "prompt",
           "branch": "site/landing-umph",
           "startedAt": "2026-06-12T05:27:51.309Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 702,
           "subagents": 0,
           "work": {
@@ -1189,9 +1097,9 @@
           "titleSource": "prompt",
           "branch": "site/landing-umph",
           "startedAt": "2026-06-26T04:37:20.797Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 701,
           "subagents": 2,
           "work": {
@@ -1211,9 +1119,9 @@
           "titleSource": "prompt",
           "branch": "site/landing-umph",
           "startedAt": "2026-06-12T08:35:34.476Z",
-          "lastActiveAt": "2026-10-04T03:38:48.171Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
           "state": "parked",
-          "stateDetail": "no activity for 9 days",
+          "stateDetail": "no activity for 7 days",
           "events": 478,
           "subagents": 1,
           "work": {
@@ -1229,18 +1137,118 @@
               "report": 3
             }
           }
+        },
+        {
+          "id": "7f7beb04-3b07-443c-afc0-a4f95ff85dc5",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-06-10T15:48:28.355Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 357,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 100,
+            "edits": 15,
+            "filesTouched": 8,
+            "commands": 21,
+            "reads": 9,
+            "testRuns": 3,
+            "operateRuns": 0,
+            "activeMinutes": 49
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/2",
+          "prNumber": 2
+        },
+        {
+          "id": "9573bf77-c9d4-4970-a0b0-a85a706d7635",
+          "title": "Website UI and documentation updates",
+          "titleSource": "custom",
+          "branch": "main",
+          "startedAt": "2026-07-09T23:35:02.313Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 226,
+          "subagents": 0,
+          "work": {
+            "toolCalls": 63,
+            "edits": 7,
+            "filesTouched": 4,
+            "commands": 32,
+            "reads": 11,
+            "testRuns": 3,
+            "operateRuns": 2,
+            "activeMinutes": 8,
+            "operateUnits": {
+              "mirror pass": 2
+            }
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/10",
+          "prNumber": 10
+        },
+        {
+          "id": "a674992f-ed8a-403a-a4ee-d805826b8d3a",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "main",
+          "startedAt": "2026-07-06T16:22:41.644Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 546,
+          "subagents": 6,
+          "work": {
+            "toolCalls": 164,
+            "edits": 57,
+            "filesTouched": 18,
+            "commands": 20,
+            "reads": 18,
+            "testRuns": 5,
+            "operateRuns": 0,
+            "activeMinutes": 65
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/me-2/pull/5",
+          "prNumber": 5
+        },
+        {
+          "id": "d658fa18-b010-4bba-acca-6d1e49e6b6a8",
+          "title": "untitled session",
+          "titleSource": "prompt",
+          "branch": "site/landing-umph",
+          "startedAt": "2026-06-12T07:23:10.506Z",
+          "lastActiveAt": "2026-10-07T18:50:31.715Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 1761,
+          "subagents": 3,
+          "work": {
+            "toolCalls": 520,
+            "edits": 214,
+            "filesTouched": 40,
+            "commands": 77,
+            "reads": 39,
+            "testRuns": 10,
+            "operateRuns": 9,
+            "activeMinutes": 187,
+            "operateUnits": {
+              "report": 9
+            }
+          }
         }
       ],
       "commits": [
         {
-          "hash": "e912fb4233d8b27600373d866d7524ce9cfa50dd",
-          "shortHash": "e912fb4",
-          "subject": "library: mirror the stacks (2026-10-12 07:06)",
-          "at": "2026-10-12T07:06:06-07:00",
+          "hash": "b7a85e570131c43164931acda494b7948d28c44d",
+          "shortHash": "b7a85e5",
+          "subject": "library: mirror the stacks (2026-10-14 07:17)",
+          "at": "2026-10-14T07:17:44-07:00",
           "files": 8,
           "ins": 3182,
           "del": 1636,
-          "refs": "origin/site/library-sync-20261012"
+          "refs": "origin/site/library-sync-20261014"
         }
       ]
     }
