@@ -1,6 +1,6 @@
 {
   "mode": "recorded",
-  "generatedAt": "2026-10-23T13:47:23.172Z",
+  "generatedAt": "2026-10-24T13:59:31.112Z",
   "windowHours": 24,
   "agents": [
     {
@@ -31,7 +31,7 @@
       "branch": "main",
       "dirty": 0,
       "state": "parked",
-      "stateDetail": "no activity for 5 days",
+      "stateDetail": "no activity for 6 days",
       "lastActiveAt": "2026-10-17T19:08:54.748Z",
       "sessions": [
         {
@@ -44,7 +44,7 @@
           "startedAt": "2026-10-01T07:11:23.428Z",
           "lastActiveAt": "2026-10-17T19:08:54.748Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 6 days",
           "events": 383,
           "subagents": 2,
           "work": {
@@ -68,7 +68,7 @@
           "startedAt": "2026-09-28T16:29:02.023Z",
           "lastActiveAt": "2026-10-17T19:08:54.668Z",
           "state": "parked",
-          "stateDetail": "no activity for 5 days",
+          "stateDetail": "no activity for 6 days",
           "events": 80,
           "subagents": 0,
           "work": {
@@ -83,6 +83,32 @@
           }
         },
         {
+          "id": "fbea2a21-8ffa-4365-981c-8b7723fc1c59",
+          "title": "Plugin extension v2 marketing space",
+          "titleSource": "custom",
+          "agentName": "Plugin extension v2 marketing space",
+          "worktree": "plugin-extension-v2-marketing-cc1ea4",
+          "branch": "claude/plugin-extension-v2-marketing-cc1ea4",
+          "startedAt": "2026-10-08T21:16:20.593Z",
+          "lastActiveAt": "2026-10-17T02:32:57.497Z",
+          "state": "parked",
+          "stateDetail": "no activity for 7 days",
+          "events": 2295,
+          "subagents": 5,
+          "work": {
+            "toolCalls": 329,
+            "edits": 22,
+            "filesTouched": 19,
+            "commands": 227,
+            "reads": 4,
+            "testRuns": 64,
+            "operateRuns": 0,
+            "activeMinutes": 123
+          },
+          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/62",
+          "prNumber": 62
+        },
+        {
           "id": "2d5a1432-bf93-4365-9ee2-d94154f351f1",
           "title": "Plugin extensions landscape research",
           "titleSource": "custom",
@@ -92,7 +118,7 @@
           "startedAt": "2026-10-08T00:43:38.139Z",
           "lastActiveAt": "2026-10-15T08:52:12.291Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 4625,
           "subagents": 9,
           "work": {
@@ -118,7 +144,7 @@
           "startedAt": "2026-09-25T06:50:49.963Z",
           "lastActiveAt": "2026-10-15T08:52:12.266Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 1565,
           "subagents": 3,
           "work": {
@@ -143,7 +169,7 @@
           "startedAt": "2026-07-29T22:30:32.121Z",
           "lastActiveAt": "2026-10-15T00:22:39.773Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 1369,
           "subagents": 5,
           "work": {
@@ -169,7 +195,7 @@
           "startedAt": "2026-09-09T06:37:15.042Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 312,
           "subagents": 6,
           "work": {
@@ -192,7 +218,7 @@
           "startedAt": "2026-07-22T21:22:24.635Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 249,
           "subagents": 0,
           "work": {
@@ -217,7 +243,7 @@
           "startedAt": "2026-07-22T07:50:09.672Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 424,
           "subagents": 1,
           "work": {
@@ -245,7 +271,7 @@
           "startedAt": "2026-07-29T23:47:15.312Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 399,
           "subagents": 0,
           "work": {
@@ -268,7 +294,7 @@
           "startedAt": "2026-07-22T00:27:46.811Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 577,
           "subagents": 0,
           "work": {
@@ -296,7 +322,7 @@
           "startedAt": "2026-07-21T18:45:06.811Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 735,
           "subagents": 1,
           "work": {
@@ -314,31 +340,6 @@
           },
           "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/43",
           "prNumber": 43
-        },
-        {
-          "id": "effa8874-e7ed-4195-b58b-00ee852a4719",
-          "title": "Fix limit-less card utilization bug + fixture gaps",
-          "titleSource": "custom",
-          "worktree": "eloquent-perlman-23db42",
-          "branch": "claude/eloquent-perlman-23db42",
-          "startedAt": "2026-07-21T07:09:12.313Z",
-          "lastActiveAt": "2026-10-14T20:32:29.791Z",
-          "state": "parked",
-          "stateDetail": "no activity for 8 days",
-          "events": 275,
-          "subagents": 1,
-          "work": {
-            "toolCalls": 74,
-            "edits": 24,
-            "filesTouched": 11,
-            "commands": 43,
-            "reads": 5,
-            "testRuns": 3,
-            "operateRuns": 0,
-            "activeMinutes": 22
-          },
-          "prUrl": "https://github.com/geogoesbeepboop/Crown/pull/38",
-          "prNumber": 38
         }
       ],
       "commits": [],
@@ -385,7 +386,7 @@
       "branch": "main",
       "dirty": 2,
       "state": "parked",
-      "stateDetail": "no activity for 8 days",
+      "stateDetail": "no activity for 9 days",
       "lastActiveAt": "2026-10-15T02:03:14.934Z",
       "sessions": [
         {
@@ -396,7 +397,7 @@
           "startedAt": "2026-06-28T02:49:56.024Z",
           "lastActiveAt": "2026-10-15T02:03:14.934Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 265,
           "subagents": 0,
           "work": {
@@ -418,7 +419,7 @@
           "startedAt": "2026-06-28T21:04:10.019Z",
           "lastActiveAt": "2026-10-15T00:53:55.594Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 1130,
           "subagents": 4,
           "work": {
@@ -447,7 +448,7 @@
           "startedAt": "2026-07-04T16:05:00.016Z",
           "lastActiveAt": "2026-10-15T00:14:56.038Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 445,
           "subagents": 1,
           "work": {
@@ -470,7 +471,7 @@
           "startedAt": "2026-07-04T21:27:18.560Z",
           "lastActiveAt": "2026-10-15T00:01:31.212Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 293,
           "subagents": 0,
           "work": {
@@ -493,7 +494,7 @@
           "startedAt": "2026-07-02T19:31:36.376Z",
           "lastActiveAt": "2026-10-14T23:57:40.695Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 760,
           "subagents": 7,
           "work": {
@@ -522,7 +523,7 @@
           "startedAt": "2026-07-02T18:03:35.544Z",
           "lastActiveAt": "2026-10-14T23:57:40.587Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 500,
           "subagents": 0,
           "work": {
@@ -549,7 +550,7 @@
           "startedAt": "2026-06-29T02:29:45.292Z",
           "lastActiveAt": "2026-10-14T23:57:40.233Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 70,
           "subagents": 1,
           "work": {
@@ -572,7 +573,7 @@
           "startedAt": "2026-07-10T09:56:09.773Z",
           "lastActiveAt": "2026-10-14T23:56:17.632Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 328,
           "subagents": 13,
           "work": {
@@ -599,7 +600,7 @@
           "startedAt": "2026-07-06T17:30:10.008Z",
           "lastActiveAt": "2026-10-14T23:56:17.466Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 31,
           "subagents": 0,
           "work": {
@@ -621,7 +622,7 @@
           "startedAt": "2026-07-08T04:49:25.834Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 236,
           "subagents": 2,
           "work": {
@@ -644,7 +645,7 @@
           "startedAt": "2026-07-25T17:21:54.893Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 1938,
           "subagents": 8,
           "work": {
@@ -670,7 +671,7 @@
           "startedAt": "2026-07-08T01:52:11.909Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 139,
           "subagents": 0,
           "work": {
@@ -733,7 +734,7 @@
       "branch": "clap-first-rescope",
       "dirty": 5,
       "state": "parked",
-      "stateDetail": "no activity for 8 days",
+      "stateDetail": "no activity for 9 days",
       "lastActiveAt": "2026-10-15T00:01:29.310Z",
       "sessions": [
         {
@@ -744,7 +745,7 @@
           "startedAt": "2026-06-11T00:29:30.967Z",
           "lastActiveAt": "2026-10-15T00:01:29.310Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 613,
           "subagents": 0,
           "work": {
@@ -772,7 +773,7 @@
           "startedAt": "2026-06-11T02:35:02.826Z",
           "lastActiveAt": "2026-10-15T00:01:29.223Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 335,
           "subagents": 2,
           "work": {
@@ -794,7 +795,7 @@
           "startedAt": "2026-06-11T09:55:58.904Z",
           "lastActiveAt": "2026-10-14T23:56:17.803Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 567,
           "subagents": 2,
           "work": {
@@ -816,7 +817,7 @@
           "startedAt": "2026-06-10T20:59:35.777Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 424,
           "subagents": 0,
           "work": {
@@ -845,7 +846,7 @@
           "startedAt": "2026-09-27T19:12:25.213Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 173,
           "subagents": 1,
           "work": {
@@ -902,7 +903,7 @@
       "branch": "main",
       "dirty": 60,
       "state": "parked",
-      "stateDetail": "no activity for 8 days",
+      "stateDetail": "no activity for 9 days",
       "lastActiveAt": "2026-10-14T20:32:29.754Z",
       "sessions": [
         {
@@ -914,7 +915,7 @@
           "startedAt": "2026-06-09T23:21:06.245Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 17,
           "subagents": 0,
           "work": {
@@ -964,7 +965,7 @@
       "branch": "main",
       "dirty": 2,
       "state": "parked",
-      "stateDetail": "no activity for 4 days",
+      "stateDetail": "no activity for 5 days",
       "lastActiveAt": "2026-10-18T14:15:10.795Z",
       "sessions": [
         {
@@ -976,7 +977,7 @@
           "startedAt": "2026-10-18T14:15:10.736Z",
           "lastActiveAt": "2026-10-18T14:15:10.795Z",
           "state": "parked",
-          "stateDetail": "no activity for 4 days",
+          "stateDetail": "no activity for 5 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -999,7 +1000,7 @@
           "startedAt": "2026-10-18T14:15:09.666Z",
           "lastActiveAt": "2026-10-18T14:15:09.729Z",
           "state": "parked",
-          "stateDetail": "no activity for 4 days",
+          "stateDetail": "no activity for 5 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1022,7 +1023,7 @@
           "startedAt": "2026-10-18T14:15:08.602Z",
           "lastActiveAt": "2026-10-18T14:15:08.669Z",
           "state": "parked",
-          "stateDetail": "no activity for 4 days",
+          "stateDetail": "no activity for 5 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1045,7 +1046,7 @@
           "startedAt": "2026-10-18T14:15:07.466Z",
           "lastActiveAt": "2026-10-18T14:15:07.541Z",
           "state": "parked",
-          "stateDetail": "no activity for 4 days",
+          "stateDetail": "no activity for 5 days",
           "events": 11,
           "subagents": 0,
           "work": {
@@ -1067,7 +1068,7 @@
           "startedAt": "2026-06-12T07:23:10.506Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 1761,
           "subagents": 3,
           "work": {
@@ -1092,7 +1093,7 @@
           "startedAt": "2026-06-11T06:03:06.605Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 166,
           "subagents": 0,
           "work": {
@@ -1115,7 +1116,7 @@
           "startedAt": "2026-07-24T07:32:57.640Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 619,
           "subagents": 2,
           "work": {
@@ -1138,7 +1139,7 @@
           "startedAt": "2026-07-12T19:26:54.966Z",
           "lastActiveAt": "2026-10-14T20:32:29.791Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 77,
           "subagents": 1,
           "work": {
@@ -1160,7 +1161,7 @@
           "startedAt": "2026-06-11T10:57:07.731Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 964,
           "subagents": 5,
           "work": {
@@ -1182,7 +1183,7 @@
           "startedAt": "2026-06-12T05:27:51.309Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 702,
           "subagents": 0,
           "work": {
@@ -1204,7 +1205,7 @@
           "startedAt": "2026-06-26T04:37:20.797Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 701,
           "subagents": 2,
           "work": {
@@ -1226,7 +1227,7 @@
           "startedAt": "2026-06-12T08:35:34.476Z",
           "lastActiveAt": "2026-10-14T20:32:29.754Z",
           "state": "parked",
-          "stateDetail": "no activity for 8 days",
+          "stateDetail": "no activity for 9 days",
           "events": 478,
           "subagents": 1,
           "work": {
@@ -1246,14 +1247,14 @@
       ],
       "commits": [
         {
-          "hash": "bb3465df19b3822af4e9b74f60a91691694772dd",
-          "shortHash": "bb3465d",
-          "subject": "library: mirror the stacks (2026-10-22 07:28)",
-          "at": "2026-10-22T07:28:47-07:00",
+          "hash": "1630103fc0def2f390e6e1dbca80179f4a07bc1c",
+          "shortHash": "1630103",
+          "subject": "library: mirror the stacks (2026-10-23 07:13)",
+          "at": "2026-10-23T07:13:24-07:00",
           "files": 8,
           "ins": 3182,
           "del": 1636,
-          "refs": "origin/site/library-sync-20261022"
+          "refs": "origin/site/library-sync-20261023"
         }
       ]
     }
